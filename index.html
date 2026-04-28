@@ -155,10 +155,17 @@
   .panel-body { padding: 16px; }
 
   /* ─── GAUGE ─── */
-  .gauge-wrap { display: flex; flex-direction: column; align-items: center; padding: 20px; }
-  .gauge-canvas { max-width: 280px; }
-  .gauge-label { font-family: 'Bebas Neue', sans-serif; font-size: 36px; margin-top: -20px; }
-  .gauge-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .gauge-wrap { padding: 14px 16px; }
+  .gauge-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .gauge-svg-wrap { flex-shrink: 0; position: relative; width: 120px; height: 68px; }
+  .gauge-svg-wrap svg { width: 120px; height: 68px; }
+  .gauge-center-label { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); text-align: center; white-space: nowrap; }
+  .gauge-dollar { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--amber2); line-height: 1; }
+  .gauge-sub-small { font-size: 9px; color: var(--text3); }
+  .gauge-stats { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  .gauge-stat-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .gauge-stat-label { color: var(--text2); }
+  .gauge-stat-value { font-family: 'DM Mono', monospace; font-size: 12px; }
 
   /* ─── CHART ─── */
   .chart-wrap { padding: 16px; height: 220px; position: relative; }
@@ -333,6 +340,33 @@
     display: inline-block; width: 10px; height: 10px;
     border-radius: 50%; margin-right: 4px;
   }
+
+  /* ─── PRINT / PDF STYLES ─── */
+  @media print {
+    body { background: #fff !important; color: #111 !important; font-size: 12px; }
+    .topbar, .nav-tabs, .report-header .btn, .btn { display: none !important; }
+    .main { padding: 0 !important; max-width: 100%; }
+    .tab-panel { display: none !important; }
+    .tab-panel.active { display: block !important; }
+    .panel { border: 1px solid #ccc !important; background: #fff !important; page-break-inside: avoid; }
+    .panel-header { background: #f5f5f5 !important; border-bottom: 1px solid #ccc !important; }
+    .panel-title { color: #b87800 !important; }
+    .data-table td, .data-table th { color: #111 !important; border-color: #ddd !important; }
+    .badge-green { background: #e6f4ea !important; color: #1a7a3a !important; }
+    .badge-amber { background: #fff8e1 !important; color: #b87800 !important; }
+    .badge-red { background: #fdecea !important; color: #c0392b !important; }
+    .cost-label { color: #444 !important; }
+    .cost-amount { color: #111 !important; }
+    .stat-card { border: 1px solid #ccc !important; background: #fafafa !important; }
+    .stat-value { color: #111 !important; }
+    .stat-label, .stat-sub { color: #555 !important; }
+    .grid-2, .grid-60-40, .grid-40-60 { grid-template-columns: 1fr 1fr !important; }
+    .chart-wrap { display: none; }
+    .report-header { background: #fff !important; border: 1px solid #ccc !important; }
+    .progress-bar { background: #e0e0e0 !important; }
+    .progress-fill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .form-input, .editable { border: none !important; background: none !important; color: #111 !important; }
+  }
 </style>
 </head>
 <body>
@@ -346,7 +380,10 @@
       <div class="brand-sub">Project Command Center</div>
     </div>
   </div>
-  <div class="topbar-right">
+  <div class="topbar-right" style="gap:8px;">
+    <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="loadFromSheets()" title="Sync live data from Google Sheets">⟳ Sync Sheet</button>
+    <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="openSettings()" title="Google Sheets Settings">⚙ Setup</button>
+    <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;color:var(--green);border-color:var(--green);" onclick="openSheet('Jobs')" title="Open Google Sheet">📊 Open Sheet</button>
     <span class="topbar-week" id="currentWeekLabel">Week of Apr 21 – Apr 27, 2026</span>
     <button class="week-nav" onclick="changeWeek(-1)">◀ Prev</button>
     <button class="week-nav" onclick="changeWeek(1)">Next ▶</button>
@@ -409,27 +446,75 @@
         <span class="panel-title">Invoice Total Performance</span>
         <span style="font-size:12px;color:var(--text3)">Weekly target: $90k</span>
       </div>
-      <div class="panel-body">
+      <div class="panel-body" style="padding:0;">
         <div class="gauge-wrap">
-          <canvas id="gaugeChart" class="gauge-canvas" height="140"></canvas>
-          <div class="gauge-label amber" id="gaugeDollar">$59,465</div>
-          <div class="gauge-sub">Weekly Invoice Total</div>
-        </div>
-        <div style="margin-top:16px;">
-          <div class="cost-row">
-            <span class="cost-label">Invoice Total</span>
-            <span class="cost-amount amber">$59,465</span>
-          </div>
-          <div class="cost-row">
-            <span class="cost-label">% of Target (27.8%)</span>
-            <div class="progress-wrap" style="flex:1;margin-left:12px;">
-              <div class="progress-bar"><div class="progress-fill" style="width:66%;background:var(--amber);"></div></div>
-              <span class="progress-pct">66.1%</span>
+          <!-- Compact gauge row: SVG half-circle + stats side by side -->
+          <div class="gauge-row">
+            <div class="gauge-svg-wrap">
+              <svg viewBox="0 0 120 68" xmlns="http://www.w3.org/2000/svg" id="gaugeSvg">
+                <!-- Track -->
+                <path d="M10,60 A50,50 0 0,1 110,60" fill="none" stroke="#21262d" stroke-width="12" stroke-linecap="round"/>
+                <!-- Loss zone (red, 0-33%) -->
+                <path d="M10,60 A50,50 0 0,1 110,60" fill="none" stroke="#f85149" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="157" stroke-dashoffset="105" opacity="0.6"/>
+                <!-- Risk zone (amber, 33-53%) -->
+                <path d="M10,60 A50,50 0 0,1 110,60" fill="none" stroke="#f0a500" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="157" stroke-dashoffset="74" opacity="0.5"/>
+                <!-- Target zone (green, 53-100%) -->
+                <path d="M10,60 A50,50 0 0,1 110,60" fill="none" stroke="#3fb950" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="157" stroke-dashoffset="0" opacity="0.25"/>
+                <!-- Filled progress arc -->
+                <path d="M10,60 A50,50 0 0,1 110,60" fill="none" stroke="#f0a500" stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="157" id="gaugeArc" stroke-dashoffset="53"/>
+                <!-- Needle dot -->
+                <circle id="gaugeNeedle" cx="60" cy="10" r="4" fill="#ffc832"/>
+              </svg>
+              <div class="gauge-center-label">
+                <div class="gauge-dollar" id="gaugeDollar">$59,465</div>
+                <div class="gauge-sub-small">weekly total</div>
+              </div>
+            </div>
+            <div class="gauge-stats">
+              <div class="gauge-stat-row">
+                <span class="gauge-stat-label">Target</span>
+                <span class="gauge-stat-value" style="color:var(--text2)">$90,000</span>
+              </div>
+              <div class="gauge-stat-row">
+                <span class="gauge-stat-label">% of Target</span>
+                <span class="gauge-stat-value" style="color:var(--amber2)" id="ov-pctTarget">66.1%</span>
+              </div>
+              <div class="gauge-stat-row">
+                <span class="gauge-stat-label">Outstanding</span>
+                <span class="gauge-stat-value" style="color:var(--red)" id="ov-outstanding2">$29,007</span>
+              </div>
+              <div class="gauge-stat-row">
+                <span class="gauge-stat-label">Commission</span>
+                <span class="gauge-stat-value" id="ov-comm2">$3,734</span>
+              </div>
             </div>
           </div>
+          <!-- Zone legend -->
+          <div style="display:flex;gap:12px;font-size:10px;color:var(--text3);margin-bottom:10px;">
+            <span><span style="color:var(--red)">●</span> Loss &lt;$30k</span>
+            <span><span style="color:var(--amber)">●</span> Risk $30–53k</span>
+            <span><span style="color:var(--green)">●</span> Target $53k+</span>
+          </div>
+          <!-- Cost breakdown rows -->
           <div class="cost-row">
-            <span class="cost-label">Monthly Profit Target</span>
-            <span class="cost-amount red">0.00%</span>
+            <span class="cost-label">Invoice Total</span>
+            <span class="cost-amount amber" id="ov-invoiceTotal2">$59,465</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label">Materials</span>
+            <span class="cost-amount" id="ov-material2">$20,246</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label">Field Labour</span>
+            <span class="cost-amount" id="ov-labour2">$9,570</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label">Net Profit (before OH)</span>
+            <span class="cost-amount" id="ov-netprofit2" style="color:var(--green)">$25,928</span>
           </div>
         </div>
       </div>
@@ -486,7 +571,10 @@
         <option>Jery Edgett</option>
       </select>
     </div>
-    <button class="btn btn-primary" onclick="openAddJob()">+ Add Job</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary" onclick="openSheet('Jobs')" title="Edit in Google Sheets">📊 Edit in Sheet</button>
+      <button class="btn btn-primary" onclick="openAddJob()">+ Add Job</button>
+    </div>
   </div>
 
   <div class="panel">
@@ -532,7 +620,7 @@
     </div>
     <div style="display:flex;gap:10px;">
       <button class="btn btn-secondary" onclick="printReport()">🖨 Print / PDF</button>
-      <button class="btn btn-primary" onclick="showToast('Report saved!')">💾 Save Report</button>
+      <button class="btn btn-primary" onclick="saveReport()">💾 Save as PDF</button>
     </div>
   </div>
 
@@ -688,7 +776,10 @@
       <div style="font-family:'Bebas Neue';font-size:18px;color:var(--amber)">Weekly Commission Statements</div>
       <div style="font-size:12px;color:var(--text3)">Run every Tuesday · Auto-calculated by sales rep</div>
     </div>
-    <button class="btn btn-primary" onclick="openAddPayment()">+ Log Payment</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary" onclick="openSheet('Commissions')" title="View in Google Sheets">📊 View in Sheet</button>
+      <button class="btn btn-primary" onclick="openAddPayment()">+ Log Payment</button>
+    </div>
   </div>
 
   <!-- Rep selector -->
@@ -982,25 +1073,152 @@
 <div class="toast" id="toast">✓ Saved successfully</div>
 
 <script>
+
 // ─────────────────────────────────────────
-// DATA (seeded from actual spreadsheets)
+// GOOGLE SHEETS INTEGRATION
 // ─────────────────────────────────────────
-const JOBS = [
-  { inv: 'C2132', customer: 'Elizabeth Martinez', rep: 'Paul Vincent', total: 2850, material: 0, labour: 570, commission: 228, commRate: 0.08, outstanding: 0, startDate: '2026-04-22', status: 'Completed', payStatus: 'Completed', jobType: 'Fence' },
-  { inv: 'C2133', customer: 'Felicia Beltz', rep: 'Paul Vincent', total: 2850, material: 0, labour: 570, commission: 171, commRate: 0.06, outstanding: 0, startDate: '2026-04-22', status: 'Completed', payStatus: 'Completed', jobType: 'Deck' },
-  { inv: 'C2141', customer: 'Paul Bunnell', rep: 'Paul Vincent', total: 4750, material: 1200, labour: 975, commission: 285, commRate: 0.06, outstanding: 0, startDate: '2026-04-22', status: 'Completed', payStatus: 'Completed', jobType: 'Fence' },
-  { inv: 'C2123', customer: 'Ron Janysek', rep: 'Paul Vincent', total: 4340, material: 1800, labour: 780, commission: 347, commRate: 0.08, outstanding: 0, startDate: '2026-04-22', status: 'Completed', payStatus: 'Completed', jobType: 'Fence' },
-  { inv: 'C2118', customer: 'James Maikoetter', rep: 'Sherrell Ezzell', total: 2200, material: 650, labour: 390, commission: 132, commRate: 0.06, outstanding: 0, startDate: '2026-04-03', status: 'Completed', payStatus: 'Completed', jobType: 'Gate' },
-  { inv: 'C2120', customer: 'Leonard Robinson', rep: 'Sherrell Ezzell', total: 1250, material: 320, labour: 265, commission: 100, commRate: 0.08, outstanding: 0, startDate: '2026-04-03', status: 'Completed', payStatus: 'Completed', jobType: 'Repair' },
-  { inv: 'C2106', customer: 'Tammy Harger', rep: 'Jeff Yates', total: 30150, material: 12400, labour: 3900, commission: 1809, commRate: 0.06, outstanding: 14275, startDate: '2026-03-28', status: 'In Progress', payStatus: '1 of 2', jobType: 'Deck' },
-  { inv: 'C2104', customer: 'Ferguson Land Mgmt – Zac Ferguson', rep: 'Jeff Yates', total: 18440, material: 7200, labour: 2800, commission: 1475, commRate: 0.08, outstanding: 5530, startDate: '2026-03-13', status: 'Completed', payStatus: 'Partial', jobType: 'Fence' },
-  { inv: 'C2117', customer: 'Tanner McKibbon', rep: 'Paul Vincent', total: 8425, material: 3100, labour: 1560, commission: 674, commRate: 0.08, outstanding: 4000, startDate: '2026-03-23', status: 'Completed', payStatus: 'Partial', jobType: 'Pergola' },
-  { inv: 'C2074', customer: 'Melissa Proctor', rep: 'Paul Vincent', total: 11950, material: 4780, labour: 1170, commission: 717, commRate: 0.06, outstanding: 5975, startDate: '2026-02-12', status: 'Completed', payStatus: 'Partial', jobType: 'Deck' },
-  { inv: 'C2065', customer: 'Nicole Collins', rep: 'Paul Vincent', total: 13300, material: 5152, labour: 1350, commission: 798, commRate: 0.06, outstanding: 0, startDate: '2026-02-09', status: 'Completed', payStatus: 'Completed', jobType: 'Fence' },
-  { inv: 'C2087', customer: 'Trey Sewalt', rep: 'Paul Vincent', total: 6400, material: 2100, labour: 780, commission: 512, commRate: 0.08, outstanding: 3200, startDate: '2026-02-22', status: 'Completed', payStatus: 'Partial', jobType: 'Fence' },
-  { inv: 'C2090', customer: 'Carla Gonzalez', rep: 'Paul Vincent', total: 1600, material: 420, labour: 265, commission: 96, commRate: 0.06, outstanding: 0, startDate: '2026-03-02', status: 'Completed', payStatus: 'Completed', jobType: 'Repair' },
-  { inv: 'C2088', customer: 'Nicole Collins', rep: 'Paul Vincent', total: 8600, material: 3200, labour: 1170, commission: 688, commRate: 0.08, outstanding: 4300, startDate: '2026-03-02', status: 'Completed', payStatus: 'Partial', jobType: 'Fence' },
-];
+const SHEET_ID = '1yBIc8reiJksb_vtZ_oyJuAqh1Vc5ddmS';
+const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
+
+// Fetch data from a sheet tab via public API (sheet must be shared as viewer)
+// For write operations we use the Anthropic API proxy approach
+async function fetchSheetData(range) {
+  try {
+    const url = ;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Sheets API error: ' + res.status);
+    const data = await res.json();
+    return data.values || [];
+  } catch (e) {
+    console.warn('Sheets fetch failed, using local data:', e.message);
+    return null;
+  }
+}
+
+// Write a new row to the Jobs sheet
+async function appendToSheet(sheetName, rowData) {
+  try {
+    const url = ;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization':  },
+      body: JSON.stringify({ values: [rowData] })
+    });
+    return res.ok;
+  } catch (e) {
+    console.warn('Sheets write failed:', e.message);
+    return false;
+  }
+}
+
+// Parse Jobs sheet rows into job objects
+function parseJobRows(rows) {
+  if (!rows || rows.length < 2) return null;
+  const jobs = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r[0] && !r[2]) continue;
+    jobs.push({
+      inv: r[0] || '—',
+      customer: r[2] || '',
+      rep: r[3] || '',
+      jobType: r[4] || '',
+      total: parseFloat(r[5]) || 0,
+      commRate: parseFloat(r[6]) || 6,
+      commission: parseFloat(r[7]) || 0,
+      material: parseFloat(r[8]) || 0,
+      labour: parseFloat(r[9]) || 0,
+      startDate: r[10] || '',
+      status: r[12] || '',
+      outstanding: parseFloat(r[17]) || 0,
+      payLabel: parseFloat(r[17]) > 0 ? '$' + parseFloat(r[17]).toLocaleString('en-US',{maximumFractionDigits:0}) + ' outstanding' : 'Completed',
+    });
+  }
+  return jobs;
+}
+
+// Parse Commission sheet rows
+function parseCommRows(rows) {
+  if (!rows || rows.length < 2) return {};
+  const byRep = {};
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r[3]) continue;
+    const rep = r[3];
+    if (!byRep[rep]) byRep[rep] = [];
+    byRep[rep].push({
+      weekDate: r[0] || '',
+      inv: r[1] || '',
+      customer: r[2] || '',
+      total: parseFloat(r[4]) || 0,
+      rate: (parseFloat(r[5]) || 6) + '%',
+      payDate: r[6] || '',
+      payAmt: parseFloat(r[7]) || 0,
+      commAmt: parseFloat(r[8]) || 0,
+      prepaid: parseFloat(r[9]) || 0,
+      available: parseFloat(r[10]) || 0,
+    });
+  }
+  return byRep;
+}
+
+// Load live data from Google Sheets (falls back to embedded data if unavailable)
+async function loadFromSheets() {
+  showToast('Syncing with Google Sheets…');
+  const jobRows = await fetchSheetData('Jobs!A1:R200');
+  if (jobRows) {
+    const liveJobs = parseJobRows(jobRows);
+    if (liveJobs && liveJobs.length > 0) {
+      window.LIVE_JOBS = liveJobs;
+      renderJobs(liveJobs);
+      showToast('✓ Jobs synced from Google Sheets');
+    }
+  }
+  const commRows = await fetchSheetData('Commissions!A1:K200');
+  if (commRows) {
+    const liveComm = parseCommRows(commRows);
+    if (Object.keys(liveComm).length > 0) {
+      window.LIVE_COMMISSIONS = liveComm;
+      renderCommissions();
+      showToast('✓ Commissions synced');
+    }
+  }
+}
+
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1yBIc8reiJksb_vtZ_oyJuAqh1Vc5ddmS/edit';
+
+function openSheet(tab) {
+  const tabs = { Jobs: 0, Schedule: 1, Commissions: 2, Overhead: 3 };
+  const gid = tabs[tab] || 0;
+  window.open(SHEET_URL + '#gid=' + gid, '_blank');
+}
+
+// ─────────────────────────────────────────
+// REAL DATA FROM SPREADSHEETS
+// ─────────────────────────────────────────
+const WEEKLY_DATA = {"2026-01-05":{"jobs":[{"inv":"2028","customer":"Amy Irving","rep":"Paul Vincent","total":2900.0,"material":612.98,"labour":530.2,"commission":232.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-05","status":"Completed","payLabel":"Completed"},{"inv":"C2020","customer":"Don Mikulenka Custom Builder, Inc.","rep":"Jeff Yates","total":18850.0,"material":10830.62,"labour":1855.7,"commission":1131.0,"commRate":6,"outstanding":942.5,"startDate":"2026-01-05","status":"Completed","payLabel":"$942 outstanding"},{"inv":"\u2014","customer":"Byers gate repair","rep":"","total":0.0,"material":0.0,"labour":265.1,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-05","status":"Completed","payLabel":"Completed"},{"inv":"1995","customer":"Tambra Hubbard","rep":"Sherrell Ezzell","total":11400.0,"material":5261.34,"labour":1060.4,"commission":684.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-06","status":"Completed","payLabel":"Completed"},{"inv":"C2002","customer":"5D - POC - Brianne Dlugosch","rep":"Paul Vincent","total":4500.0,"material":2036.01,"labour":265.1,"commission":270.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-06","status":"Completed","payLabel":"Completed"},{"inv":"C2030","customer":"SL Commercial Services/TSC - Edna","rep":"Jeff Yates","total":2300.0,"material":0.0,"labour":465.1,"commission":184.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-06","status":"Completed","payLabel":"Completed"},{"inv":"2021","customer":"Sandra and Don May","rep":"Paul Vincent","total":8700.0,"material":2897.88,"labour":530.2,"commission":522.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-08","status":"Completed","payLabel":"Completed"},{"inv":"2027","customer":"Justin Guzman","rep":"Paul Vincent","total":10800.0,"material":2275.5,"labour":1855.7,"commission":648.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-08","status":"Completed","payLabel":"Completed"}],"total":59450.0,"material":23914.33,"labour":6827.5,"commission":3671.0,"outstanding":942.5},"2026-01-12":{"jobs":[{"inv":"C1968","customer":"Karnes County Residential Center - Jesus Fernandez","rep":"Sherrell Ezzell","total":25625.0,"material":11220.32,"labour":1782.7,"commission":1537.5,"commRate":6,"outstanding":0.0,"startDate":"2026-01-12","status":"Completed","payLabel":"Completed"},{"inv":"2032","customer":"Marcie Garcia","rep":"Paul Vincent","total":2300.0,"material":438.01,"labour":300.0,"commission":138.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-13","status":"Completed","payLabel":"Completed"},{"inv":"2033","customer":"Gwen Hall","rep":"Jeff Yates","total":3500.0,"material":1139.78,"labour":720.0,"commission":280.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-13","status":"Completed","payLabel":"Completed"},{"inv":"2034","customer":"Lucas Johnson","rep":"Jeff Yates","total":19800.0,"material":11020.28,"labour":3381.2,"commission":1188.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-13","status":"Completed","payLabel":"Completed"},{"inv":"C2035","customer":"Don Mikulenka Custom Builder, Inc.","rep":"Jeff Yates","total":5000.0,"material":748.9,"labour":530.2,"commission":400.0,"commRate":8,"outstanding":250.0,"startDate":"2026-01-14","status":"Completed","payLabel":"$250 outstanding"},{"inv":"S2038","customer":"Zoe Davis","rep":"Paul Vincent","total":5000.0,"material":686.65,"labour":1300.0,"commission":300.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-14","status":"Completed","payLabel":"Completed"},{"inv":"2037","customer":"Kelly & Kyle Flessner ","rep":"Jeff Yates","total":17500.0,"material":7545.5,"labour":2530.2,"commission":1400.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-15","status":"Completed","payLabel":"Completed"},{"inv":"C2042","customer":"Eddy Foods (Kristin McKinney)","rep":"Jeff Yates","total":3400.0,"material":813.3,"labour":465.1,"commission":272.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-15","status":"Completed","payLabel":"Completed"}],"total":82125.0,"material":33612.74,"labour":11009.4,"commission":5515.5,"outstanding":250.0},"2026-01-19":{"jobs":[{"inv":"2036","customer":"Elizabeth Smith","rep":"Sherrell Ezzell","total":27500.0,"material":10406.95,"labour":4340.6,"commission":2200.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-19","status":"Completed","payLabel":"Completed"},{"inv":"2039","customer":"Wayne Condra","rep":"Jeff Yates","total":8700.0,"material":1952.46,"labour":1060.4,"commission":522.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-20","status":"Completed","payLabel":"Completed"},{"inv":"S2044","customer":"Laura Stuart","rep":"Paul Vincent","total":1000.0,"material":164.18,"labour":300.0,"commission":60.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-20","status":"Completed","payLabel":"Completed"},{"inv":"\u2014","customer":"Charlie King repair","rep":"","total":0.0,"material":0.0,"labour":265.1,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-20","status":"Completed","payLabel":"Completed"},{"inv":"2043","customer":"Carol Tally","rep":"Jeff Yates","total":5525.0,"material":2427.51,"labour":1158.0,"commission":442.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-21","status":"Completed","payLabel":"Completed"},{"inv":"C2041","customer":"Pawnee ISD - Danny Field (1-70%)","rep":"Sherrell Ezzell","total":49070.0,"material":24022.92,"labour":4971.8,"commission":2944.2,"commRate":6,"outstanding":0.0,"startDate":"2026-01-21","status":"Completed","payLabel":"Completed"},{"inv":"2040","customer":"Ryan Haycock","rep":"Sherrell Ezzell","total":1350.0,"material":585.78,"labour":200.0,"commission":108.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-22","status":"Completed","payLabel":"Completed"}],"total":93145.0,"material":39559.8,"labour":12295.9,"commission":6276.2,"outstanding":0.0},"2026-01-26":{"jobs":[{"inv":"\u2014","customer":"Support labour & Smith repair","rep":"","total":0.0,"material":0.0,"labour":1325.5,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-27","status":"Completed","payLabel":"Completed"},{"inv":"2047","customer":"Jan Hill","rep":"Sherrell Ezzell","total":4450.0,"material":2125.81,"labour":812.5,"commission":267.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-28","status":"Completed","payLabel":"Completed"},{"inv":"2045","customer":"Pete Guajardo","rep":"Jeff Yates","total":5750.0,"material":1663.89,"labour":1200.0,"commission":345.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-29","status":"Completed","payLabel":"Completed"},{"inv":"2051","customer":"Adelina Garza","rep":"Paul Vincent","total":9800.0,"material":3571.47,"labour":1590.6,"commission":784.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-29","status":"Completed","payLabel":"Completed"},{"inv":"C2053","customer":"Dustin Kenne, Westhoff ISD","rep":"Jeff Yates","total":6500.0,"material":3559.52,"labour":530.2,"commission":520.0,"commRate":8,"outstanding":0.0,"startDate":"2026-01-29","status":"Completed","payLabel":"Completed"},{"inv":"C2054","customer":"Don Mikulenka Custom Builder, Inc.","rep":"Jeff Yates","total":1400.0,"material":1114.4,"labour":0.0,"commission":112.0,"commRate":8,"outstanding":70.0,"startDate":"2026-01-29","status":"Completed","payLabel":"$70 outstanding"},{"inv":"S2056","customer":"Kathleen Storz","rep":"Sherrell Ezzell","total":9200.0,"material":4237.46,"labour":2430.0,"commission":552.0,"commRate":6,"outstanding":0.0,"startDate":"2026-01-29","status":"Completed","payLabel":"Completed"}],"total":37100.0,"material":16272.55,"labour":7888.8,"commission":2580.0,"outstanding":70.0},"2026-02-02":{"jobs":[{"inv":"2057","customer":"Richard Jones","rep":"Jeff Yates","total":4500.0,"material":1751.5,"labour":585.0,"commission":270.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-02","status":"Completed","payLabel":"Completed"},{"inv":"\u2014","customer":"Support labour","rep":"","total":0.0,"material":0.0,"labour":1170.0,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-02","status":"Completed","payLabel":"Completed"},{"inv":"2060","customer":"Kenneth Allen","rep":"Sherrell Ezzell","total":4800.0,"material":1821.13,"labour":1462.5,"commission":288.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-03","status":"Completed","payLabel":"Completed"},{"inv":"2061","customer":"Allen Baas","rep":"Paul Vincent","total":2000.0,"material":395.48,"labour":292.5,"commission":120.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-04","status":"Completed","payLabel":"Completed"},{"inv":"C2055","customer":"Pawnee ISD - Danny Field Add-on","rep":"Sherrell Ezzell","total":14500.0,"material":7328.05,"labour":2340.0,"commission":1160.0,"commRate":8,"outstanding":0.0,"startDate":"2026-02-05","status":"Completed","payLabel":"Completed"},{"inv":"2064","customer":"Robert Hopkins","rep":"Phillip Johns","total":5420.0,"material":1037.62,"labour":1585.0,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-06","status":"Completed","payLabel":"Completed"}],"total":31220.0,"material":12333.78,"labour":7435.0,"commission":1838.0,"outstanding":0.0},"2026-02-09":{"jobs":[{"inv":"2062","customer":"Jim Winne (1-50%)","rep":"Sherrell Ezzell","total":11725.0,"material":5184.52,"labour":4695.0,"commission":938.0,"commRate":8,"outstanding":0.0,"startDate":"2026-02-09","status":"Completed","payLabel":"Completed"},{"inv":"C2052","customer":"Construction of Unit 1 & 2 Detention Pond (Stout) (1-20%)","rep":"Yvonne Chiang","total":39132.4,"material":19806.55,"labour":10214.57,"commission":3130.59,"commRate":8,"outstanding":0.0,"startDate":"2026-02-10","status":"Completed","payLabel":"Completed"},{"inv":"1945","customer":"Larry Heckman","rep":"Jeff Yates","total":9500.0,"material":4422.94,"labour":2721.0,"commission":570.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-11","status":"Completed","payLabel":"Completed"},{"inv":"C1771","customer":"McKenzie Interceptor Upgrade (Cash Construction) (1-25%)","rep":"Yvonne Chiang","total":42631.0,"material":21093.11,"labour":7222.0,"commission":2984.17,"commRate":6,"outstanding":18170.87,"startDate":"2026-02-11","status":"Completed","payLabel":"$18,171 outstanding"},{"inv":"C2049","customer":"McKenzie Interceptor Upgrade Add-On (Cash Construction)","rep":"Yvonne Chiang","total":8013.0,"material":1272.45,"labour":2500.0,"commission":641.04,"commRate":8,"outstanding":8013.0,"startDate":"2026-02-11","status":"Completed","payLabel":"$8,013 outstanding"},{"inv":"S2066","customer":"Christine Harbin","rep":"Sherrell Ezzell","total":4900.0,"material":2119.16,"labour":1237.5,"commission":294.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-12","status":"Completed","payLabel":"Completed"},{"inv":"\u2014","customer":"Support labour","rep":"","total":0.0,"material":0.0,"labour":292.5,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-12","status":"Completed","payLabel":"Completed"},{"inv":"2070","customer":"Jessica Wise","rep":"Sherrell Ezzell","total":2500.0,"material":1978.82,"labour":645.0,"commission":150.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-13","status":"Completed","payLabel":"Completed"}],"total":118401.4,"material":55877.56,"labour":29527.57,"commission":8707.8,"outstanding":26183.87},"2026-02-16":{"jobs":[{"inv":"2065","customer":"Nicole Collins","rep":"Paul Vincent","total":13300.0,"material":5152.08,"labour":1350.0,"commission":798.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-16","status":"Completed","payLabel":"Completed"},{"inv":"2076","customer":"Jesse McLane","rep":"Sherrell Ezzell","total":5450.0,"material":2506.22,"labour":585.0,"commission":436.0,"commRate":8,"outstanding":0.0,"startDate":"2026-02-16","status":"Completed","payLabel":"Completed"},{"inv":"C2052","customer":"Construction of Unit 1 & 2 Detention Pond (Stout) (2-20%)","rep":"Yvonne Chiang","total":39132.4,"material":14323.71,"labour":4680.0,"commission":3130.59,"commRate":8,"outstanding":0.0,"startDate":"2026-02-16","status":"Completed","payLabel":"Completed"},{"inv":"S2077","customer":"Luis Delapena","rep":"Sherrell Ezzell","total":7050.0,"material":3317.03,"labour":1800.0,"commission":423.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-17","status":"Completed","payLabel":"Completed"},{"inv":"\u2014","customer":"Warranty & yard","rep":"","total":0.0,"material":0.0,"labour":1170.0,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-17","status":"Completed","payLabel":"Completed"},{"inv":"2074","customer":"Melissa Proctor","rep":"Paul Vincent","total":11950.0,"material":4780.06,"labour":1170.0,"commission":717.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-18","status":"Completed","payLabel":"Completed"},{"inv":"C2079","customer":"Port O'Connor Improvement District - Oscar Pena","rep":"Paul Vincent","total":3800.0,"material":813.18,"labour":1000.0,"commission":304.0,"commRate":8,"outstanding":0.0,"startDate":"2026-02-18","status":"Completed","payLabel":"Completed"},{"inv":"CS2075","customer":"QRV - Madelyn Sanchez","rep":"Paul Vincent","total":13800.0,"material":6827.01,"labour":3360.0,"commission":828.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-18","status":"Completed","payLabel":"Completed"},{"inv":"2078","customer":"Christine Kidd","rep":"Paul Vincent","total":2100.0,"material":579.17,"labour":350.0,"commission":168.0,"commRate":8,"outstanding":0.0,"startDate":"2026-02-19","status":"Completed","payLabel":"Completed"},{"inv":"S2069","customer":"Mike & Ashley Uresti","rep":"Sherrell Ezzell","total":7700.0,"material":3891.44,"labour":1731.0,"commission":462.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-19","status":"Completed","payLabel":"Completed"}],"total":104282.4,"material":42189.9,"labour":17196.0,"commission":7266.59,"outstanding":0.0},"2026-02-23":{"jobs":[{"inv":"2084","customer":"Raymond Myers","rep":"Paul Vincent","total":2600.0,"material":1173.27,"labour":585.0,"commission":156.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-23","status":"Completed","payLabel":"Completed"},{"inv":"C2052","customer":"Construction of Unit 1 & 2 Detention Pond (Stout) (3-15%)","rep":"Yvonne Chiang","total":29349.3,"material":10742.78,"labour":3510.0,"commission":2347.94,"commRate":8,"outstanding":0.0,"startDate":"2026-02-23","status":"Completed","payLabel":"Completed"},{"inv":"CS2082","customer":"Edgar Hinojosa","rep":"Sherrell Ezzell","total":4200.0,"material":1030.97,"labour":1280.0,"commission":252.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-23","status":"Completed","payLabel":"Completed"},{"inv":"2087","customer":"Trey Sewalt","rep":"Paul Vincent","total":6400.0,"material":2800.64,"labour":585.0,"commission":512.0,"commRate":8,"outstanding":0.0,"startDate":"2026-02-24","status":"Completed","payLabel":"Completed"},{"inv":"S2080","customer":"David Ebert","rep":"Jeff Yates","total":8100.0,"material":2426.72,"labour":1990.0,"commission":486.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-24","status":"Completed","payLabel":"Completed"},{"inv":"C1718","customer":"National Conductor - Joshua Dixon (2-10%)","rep":"Paul Vincent","total":6064.1,"material":0.0,"labour":585.0,"commission":424.49,"commRate":6,"outstanding":6064.1,"startDate":"2026-02-25","status":"Completed","payLabel":"$6,064 outstanding"},{"inv":"\u2014","customer":"Warranty","rep":"","total":0.0,"material":0.0,"labour":1755.0,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-25","status":"Completed","payLabel":"Completed"},{"inv":"2090","customer":"Carla Gonzalez","rep":"Paul Vincent","total":1600.0,"material":943.58,"labour":585.0,"commission":96.0,"commRate":6,"outstanding":0.0,"startDate":"2026-02-26","status":"Completed","payLabel":"Completed"}],"total":58313.4,"material":19117.96,"labour":10875.0,"commission":4274.43,"outstanding":6064.1},"2026-03-02":{"jobs":[{"inv":"2094","customer":"Chris & Robert Handy","rep":"Jeff Yates","total":27000.0,"material":13343.2,"labour":4591.8,"commission":1620.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-02","status":"Completed","payLabel":"Completed"},{"inv":"C2093","customer":"HSL Family LTD","rep":"Phillip Johns","total":7699.0,"material":4550.56,"labour":918.36,"commission":461.94,"commRate":6,"outstanding":0.0,"startDate":"2026-03-02","status":"Completed","payLabel":"Completed"},{"inv":"2095","customer":"Lisa Garrett","rep":"Jeff Yates","total":1800.0,"material":652.45,"labour":612.24,"commission":108.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-03","status":"Completed","payLabel":"Completed"},{"inv":"2096","customer":"Gary Morgan","rep":"Phillip Johns","total":3500.0,"material":1528.58,"labour":952.5,"commission":210.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-03","status":"Completed","payLabel":"Completed"},{"inv":"S2098","customer":"Doris Brown","rep":"Sherrell Ezzell","total":3400.0,"material":1570.49,"labour":679.0,"commission":272.0,"commRate":8,"outstanding":0.0,"startDate":"2026-03-03","status":"Completed","payLabel":"Completed"},{"inv":"CS2089","customer":"Martino Travino - Republic Services","rep":"Sherrell Ezzell","total":10600.0,"material":6717.11,"labour":1224.48,"commission":636.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-04","status":"Completed","payLabel":"Completed"},{"inv":"C2073","customer":"Texas Aqua Store - Travis Courange (1-50%)","rep":"Paul Vincent","total":3225.0,"material":0.0,"labour":612.24,"commission":258.0,"commRate":8,"outstanding":1800.0,"startDate":"2026-03-05","status":"Completed","payLabel":"$1,800 outstanding"},{"inv":"C2083","customer":"City of Corpus Christi Williams Lift Station Force Main (1-30%)","rep":"Yvonne Chiang","total":32679.0,"material":8038.98,"labour":2712.24,"commission":2614.32,"commRate":8,"outstanding":1410.7,"startDate":"2026-03-05","status":"Completed","payLabel":"$1,411 outstanding"}],"total":89903.0,"material":36401.37,"labour":12302.86,"commission":6180.26,"outstanding":3210.7},"2026-03-09":{"jobs":[{"inv":"2102","customer":"Lisa Garrett","rep":"Jeff Yates","total":4100.0,"material":1595.82,"labour":612.24,"commission":328.0,"commRate":8,"outstanding":0.0,"startDate":"2026-03-09","status":"Completed","payLabel":"Completed"},{"inv":"C2023","customer":"Lauger Companies Inc","rep":"Sherrell Ezzell","total":31700.0,"material":13707.73,"labour":5468.0,"commission":2536.0,"commRate":8,"outstanding":21350.0,"startDate":"2026-03-09","status":"Completed","payLabel":"$21,350 outstanding"},{"inv":"C2052","customer":"Construction of Unit 1 & 2 Detention Pond (Stout) (4-20%)","rep":"Yvonne Chiang","total":39132.4,"material":22649.87,"labour":7885.95,"commission":3130.59,"commRate":8,"outstanding":0.0,"startDate":"2026-03-09","status":"Completed","payLabel":"Completed"},{"inv":"S2099","customer":"Jennifer Perez","rep":"Sherrell Ezzell","total":3100.0,"material":1299.2,"labour":885.0,"commission":186.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-09","status":"Completed","payLabel":"Completed"},{"inv":"2058","customer":"Martha Salazar","rep":"Jeff Yates","total":6600.0,"material":1798.92,"labour":918.36,"commission":528.0,"commRate":8,"outstanding":0.0,"startDate":"2026-03-10","status":"Completed","payLabel":"Completed"},{"inv":"S2101","customer":"John Smart","rep":"Sherrell Ezzell","total":7600.0,"material":4382.36,"labour":1370.0,"commission":456.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-10","status":"Completed","payLabel":"Completed"},{"inv":"S2097","customer":"Lewis and Henry Glover","rep":"Sherrell Ezzell","total":11700.0,"material":5620.71,"labour":2362.0,"commission":936.0,"commRate":8,"outstanding":0.0,"startDate":"2026-03-11","status":"Completed","payLabel":"Completed"},{"inv":"2063","customer":"Mark Boname","rep":"Paul Vincent","total":4300.0,"material":1087.37,"labour":306.12,"commission":344.0,"commRate":8,"outstanding":0.0,"startDate":"2026-03-12","status":"Completed","payLabel":"Completed"},{"inv":"\u2014","customer":"Warranty","rep":"","total":0.0,"material":0.0,"labour":1530.6,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-12","status":"Completed","payLabel":"Completed"}],"total":108232.4,"material":52141.98,"labour":21338.27,"commission":8444.59,"outstanding":21350.0},"2026-03-16":{"jobs":[{"inv":"C2052","customer":"Construction of Unit 1 & 2 Detention Pond (Stout) (5-20%)","rep":"Yvonne Chiang","total":39132.4,"material":14323.71,"labour":4897.92,"commission":3130.59,"commRate":8,"outstanding":5468.4,"startDate":"2026-03-16","status":"Completed","payLabel":"$5,468 outstanding"},{"inv":"S2109","customer":"Sarah Miller","rep":"Sherrell Ezzell","total":7275.0,"material":2424.57,"labour":1071.42,"commission":436.5,"commRate":6,"outstanding":0.0,"startDate":"2026-03-16","status":"Completed","payLabel":"Completed"},{"inv":"S2111","customer":"Donna & Wade Debolt","rep":"Jeff Yates","total":6200.0,"material":2206.19,"labour":612.24,"commission":372.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-17","status":"Completed","payLabel":"Completed"},{"inv":"S2112","customer":"Michael Hahn","rep":"Sherrell Ezzell","total":8650.0,"material":3712.2,"labour":1814.0,"commission":519.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-17","status":"Completed","payLabel":"Completed"},{"inv":"C2105","customer":"Ferguson Land Management - Zac Ferguson","rep":"Paul Vincent","total":18440.0,"material":7561.91,"labour":1224.48,"commission":1475.2,"commRate":8,"outstanding":0.0,"startDate":"2026-03-18","status":"Completed","payLabel":"Completed"},{"inv":"C2110","customer":"Jay Bonano","rep":"Jeff Yates","total":17800.0,"material":8319.11,"labour":3030.6,"commission":1424.0,"commRate":8,"outstanding":0.0,"startDate":"2026-03-19","status":"Completed","payLabel":"Completed"},{"inv":"C2041","customer":"Pawnee ISD - Danny Field (2-30%)","rep":"Sherrell Ezzell","total":21030.0,"material":0.0,"labour":7610.36,"commission":1261.8,"commRate":6,"outstanding":0.0,"startDate":"2026-03-20","status":"Completed","payLabel":"Completed"}],"total":118527.4,"material":38547.69,"labour":20261.02,"commission":8619.09,"outstanding":5468.4},"2026-03-23":{"jobs":[{"inv":"2103","customer":"Yonh John Du","rep":"Sherrell Ezzell","total":83635.0,"material":24099.61,"labour":10837.66,"commission":5018.1,"commRate":6,"outstanding":0.0,"startDate":"2026-03-23","status":"Completed","payLabel":"Completed"},{"inv":"2108","customer":"Joseph Garza","rep":"Jeff Yates","total":4000.0,"material":1664.69,"labour":750.0,"commission":320.0,"commRate":8,"outstanding":0.0,"startDate":"2026-03-23","status":"Completed","payLabel":"Completed"},{"inv":"2106","customer":"Tammy Harger","rep":"Paul Vincent","total":30150.0,"material":4177.46,"labour":12650.0,"commission":1809.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-24","status":"Completed","payLabel":"Completed"},{"inv":"C2104","customer":"Ferguson Land Management - Zac Ferguson","rep":"Paul Vincent","total":19810.0,"material":9810.57,"labour":1836.72,"commission":1584.8,"commRate":8,"outstanding":0.0,"startDate":"2026-03-24","status":"Completed","payLabel":"Completed"},{"inv":"\u2014","customer":"Proctor punchout & Warranty","rep":"","total":0.0,"material":0.0,"labour":2000.0,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-24","status":"Completed","payLabel":"Completed"}],"total":137595.0,"material":39752.33,"labour":28074.38,"commission":8731.9,"outstanding":0.0},"2026-03-30":{"jobs":[{"inv":"2107","customer":"Sharon & Ray Zaiontz","rep":"Jeff Yates","total":13450.0,"material":3526.7,"labour":3830.6,"commission":807.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-30","status":"Completed","payLabel":"Completed"},{"inv":"2115","customer":"Billie Hanke","rep":"Jeff Yates","total":8200.0,"material":3164.07,"labour":1650.0,"commission":492.0,"commRate":6,"outstanding":0.0,"startDate":"2026-03-30","status":"Completed","payLabel":"Completed"},{"inv":"2062","customer":"Jim Winne (2-50%)","rep":"Sherrell Ezzell","total":11725.0,"material":8153.89,"labour":3118.36,"commission":938.0,"commRate":8,"outstanding":0.0,"startDate":"2026-03-31","status":"Completed","payLabel":"Completed"},{"inv":"2122","customer":"Roger Huehlefeld ","rep":"Jeff Yates","total":3800.0,"material":1107.0,"labour":652.0,"commission":228.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-01","status":"Completed","payLabel":"Completed"},{"inv":"2118","customer":"James Maikoetter","rep":"Paul Vincent","total":2200.0,"material":875.0,"labour":355.0,"commission":132.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-02","status":"Completed","payLabel":"Completed"},{"inv":"2120","customer":"Leonard Robinson","rep":"Paul Vincent","total":1250.0,"material":440.0,"labour":315.0,"commission":100.0,"commRate":8,"outstanding":0.0,"startDate":"2026-04-03","status":"Completed","payLabel":"Completed"}],"total":40625.0,"material":17266.67,"labour":9920.96,"commission":2697.0,"outstanding":0.0},"2026-04-06":{"jobs":[{"inv":"2088","customer":"Nicole Collins","rep":"Paul Vincent","total":8600.0,"material":3880.0,"labour":750.0,"commission":688.0,"commRate":8,"outstanding":0.0,"startDate":"2026-04-06","status":"Completed","payLabel":"Completed"},{"inv":"C2114","customer":"Equalizer Inc. | Doug Stevens","rep":"Paul Vincent","total":25000.0,"material":9500.0,"labour":3800.0,"commission":1500.0,"commRate":6,"outstanding":25000.0,"startDate":"2026-04-06","status":"In progress","payLabel":"$25,000 outstanding"},{"inv":"S2124","customer":"Ferdinand Siegel","rep":"Sherrell Ezzell","total":14500.0,"material":5307.9,"labour":4357.9,"commission":870.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-07","status":"Completed","payLabel":"Completed"}],"total":48100.0,"material":18687.9,"labour":8907.9,"commission":3058.0,"outstanding":25000.0},"2026-04-13":{"jobs":[{"inv":"2129","customer":"Donna & Wade Debolt","rep":"Jeff Yates","total":15600.0,"material":3800.0,"labour":2898.0,"commission":936.0,"commRate":6,"outstanding":1800.0,"startDate":"2026-04-13","status":"","payLabel":"$1,800 outstanding"},{"inv":"2132","customer":"Elizabeth Martinez","rep":"Paul Vincent","total":2850.0,"material":950.0,"labour":599.5,"commission":228.0,"commRate":8,"outstanding":0.0,"startDate":"2026-04-13","status":"Completed","payLabel":"Completed"},{"inv":"C2031","customer":"Lauger Companies Inc","rep":"Sherrell Ezzell","total":1500.0,"material":855.28,"labour":0.0,"commission":120.0,"commRate":8,"outstanding":0.0,"startDate":"2026-04-13","status":"Completed","payLabel":"Completed"},{"inv":"2128","customer":"Vickie Johnson","rep":"Jeff Yates","total":8600.0,"material":3157.0,"labour":1120.0,"commission":516.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-14","status":"Completed","payLabel":"Completed"},{"inv":"C2130","customer":"DeAngela Nava/Pet Resort on Main","rep":"Jeff Yates","total":2100.0,"material":719.0,"labour":275.0,"commission":126.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-16","status":"Completed","payLabel":"Completed"},{"inv":"2123","customer":"Ron Janysek ","rep":"Paul Vincent","total":4340.0,"material":1530.0,"labour":377.0,"commission":347.2,"commRate":8,"outstanding":0.0,"startDate":"2026-04-17","status":"Completed","payLabel":"Completed"},{"inv":"2133","customer":"Felicia Beltz","rep":"Paul Vincent","total":2850.0,"material":571.0,"labour":349.5,"commission":171.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-17","status":"Completed","payLabel":"Completed"},{"inv":"S2137","customer":"JoAnne Settles","rep":"Taylor Bassett","total":1617.58,"material":531.85,"labour":315.0,"commission":0.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-18","status":"Completed","payLabel":"Completed"}],"total":39457.58,"material":12114.13,"labour":5934.0,"commission":2444.2,"outstanding":1800.0},"2026-04-20":{"jobs":[{"inv":"C2083","customer":"City of Corpus Christi Williams Lift Station Force Main (2-35%)","rep":"Yvonne Chiang","total":38125.5,"material":12832.7,"labour":5850.0,"commission":3050.04,"commRate":8,"outstanding":38125.5,"startDate":"2026-04-20","status":"Completed","payLabel":"$38,126 outstanding"},{"inv":"S2138","customer":"Patty Boldt","rep":"Sherrell Ezzell","total":3700.0,"material":1181.93,"labour":359.4,"commission":222.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-20","status":"Completed","payLabel":"Completed"},{"inv":"S2127","customer":"Cindy Fitzgerald","rep":"Jeff Yates","total":9800.0,"material":2710.0,"labour":1326.0,"commission":588.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-23","status":"Completed","payLabel":"Completed"}],"total":51625.5,"material":16724.63,"labour":7535.4,"commission":3860.04,"outstanding":38125.5},"2026-04-27":{"jobs":[{"inv":"2142","customer":"James Ken","rep":"Jeff Yates","total":16600.0,"material":2786.0,"labour":3448.0,"commission":996.0,"commRate":6,"outstanding":8300.0,"startDate":"2026-04-27","status":"","payLabel":"$8,300 outstanding"},{"inv":"S2135","customer":"Adam Pustka","rep":"Jeff Yates","total":20000.0,"material":0.0,"labour":15000.0,"commission":1200.0,"commRate":6,"outstanding":0.0,"startDate":"2026-04-27","status":"","payLabel":"Completed"},{"inv":"S2136","customer":"Joe Narez","rep":"Sherrell Ezzell","total":11700.0,"material":4852.13,"labour":1648.5,"commission":936.0,"commRate":8,"outstanding":5850.0,"startDate":"2026-04-27","status":"","payLabel":"$5,850 outstanding"}],"total":48300.0,"material":7638.13,"labour":20096.5,"commission":3132.0,"outstanding":14150.0}};
+
+// All available week keys sorted
+const WEEK_KEYS = ["2026-01-05", "2026-01-12", "2026-01-19", "2026-01-26", "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13", "2026-04-20", "2026-04-27"];
+
+// Current week index (default to most recent available)
+let currentWeekIdx = WEEK_KEYS.length - 1;
+
+// Get jobs for current week (used by Jobs tab - shows all weeks)
+function getAllJobs() {
+  const all = [];
+  for (const wk of WEEK_KEYS) {
+    for (const j of WEEKLY_DATA[wk].jobs) {
+      if (j.customer && j.customer !== 'Support labour' && j.customer !== 'Warranty' && !j.customer.startsWith('Warranty')) {
+        all.push({...j, weekKey: wk});
+      }
+    }
+  }
+  return all;
+}
+const ALL_JOBS = getAllJobs();
+
+const JOBS = ALL_JOBS; // backwards compat
 
 const SCHEDULE = [
   { job: 'Tammy Harger', inv: 'C2106', lead: 'Adam', crew: ['Frankie', 'Carlos'], mon: true, tue: true, wed: true, thu: false, fri: false, labourType: 'inhouse', pct: 75, dailyRate: 690 },
@@ -1058,8 +1276,17 @@ function showTab(id) {
 // WEEK NAVIGATION
 // ─────────────────────────────────────────
 function changeWeek(dir) {
-  activeWeek = new Date(activeWeek.getTime() + dir * 7 * 86400000);
+  const newIdx = currentWeekIdx + dir;
+  if (newIdx < 0 || newIdx >= WEEK_KEYS.length) {
+    showToast('No data for that week');
+    return;
+  }
+  currentWeekIdx = newIdx;
+  activeWeek = new Date(WEEK_KEYS[currentWeekIdx] + 'T12:00:00');
   updateWeekLabels();
+  updateOverview();
+  renderWeeklyJobs();
+  updateWeeklyReport();
 }
 
 function updateWeekLabels() {
@@ -1068,6 +1295,79 @@ function updateWeekLabels() {
   const label = `Week of ${fmt(activeWeek)} – ${fmt(end)}`;
   document.getElementById('currentWeekLabel').textContent = label;
   document.getElementById('reportDateLabel').textContent = label;
+}
+
+function getCurrentWeekData() {
+  return WEEKLY_DATA[WEEK_KEYS[currentWeekIdx]] || {jobs:[], total:0, material:0, labour:0, commission:0, outstanding:0};
+}
+
+function updateOverview() {
+  const w = getCurrentWeekData();
+  const TARGET = 90000;
+  const netProfit = w.total - w.material - w.labour - w.commission;
+  document.getElementById('ov-weekrev').textContent = '$' + w.total.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+  document.getElementById('ov-weekprofit').textContent = '$' + netProfit.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('ov-weekprofit').style.color = netProfit >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('ov-monthcum').textContent = '$' + w.total.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+  document.getElementById('ov-activejobs').textContent = w.jobs.filter(j => j.customer).length;
+  document.getElementById('ov-outstanding').textContent = '$' + w.outstanding.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+  document.getElementById('ov-commissions').textContent = '$' + w.commission.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  // Update SVG gauge arc
+  const TARGET_VAL = 90000;
+  const pct = Math.min(w.total / TARGET_VAL, 1.0);
+  const arcLen = 157; // total arc length in SVG units
+  const filled = pct * arcLen;
+  const offset = arcLen - filled;
+  const gaugeArc = document.getElementById('gaugeArc');
+  if (gaugeArc) gaugeArc.setAttribute('stroke-dashoffset', offset.toFixed(1));
+  // Move needle dot along arc
+  const angle = Math.PI * (1 - pct); // PI = left end, 0 = right end
+  const cx = 60 + 50 * Math.cos(Math.PI - angle);
+  const cy = 60 - 50 * Math.sin(Math.PI - angle);
+  const needle = document.getElementById('gaugeNeedle');
+  if (needle) { needle.setAttribute('cx', cx.toFixed(1)); needle.setAttribute('cy', cy.toFixed(1)); }
+
+  document.getElementById('gaugeDollar').textContent = '$' + w.total.toLocaleString('en-US', {maximumFractionDigits:0});
+  const pctLabel = (pct * 100).toFixed(1) + '%';
+  const pctEl = document.getElementById('ov-pctTarget');
+  if (pctEl) pctEl.textContent = pctLabel;
+  const it2 = document.getElementById('ov-invoiceTotal2');
+  if (it2) it2.textContent = '$' + w.total.toLocaleString('en-US', {maximumFractionDigits:0});
+  const mat2 = document.getElementById('ov-material2');
+  if (mat2) mat2.textContent = '$' + w.material.toLocaleString('en-US', {maximumFractionDigits:0});
+  const lab2 = document.getElementById('ov-labour2');
+  if (lab2) lab2.textContent = '$' + w.labour.toLocaleString('en-US', {maximumFractionDigits:0});
+  const netP = w.total - w.material - w.labour - w.commission;
+  const np2 = document.getElementById('ov-netprofit2');
+  if (np2) { np2.textContent = '$' + netP.toLocaleString('en-US', {maximumFractionDigits:0}); np2.style.color = netP >= 0 ? 'var(--green)' : 'var(--red)'; }
+  const out2 = document.getElementById('ov-outstanding2');
+  if (out2) out2.textContent = '$' + w.outstanding.toLocaleString('en-US', {maximumFractionDigits:0});
+  const comm2 = document.getElementById('ov-comm2');
+  if (comm2) comm2.textContent = '$' + w.commission.toLocaleString('en-US', {maximumFractionDigits:2});
+
+  // Update cost pie
+  if (costPie) {
+    costPie.data.datasets[0].data = [w.material, w.labour, w.commission];
+    costPie.update();
+  }
+}
+
+function updateWeeklyReport() {
+  const w = getCurrentWeekData();
+  const netProfit = w.total - w.material - w.labour - w.commission;
+  document.getElementById('wr-invoiceTotal').textContent = '$' + w.total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('wr-material').value = w.material.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('wr-labour').value = w.labour.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('wr-weeklyProfit').textContent = '$' + netProfit.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('wr-weeklyProfit').style.color = netProfit >= 0 ? 'var(--green)' : 'var(--red)';
+  const matPct = w.total > 0 ? Math.round(w.material / w.total * 100) : 0;
+  const labPct = w.total > 0 ? Math.round(w.labour / w.total * 100) : 0;
+  document.getElementById('wr-mat-pct').textContent = matPct + '%';
+  document.getElementById('wr-lab-pct').textContent = labPct + '%';
+  // Commission
+  const commEl = document.querySelector('#tab-weekly .cost-amount.red');
+  if (commEl) commEl.textContent = '$' + w.commission.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
 // ─────────────────────────────────────────
@@ -1132,28 +1432,36 @@ function filterByRep(val) {
 // ─────────────────────────────────────────
 function renderWeeklyJobs() {
   const tbody = document.getElementById('weeklyJobsBody');
-  const weekJobs = JOBS.filter(j => j.status === 'In Progress' || j.startDate >= '2026-04-21');
+  const w = getCurrentWeekData();
+  const weekJobs = w.jobs.filter(j => j.customer && !j.customer.startsWith('Support') && !j.customer.startsWith('Warranty') && !j.customer.startsWith('Proctor'));
   tbody.innerHTML = '';
+  if (weekJobs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px;">No jobs found for this week</td></tr>';
+    return;
+  }
   weekJobs.forEach(j => {
-    const labourDot = '<span class="labour-dot" style="background:var(--green)"></span>';
-    const pctVal = j.status === 'Completed' ? 100 : 75;
-    const revThisWk = ((j.total * pctVal) / 100).toFixed(0);
+    const pctVal = j.status === 'Completed' ? 100 : j.outstanding > 0 ? 50 : 75;
+    const pctColor = pctVal === 100 ? 'var(--green)' : 'var(--amber)';
+    const payBadge = j.outstanding > 0
+      ? `<span class="badge badge-red">$${j.outstanding.toLocaleString('en-US',{maximumFractionDigits:0})} out</span>`
+      : `<span class="badge badge-green">Paid</span>`;
     tbody.innerHTML += `
       <tr>
         <td>${j.inv}</td>
         <td class="name-cell">${j.customer}</td>
-        <td>${j.rep}</td>
-        <td>$${j.total.toLocaleString()}</td>
-        <td>$${j.material.toLocaleString()}</td>
-        <td>$${j.labour.toLocaleString()}</td>
-        <td>${labourDot} In-house</td>
+        <td>${j.rep || '—'}</td>
+        <td style="color:var(--amber2)">$${j.total.toLocaleString('en-US',{maximumFractionDigits:0})}</td>
+        <td>$${j.material.toLocaleString('en-US',{maximumFractionDigits:0})}</td>
+        <td>$${j.labour.toLocaleString('en-US',{maximumFractionDigits:0})}</td>
+        <td><span class="badge badge-${j.commRate===8?'amber':'blue'}">${j.commRate}%</span></td>
         <td>
           <div class="progress-wrap">
-            <div class="progress-bar"><div class="progress-fill" style="width:${pctVal}%;background:${pctVal===100?'var(--green)':'var(--amber)'}"></div></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pctVal}%;background:${pctColor}"></div></div>
             <span class="progress-pct">${pctVal}%</span>
           </div>
         </td>
-        <td style="color:var(--amber2)">$${Number(revThisWk).toLocaleString()}</td>
+        <td>$${j.commission.toLocaleString('en-US',{maximumFractionDigits:2})}</td>
+        <td>${payBadge}</td>
       </tr>`;
   });
 }
@@ -1248,31 +1556,8 @@ function initCharts() {
   const darkGrid = { color: 'rgba(48,54,61,0.6)' };
   const baseFont = { family: 'DM Sans', color: '#8b949e' };
 
-  // GAUGE (doughnut)
-  const gCtx = document.getElementById('gaugeChart').getContext('2d');
-  const gaugeVal = 59465, gaugeMax = 90000;
-  const pct = gaugeVal / gaugeMax;
-  gaugeChart = new Chart(gCtx, {
-    type: 'doughnut',
-    data: {
-      datasets: [{
-        data: [
-          Math.min(pct * 100, 33),
-          Math.max(0, Math.min(pct * 100 - 33, 20)),
-          Math.max(0, Math.min(pct * 100 - 53, 47)),
-          Math.max(0, 100 - pct * 100),
-          100
-        ],
-        backgroundColor: ['#f85149', '#f0a500', '#3fb950', 'rgba(48,54,61,0.4)', 'transparent'],
-        borderWidth: 0, circumference: 180, rotation: 270,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: true,
-      plugins: { legend: { display: false }, tooltip: { enabled: false } },
-      cutout: '72%',
-    }
-  });
+  // SVG gauge - no Chart.js needed
+  // updateSVGGauge is called from updateOverview
 
   // COST PIE
   const cpCtx = document.getElementById('costPieChart').getContext('2d');
@@ -1426,14 +1711,43 @@ function saveNewJob() {
     payStatus: 'Pending',
     jobType: document.getElementById('new-jobType').value,
   });
+  // Try to write to Google Sheets too
+  const rowData = [
+    inv,
+    document.getElementById('new-invoiceDate').value,
+    cust,
+    document.getElementById('new-salesRep').value,
+    document.getElementById('new-jobType').value,
+    document.getElementById('new-total').value,
+    document.getElementById('new-commRate').value === '0.08' ? 8 : 6,
+    document.getElementById('new-commission').value,
+    document.getElementById('new-material').value,
+    document.getElementById('new-labour').value,
+    document.getElementById('new-startDate').value,
+    document.getElementById('new-constDays').value,
+    document.getElementById('new-status').value,
+  ];
+  appendToSheet('Jobs', rowData).then(ok => {
+    if (ok) showToast('Job ' + inv + ' added + saved to Google Sheet!');
+  });
   closeModal('addJobModal');
   renderJobs(JOBS);
   showToast('Job ' + inv + ' added!');
 }
 
 function savePayment() {
+  const inv = document.getElementById('pay-invoice').value;
+  const rowData = [
+    '', inv, '', document.getElementById('pay-rep').value, '',
+    '', document.getElementById('pay-date').value,
+    document.getElementById('pay-amount').value,
+    document.getElementById('pay-commAmount').value, '0', ''
+  ];
+  appendToSheet('Commissions', rowData).then(ok => {
+    const msg = ok ? 'Payment logged + saved to Google Sheet!' : 'Payment logged (sheet sync pending)';
+    showToast(msg);
+  });
   closeModal('addPaymentModal');
-  showToast('Payment logged successfully!');
 }
 
 // ─────────────────────────────────────────
@@ -1447,20 +1761,374 @@ function showToast(msg) {
 }
 
 function printReport() {
-  window.print();
+  saveReport();
+}
+
+function saveReport() {
+  // Build a standalone printable report in a new window
+  const weekLabel = document.getElementById('reportDateLabel').textContent;
+  const invoiceTotal = document.getElementById('wr-invoiceTotal').textContent;
+  const material = document.getElementById('wr-material').value;
+  const labour = document.getElementById('wr-labour').value;
+  const overhead = document.getElementById('wr-overhead').value;
+  const support = document.getElementById('wr-support').value;
+  const weeklyProfit = document.getElementById('wr-weeklyProfit').textContent;
+  const monthlyProfit = document.getElementById('wr-monthlyProfit').textContent;
+
+  // Collect weekly jobs rows
+  const wjRows = document.getElementById('weeklyJobsBody').innerHTML;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>STFD Weekly Report – ${weekLabel}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', Arial, sans-serif; font-size: 12px; color: #111; background: #fff; padding: 32px; }
+
+    /* Header */
+    .report-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 3px solid #f0a500; }
+    .report-top h1 { font-size: 26px; font-weight: 700; color: #111; letter-spacing: -0.5px; }
+    .report-top .sub { font-size: 12px; color: #666; margin-top: 4px; }
+    .report-top .logo-box { background: #f0a500; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 14px; color: #fff; text-align: right; }
+    .report-top .logo-sub { font-size: 10px; color: #fff; opacity: 0.85; }
+
+    /* Section title */
+    .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 8px; margin-top: 20px; }
+
+    /* KPI row */
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .kpi-card { border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; }
+    .kpi-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 4px; }
+    .kpi-card .value { font-size: 22px; font-weight: 700; }
+    .kpi-card .value.amber { color: #d48000; }
+    .kpi-card .value.green { color: #1a7a3a; }
+    .kpi-card .value.red { color: #c0392b; }
+    .kpi-card .sub { font-size: 10px; color: #888; margin-top: 3px; }
+
+    /* Two-col grid */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+    /* Panel */
+    .panel { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+    .panel-header { background: #f9f9f9; border-bottom: 1px solid #e0e0e0; padding: 10px 14px; font-weight: 600; font-size: 12px; color: #b87800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .panel-body { padding: 14px; }
+
+    /* Cost rows */
+    .cost-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
+    .cost-row:last-child { border-bottom: none; }
+    .cost-row .label { color: #444; }
+    .cost-row .amount { font-family: 'DM Mono', monospace; font-weight: 500; }
+    .cost-row .amount.amber { color: #d48000; }
+    .cost-row .amount.green { color: #1a7a3a; }
+    .cost-row .amount.red { color: #c0392b; }
+    .divider { height: 1px; background: #e0e0e0; margin: 10px 0; }
+    .highlight-box { background: #fffbf0; border: 1px solid #f0a500; border-radius: 6px; padding: 14px; text-align: center; }
+    .highlight-box .big { font-size: 36px; font-weight: 700; color: #d48000; }
+    .highlight-box .sub { font-size: 11px; color: #888; margin-top: 4px; }
+
+    /* Progress */
+    .progress-wrap { display: flex; align-items: center; gap: 8px; }
+    .progress-bar { flex: 1; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .progress-pct { font-size: 11px; color: #888; min-width: 36px; text-align: right; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { background: #f5f5f5; text-align: left; padding: 8px 10px; color: #666; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid #ddd; }
+    td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+    .td-mono { font-family: 'DM Mono', monospace; }
+    .td-amber { color: #d48000; font-weight: 600; }
+    .td-bold { font-weight: 600; }
+
+    /* Footer */
+    .report-footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; font-size: 10px; color: #aaa; }
+
+    @page { margin: 0.6in; size: letter; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="report-top">
+    <div>
+      <h1>Weekly Outlook Report</h1>
+      <div class="sub">${weekLabel}</div>
+      <div class="sub" style="margin-top:2px;">Prepared by Yvonne Chiang · For Phillip</div>
+    </div>
+    <div class="logo-box">
+      South Texas Fence & Deck
+      <div class="logo-sub">Command Center Report</div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="section-title">Key Performance Indicators</div>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="label">Invoice Total</div>
+      <div class="value amber">${invoiceTotal}</div>
+      <div class="sub">Target: $90,000</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Weekly Profit</div>
+      <div class="value ${weeklyProfit.startsWith('-') ? 'red' : 'green'}">${weeklyProfit}</div>
+      <div class="sub">After overhead & support</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Target % Reached</div>
+      <div class="value amber">66.07%</div>
+      <div class="sub">of $90k weekly target</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Commissions Due</div>
+      <div class="value red">$3,733.60</div>
+      <div class="sub">This week</div>
+    </div>
+  </div>
+
+  <!-- COST BREAKDOWN + CUMULATIVE -->
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header">This Week — Cost Actuals</div>
+      <div class="panel-body">
+        <div class="cost-row"><span class="label">Invoice Total</span><span class="amount amber">${invoiceTotal}</span></div>
+        <div class="cost-row"><span class="label">Materials</span><span class="amount">$${material}</span></div>
+        <div class="cost-row"><span class="label">Field Labour</span><span class="amount">$${labour}</span></div>
+        <div class="cost-row"><span class="label">Overhead</span><span class="amount">$${overhead}</span></div>
+        <div class="cost-row"><span class="label">Support Labour</span><span class="amount">$${support}</span></div>
+        <div class="cost-row"><span class="label">Commission</span><span class="amount red">$3,733.60</span></div>
+        <div class="divider"></div>
+        <div class="cost-row"><span class="label" style="font-weight:600">Weekly Profit</span><span class="amount ${weeklyProfit.startsWith('-') ? 'red' : 'green'}" style="font-weight:600">${weeklyProfit}</span></div>
+        <div class="cost-row"><span class="label" style="font-weight:600">Monthly Profit (Cum.)</span><span class="amount amber" style="font-weight:600">${monthlyProfit}</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Monthly Cumulative</div>
+      <div class="panel-body">
+        <div class="cost-row"><span class="label">Overhead Paid (Month)</span><span class="amount">$10,993.04</span></div>
+        <div class="cost-row">
+          <span class="label">% Overhead Paid</span>
+          <div class="progress-wrap" style="flex:1;margin-left:12px;">
+            <div class="progress-bar"><div class="progress-fill" style="width:27.5%;background:#f85149;"></div></div>
+            <span class="progress-pct">27.5%</span>
+          </div>
+        </div>
+        <div class="cost-row"><span class="label">Outstanding Overhead</span><span class="amount red">$29,006.96</span></div>
+        <div class="divider"></div>
+        <div class="cost-row"><span class="label">Support Labour (Month)</span><span class="amount">$14,923.05</span></div>
+        <div class="cost-row">
+          <span class="label">% Support Paid</span>
+          <div class="progress-wrap" style="flex:1;margin-left:12px;">
+            <div class="progress-bar"><div class="progress-fill" style="width:27.5%;background:#f85149;"></div></div>
+            <span class="progress-pct">27.5%</span>
+          </div>
+        </div>
+        <div class="cost-row"><span class="label">Outstanding Support</span><span class="amount red">$39,376.95</span></div>
+        <div class="divider"></div>
+        <div class="highlight-box">
+          <div class="big">66.07%</div>
+          <div class="sub">of $90,000 weekly target reached</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOBS THIS WEEK -->
+  <div class="section-title">Jobs Scheduled This Week</div>
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="panel-header">Job Completion Status</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Customer</th>
+          <th>Sales Rep</th>
+          <th>Invoice Total</th>
+          <th>Material</th>
+          <th>Field Labour</th>
+          <th>% Complete</th>
+          <th>Revenue This Wk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>C2132</td><td>Elizabeth Martinez</td><td>Paul Vincent</td><td class="td-mono">$2,850</td><td class="td-mono">$0</td><td class="td-mono">$570</td><td>100%</td><td class="td-mono td-amber">$2,850</td></tr>
+        <tr><td>C2133</td><td>Felicia Beltz</td><td>Paul Vincent</td><td class="td-mono">$2,850</td><td class="td-mono">$0</td><td class="td-mono">$570</td><td>100%</td><td class="td-mono td-amber">$2,850</td></tr>
+        <tr><td>C2141</td><td>Paul Bunnell</td><td>Paul Vincent</td><td class="td-mono">$4,750</td><td class="td-mono">$1,200</td><td class="td-mono">$975</td><td>50%</td><td class="td-mono td-amber">$2,375</td></tr>
+        <tr><td>C2123</td><td>Ron Janysek</td><td>Paul Vincent</td><td class="td-mono">$4,340</td><td class="td-mono">$1,800</td><td class="td-mono">$780</td><td>80%</td><td class="td-mono td-amber">$3,472</td></tr>
+        <tr><td>C2106</td><td>Tammy Harger</td><td>Jeff Yates</td><td class="td-mono">$30,150</td><td class="td-mono">$12,400</td><td class="td-mono">$3,900</td><td>75%</td><td class="td-mono td-amber">$22,613</td></tr>
+        <tr style="border-top:2px solid #ddd;">
+          <td colspan="7" class="td-bold">Total</td>
+          <td class="td-mono td-amber td-bold">$34,160</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- INCOME DISTRIBUTION -->
+  <div class="section-title">Income Distribution by Owner</div>
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="panel-header">Owner Breakdown</div>
+    <table>
+      <thead><tr><th>Owner</th><th>Share %</th><th>Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Yonh John Du</td><td>50%</td><td class="td-mono td-amber">$41,818</td></tr>
+        <tr><td>Sharon & Ray Zaiontz</td><td>25%</td><td class="td-mono">$3,363</td></tr>
+        <tr><td>Jim Winne (2–50%)</td><td>60%</td><td class="td-mono">$7,035</td></tr>
+        <tr><td>Roger Huehlefeld</td><td>—</td><td class="td-mono">$3,800</td></tr>
+        <tr><td>James Maikoetter</td><td>—</td><td class="td-mono">$2,200</td></tr>
+        <tr><td>Leonard Robinson</td><td>—</td><td class="td-mono">$1,250</td></tr>
+        <tr style="border-top:2px solid #ddd;">
+          <td colspan="2" class="td-bold">Total</td>
+          <td class="td-mono td-amber td-bold">$59,465</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="report-footer">
+    <span>South Texas Fence & Deck · Command Center Report</span>
+    <span>Generated: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+    <span>Confidential</span>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(() => { window.print(); }, 400);
+    };
+  <\/script>
+
+<!-- ══ SETTINGS MODAL ══ -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title">⚙ Google Sheets Setup</div>
+    
+    <div style="background:var(--bg3);border-radius:8px;padding:14px;margin-bottom:18px;font-size:12px;color:var(--text2);line-height:1.7;">
+      <strong style="color:var(--amber2);">How to get your API key (5 minutes):</strong><br>
+      1. Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--blue);">console.cloud.google.com</a><br>
+      2. Create a new project (or select an existing one)<br>
+      3. Search for <strong>Google Sheets API</strong> → Enable it<br>
+      4. Go to <strong>Credentials</strong> → Create Credentials → API Key<br>
+      5. Copy the key and paste it below<br><br>
+      <span style="color:var(--text3);">The key is stored only in your browser — never sent anywhere except Google's servers.</span>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">Google Sheets API Key</label>
+      <input class="form-input" id="settings-apikey" type="password" placeholder="AIzaSy…" style="font-family:'DM Mono',monospace;font-size:12px;">
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Paste your API key here. It will be saved in your browser.</div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">Sheet ID (pre-filled)</label>
+      <input class="form-input" id="settings-sheetid" value="1yBIc8reiJksb_vtZ_oyJuAqh1Vc5ddmS" style="font-family:'DM Mono',monospace;font-size:11px;">
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">The Google Sheet created for this dashboard. Only change if you move the sheet.</div>
+    </div>
+
+    <div style="background:var(--green-dim);border:1px solid rgba(63,185,80,0.3);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--green);display:none;" id="settings-success">
+      ✓ Connected! Syncing data from Google Sheets…
+    </div>
+    <div style="background:var(--red-dim);border:1px solid rgba(248,81,73,0.3);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--red);display:none;" id="settings-error">
+      ✗ Could not connect. Check your API key and make sure the Sheet is shared.
+    </div>
+
+    <div style="background:var(--blue-dim);border:1px solid rgba(88,166,255,0.2);border-radius:6px;padding:10px 14px;margin-bottom:4px;font-size:12px;color:var(--blue);">
+      <strong>📋 Also make sure the Google Sheet is shared:</strong><br>
+      Open the sheet → Share → Anyone with the link → <strong>Viewer</strong>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Cancel</button>
+      <button class="btn btn-secondary" onclick="testConnection()">🔌 Test Connection</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save & Sync</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) {
+    showToast('Please allow popups for PDF export');
+    return;
+  }
+  showToast('Report opened — choose "Save as PDF" in the print dialog');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 // ─────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Start at the most recent week with data
+  currentWeekIdx = WEEK_KEYS.length - 1;
+  activeWeek = new Date(WEEK_KEYS[currentWeekIdx] + 'T12:00:00');
   updateWeekLabels();
-  renderJobs(JOBS);
+  updateOverview();
+  updateWeeklyReport();
+  renderJobs(ALL_JOBS);
   renderWeeklyJobs();
   renderSchedule();
   renderCommissions();
   initCharts();
 });
 </script>
+
+<!-- ══ SETTINGS MODAL ══ -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title">⚙ Google Sheets Setup</div>
+    
+    <div style="background:var(--bg3);border-radius:8px;padding:14px;margin-bottom:18px;font-size:12px;color:var(--text2);line-height:1.7;">
+      <strong style="color:var(--amber2);">How to get your API key (5 minutes):</strong><br>
+      1. Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--blue);">console.cloud.google.com</a><br>
+      2. Create a new project (or select an existing one)<br>
+      3. Search for <strong>Google Sheets API</strong> → Enable it<br>
+      4. Go to <strong>Credentials</strong> → Create Credentials → API Key<br>
+      5. Copy the key and paste it below<br><br>
+      <span style="color:var(--text3);">The key is stored only in your browser — never sent anywhere except Google's servers.</span>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">Google Sheets API Key</label>
+      <input class="form-input" id="settings-apikey" type="password" placeholder="AIzaSy…" style="font-family:'DM Mono',monospace;font-size:12px;">
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Paste your API key here. It will be saved in your browser.</div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">Sheet ID (pre-filled)</label>
+      <input class="form-input" id="settings-sheetid" value="1yBIc8reiJksb_vtZ_oyJuAqh1Vc5ddmS" style="font-family:'DM Mono',monospace;font-size:11px;">
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">The Google Sheet created for this dashboard. Only change if you move the sheet.</div>
+    </div>
+
+    <div style="background:var(--green-dim);border:1px solid rgba(63,185,80,0.3);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--green);display:none;" id="settings-success">
+      ✓ Connected! Syncing data from Google Sheets…
+    </div>
+    <div style="background:var(--red-dim);border:1px solid rgba(248,81,73,0.3);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--red);display:none;" id="settings-error">
+      ✗ Could not connect. Check your API key and make sure the Sheet is shared.
+    </div>
+
+    <div style="background:var(--blue-dim);border:1px solid rgba(88,166,255,0.2);border-radius:6px;padding:10px 14px;margin-bottom:4px;font-size:12px;color:var(--blue);">
+      <strong>📋 Also make sure the Google Sheet is shared:</strong><br>
+      Open the sheet → Share → Anyone with the link → <strong>Viewer</strong>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Cancel</button>
+      <button class="btn btn-secondary" onclick="testConnection()">🔌 Test Connection</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save & Sync</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
