@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>South Texas Fence & Deck — Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #656d76;
+    --amber: #f0a500;
+    --amber2: #ffc832;
+    --amber-dim: rgba(240,165,0,0.12);
+    --green: #3fb950;
+    --green-dim: rgba(63,185,80,0.12);
+    --red: #f85149;
+    --red-dim: rgba(248,81,73,0.12);
+    --blue: #58a6ff;
+    --blue-dim: rgba(88,166,255,0.1);
+    --orange: #e36209;
+    --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-brand {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .brand-icon {
+    width: 32px; height: 32px;
+    background: var(--amber);
+    clip-path: polygon(0 30%, 50% 0, 100% 30%, 100% 70%, 50% 100%, 0 70%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--amber); }
+  .brand-sub { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; }
+  .topbar-week {
+    background: var(--amber-dim);
+    border: 1px solid var(--amber);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--amber2);
+    font-family: 'DM Mono', monospace;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .week-nav { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 13px; }
+  .week-nav:hover { border-color: var(--amber); color: var(--amber); }
+
+  /* ─── NAV TABS ─── */
+  .nav-tabs {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; gap: 4px;
+  }
+  .tab-btn {
+    padding: 10px 18px;
+    border: none; background: none;
+    color: var(--text2); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  /* ─── MAIN LAYOUT ─── */
+  .main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─── STAT CARDS ─── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .stat-card.amber::before { background: var(--amber); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.red::before { background: var(--red); }
+  .stat-card.blue::before { background: var(--blue); }
+  .stat-card.purple::before { background: var(--purple); }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); margin-bottom: 6px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; line-height: 1; }
+  .stat-value.amber { color: var(--amber2); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.blue { color: var(--blue); }
+  .stat-value.purple { color: var(--purple); }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* ─── GRID LAYOUTS ─── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-60-40 { display: grid; grid-template-columns: 60fr 40fr; gap: 16px; margin-bottom: 16px; }
+  .grid-40-60 { display: grid; grid-template-columns: 40fr 60fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 1100px) {
+    .grid-2, .grid-3, .grid-60-40, .grid-40-60 { grid-template-columns: 1fr; }
+  }
+
+  /* ─── PANEL ─── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg3);
+  }
+  .panel-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px; letter-spacing: 0.5px;
+    color: var(--amber);
+  }
+  .panel-body { padding: 16px; }
+
+  /* ─── GAUGE ─── */
+  .gauge-wrap { display: flex; flex-direction: column; align-items: center; padding: 20px; }
+  .gauge-canvas { max-width: 280px; }
+  .gauge-label { font-family: 'Bebas Neue', sans-serif; font-size: 36px; margin-top: -20px; }
+  .gauge-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* ─── CHART ─── */
+  .chart-wrap { padding: 16px; height: 220px; position: relative; }
+
+  /* ─── TABLE ─── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th {
+    text-align: left; padding: 8px 12px;
+    color: var(--text3); font-weight: 500;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--bg3); }
+  .data-table .name-cell { font-family: 'DM Sans', sans-serif; font-size: 13px; }
+  .scroll-table { overflow-x: auto; max-height: 420px; overflow-y: auto; }
+  .scroll-table::-webkit-scrollbar { width: 5px; height: 5px; }
+  .scroll-table::-webkit-scrollbar-track { background: var(--bg3); }
+  .scroll-table::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ─── BADGES ─── */
+  .badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 12px; font-size: 11px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber2); border: 1px solid rgba(240,165,0,0.3); }
+  .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(88,166,255,0.2); }
+  .badge-gray { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-wrap { display: flex; align-items: center; gap: 8px; }
+  .progress-bar { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .progress-pct { font-size: 11px; color: var(--text2); min-width: 32px; text-align: right; font-family: 'DM Mono', monospace; }
+
+  /* ─── FORM ELEMENTS ─── */
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text3); }
+  .form-input, .form-select {
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 8px 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-select:focus { outline: none; border-color: var(--amber); }
+  .form-input::placeholder { color: var(--text3); }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    padding: 8px 16px; border-radius: 6px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--amber); color: #0d1117; }
+  .btn-primary:hover { background: var(--amber2); }
+  .btn-secondary { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--amber); color: var(--amber); }
+  .btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* ─── WEEKLY REPORT ─── */
+  .report-header {
+    background: linear-gradient(135deg, var(--bg3), var(--bg2));
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .report-meta { color: var(--text2); font-size: 12px; margin-top: 4px; }
+
+  .cost-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid rgba(48,54,61,0.5);
+  }
+  .cost-row:last-child { border-bottom: none; }
+  .cost-label { color: var(--text2); font-size: 13px; }
+  .cost-amount { font-family: 'DM Mono', monospace; font-size: 13px; }
+  .cost-pct { font-size: 11px; color: var(--text3); margin-left: 8px; }
+
+  /* ─── COMMISSION PANEL ─── */
+  .rep-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .rep-tab {
+    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text2); font-size: 12px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .rep-tab:hover { border-color: var(--amber); color: var(--amber); }
+  .rep-tab.active { background: var(--amber); color: var(--bg); border-color: var(--amber); font-weight: 600; }
+
+  .comm-summary {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin-bottom: 14px;
+  }
+  .comm-card {
+    background: var(--bg3); border-radius: 8px; padding: 12px; text-align: center;
+  }
+  .comm-card-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text3); }
+  .comm-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--amber2); margin-top: 2px; }
+
+  /* ─── JOBS LIST ─── */
+  .job-filter-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .search-input {
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 7px 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; min-width: 220px;
+  }
+  .search-input:focus { outline: none; border-color: var(--amber); }
+
+  /* ─── MODAL ─── */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; width: 90%; max-width: 600px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--amber); margin-bottom: 18px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--bg2); border: 1px solid var(--green);
+    border-radius: 8px; padding: 12px 18px;
+    font-size: 13px; color: var(--green); z-index: 300;
+    transform: translateY(100px); opacity: 0;
+    transition: all 0.3s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ─── INLINE EDITABLE ─── */
+  .editable {
+    background: none; border: none; color: inherit;
+    font-family: inherit; font-size: inherit; width: 60px;
+    text-align: right; cursor: pointer;
+    border-bottom: 1px dashed var(--text3);
+  }
+  .editable:focus { outline: none; border-bottom-color: var(--amber); color: var(--amber2); }
+
+  /* ─── SECTION TITLE ─── */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 1px;
+    color: var(--text3); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* ─── OUTSTANDING BADGE ─── */
+  .outstanding-flag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--red-dim); color: var(--red);
+    border: 1px solid rgba(248,81,73,0.3);
+    border-radius: 4px; padding: 2px 6px; font-size: 11px;
+  }
+
+  .labour-dot {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon"></div>
+    <div>
+      <div class="brand-name">South Texas Fence & Deck</div>
+      <div class="brand-sub">Project Command Center</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-week" id="currentWeekLabel">Week of Apr 21 – Apr 27, 2026</span>
+    <button class="week-nav" onclick="changeWeek(-1)">◀ Prev</button>
+    <button class="week-nav" onclick="changeWeek(1)">Next ▶</button>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<nav class="nav-tabs">
+  <button class="tab-btn active" onclick="showTab('overview')">📊 Overview</button>
+  <button class="tab-btn" onclick="showTab('jobs')">🔨 Jobs</button>
+  <button class="tab-btn" onclick="showTab('weekly')">📅 Weekly Report</button>
+  <button class="tab-btn" onclick="showTab('commissions')">💰 Commissions</button>
+  <button class="tab-btn" onclick="showTab('schedule')">🗓 Schedule</button>
+</nav>
+
+<main class="main">
+
+<!-- ══════════════════════════════════════
+     TAB 1: OVERVIEW
+══════════════════════════════════════ -->
+<div id="tab-overview" class="tab-panel active">
+
+  <div class="stat-grid">
+    <div class="stat-card amber">
+      <div class="stat-label">Weekly Revenue</div>
+      <div class="stat-value amber" id="ov-weekrev">$59,465</div>
+      <div class="stat-sub">Target: $90,000</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Weekly Profit</div>
+      <div class="stat-value green" id="ov-weekprofit">$0.00</div>
+      <div class="stat-sub">After overhead & support</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Monthly Cumulative</div>
+      <div class="stat-value blue" id="ov-monthcum">$59,465</div>
+      <div class="stat-sub">Month target: $41,667</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Active Jobs</div>
+      <div class="stat-value purple" id="ov-activejobs">12</div>
+      <div class="stat-sub">This week</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Outstanding</div>
+      <div class="stat-value amber" id="ov-outstanding">$29,007</div>
+      <div class="stat-sub">Unpaid invoices</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Commissions Due</div>
+      <div class="stat-value red" id="ov-commissions">$3,734</div>
+      <div class="stat-sub">This week</div>
+    </div>
+  </div>
+
+  <div class="grid-60-40">
+    <!-- Revenue Gauge + Target Progress -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Invoice Total Performance</span>
+        <span style="font-size:12px;color:var(--text3)">Weekly target: $90k</span>
+      </div>
+      <div class="panel-body">
+        <div class="gauge-wrap">
+          <canvas id="gaugeChart" class="gauge-canvas" height="140"></canvas>
+          <div class="gauge-label amber" id="gaugeDollar">$59,465</div>
+          <div class="gauge-sub">Weekly Invoice Total</div>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="cost-row">
+            <span class="cost-label">Invoice Total</span>
+            <span class="cost-amount amber">$59,465</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label">% of Target (27.8%)</span>
+            <div class="progress-wrap" style="flex:1;margin-left:12px;">
+              <div class="progress-bar"><div class="progress-fill" style="width:66%;background:var(--amber);"></div></div>
+              <span class="progress-pct">66.1%</span>
+            </div>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label">Monthly Profit Target</span>
+            <span class="cost-amount red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost Breakdown Pie -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Cost Breakdown</span></div>
+      <div class="chart-wrap" style="height:260px;">
+        <canvas id="costPieChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-40-60">
+    <!-- Income Distribution -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Income Distribution</span></div>
+      <div class="chart-wrap" style="height:240px;">
+        <canvas id="incomeDonut"></canvas>
+      </div>
+    </div>
+
+    <!-- Weekly Trend -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Weekly Revenue Trend</span></div>
+      <div class="chart-wrap">
+        <canvas id="weeklyTrend"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TAB 2: JOBS
+══════════════════════════════════════ -->
+<div id="tab-jobs" class="tab-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div class="job-filter-row" style="margin:0;">
+      <input class="search-input" type="text" placeholder="🔍 Search customer, invoice #, sales rep…" oninput="filterJobs(this.value)">
+      <select class="form-select" style="min-width:140px;" onchange="filterByStatus(this.value)">
+        <option value="">All Statuses</option>
+        <option value="Completed">Completed</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Outstanding">Outstanding</option>
+      </select>
+      <select class="form-select" style="min-width:140px;" onchange="filterByRep(this.value)">
+        <option value="">All Reps</option>
+        <option>Paul Vincent</option>
+        <option>Sherrell Ezzell</option>
+        <option>Jeff Yates</option>
+        <option>Yvonne Chiang</option>
+        <option>Taylor Bassett</option>
+        <option>Jery Edgett</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="openAddJob()">+ Add Job</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Job Cost Register</span>
+      <span style="font-size:12px;color:var(--text3)" id="jobs-count">Showing all jobs</span>
+    </div>
+    <div class="scroll-table">
+      <table class="data-table" id="jobsTable">
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Customer</th>
+            <th>Sales Rep</th>
+            <th>Invoice Total</th>
+            <th>Material</th>
+            <th>Field Labour</th>
+            <th>Commission</th>
+            <th>Comm %</th>
+            <th>Outstanding</th>
+            <th>Start Date</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="jobsBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TAB 3: WEEKLY REPORT
+══════════════════════════════════════ -->
+<div id="tab-weekly" class="tab-panel">
+
+  <div class="report-header">
+    <div>
+      <div style="font-family:'Bebas Neue';font-size:24px;color:var(--amber);">Weekly Outlook Report</div>
+      <div class="report-meta">Prepared by Yvonne for Phillip · <span id="reportDateLabel">Week of Apr 21 – Apr 27, 2026</span></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" onclick="printReport()">🖨 Print / PDF</button>
+      <button class="btn btn-primary" onclick="showToast('Report saved!')">💾 Save Report</button>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Weekly Actuals -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">This Week — Actuals</span></div>
+      <div class="panel-body">
+        <div class="cost-row">
+          <span class="cost-label">Invoice Total</span>
+          <span class="cost-amount amber" id="wr-invoiceTotal">$59,465.00</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">Materials</span>
+          <span class="cost-amount">
+            $<input class="editable" id="wr-material" value="20,245.82" onchange="recalcWeekly()">
+            <span class="cost-pct" id="wr-mat-pct">34%</span>
+          </span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">
+            <span class="labour-dot" style="background:var(--green)"></span>Field Labour
+          </span>
+          <span class="cost-amount">
+            $<input class="editable" id="wr-labour" value="9,569.50" onchange="recalcWeekly()">
+            <span class="cost-pct" id="wr-lab-pct">16%</span>
+          </span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">Overhead</span>
+          <span class="cost-amount">$<input class="editable" id="wr-overhead" value="10,993.04" onchange="recalcWeekly()"></span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">Support Labour</span>
+          <span class="cost-amount">$<input class="editable" id="wr-support" value="14,923.05" onchange="recalcWeekly()"></span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">Commission</span>
+          <span class="cost-amount red">$3,733.60</span>
+        </div>
+        <div class="divider"></div>
+        <div class="cost-row">
+          <span class="cost-label" style="font-weight:600">Weekly Profit</span>
+          <span class="cost-amount" id="wr-weeklyProfit" style="color:var(--green);font-weight:600">$0.00</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label" style="font-weight:600">Monthly Profit</span>
+          <span class="cost-amount" id="wr-monthlyProfit" style="color:var(--amber2)">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cumulative & Targets -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Cumulative This Month</span></div>
+      <div class="panel-body">
+        <div class="cost-row">
+          <span class="cost-label">Monthly Overhead Paid</span>
+          <span class="cost-amount">$10,993.04</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">% Paid</span>
+          <div class="progress-wrap" style="flex:1;margin-left:12px;">
+            <div class="progress-bar"><div class="progress-fill" style="width:27.5%;background:var(--red)"></div></div>
+            <span class="progress-pct">27.5%</span>
+          </div>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">Outstanding Overhead</span>
+          <span class="cost-amount red">$29,006.96</span>
+        </div>
+        <div class="divider"></div>
+        <div class="cost-row">
+          <span class="cost-label">Monthly Support Paid</span>
+          <span class="cost-amount">$14,923.05</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">% Paid</span>
+          <div class="progress-wrap" style="flex:1;margin-left:12px;">
+            <div class="progress-bar"><div class="progress-fill" style="width:27.5%;background:var(--red)"></div></div>
+            <span class="progress-pct">27.5%</span>
+          </div>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label">Outstanding Support</span>
+          <span class="cost-amount red">$39,376.95</span>
+        </div>
+        <div class="divider"></div>
+        <div style="padding:12px;background:var(--bg3);border-radius:8px;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:4px;">Week Target Progress</div>
+          <div style="font-family:'Bebas Neue';font-size:42px;color:var(--amber)">66.07%</div>
+          <div style="font-size:12px;color:var(--text2)">of $90,000 target</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Jobs completing this week -->
+  <div class="panel" style="margin-bottom:16px;">
+    <div class="panel-header">
+      <span class="panel-title">Jobs Scheduled This Week</span>
+      <span style="font-size:12px;color:var(--text3)">Click % to edit completion</span>
+    </div>
+    <div class="scroll-table">
+      <table class="data-table" id="weeklyJobsTable">
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Customer</th>
+            <th>Sales Rep</th>
+            <th>Invoice Total</th>
+            <th>Material</th>
+            <th>Field Labour</th>
+            <th>Labour Type</th>
+            <th>% Complete</th>
+            <th>Revenue This Wk</th>
+          </tr>
+        </thead>
+        <tbody id="weeklyJobsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Owner Breakdown -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Income Distribution by Owner</span></div>
+    <div class="panel-body">
+      <table class="data-table">
+        <thead><tr><th>Owner</th><th>Share</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr><td class="name-cell">Yonh John Du</td><td>50%</td><td style="color:var(--amber2)">$41,818</td></tr>
+          <tr><td class="name-cell">Sharon & Ray Zaiontz</td><td>25%</td><td>$3,363</td></tr>
+          <tr><td class="name-cell">Jim Winne (2–50%)</td><td>60%</td><td>$7,035</td></tr>
+          <tr><td class="name-cell">Roger Huehlefeld</td><td>—</td><td>$3,800</td></tr>
+          <tr><td class="name-cell">James Maikoetter</td><td>—</td><td>$2,200</td></tr>
+          <tr><td class="name-cell">Leonard Robinson</td><td>—</td><td>$1,250</td></tr>
+          <tr style="border-top:2px solid var(--border)">
+            <td colspan="2" style="font-weight:600">Total</td>
+            <td style="color:var(--amber2);font-weight:600">$59,465</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TAB 4: COMMISSIONS
+══════════════════════════════════════ -->
+<div id="tab-commissions" class="tab-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-family:'Bebas Neue';font-size:18px;color:var(--amber)">Weekly Commission Statements</div>
+      <div style="font-size:12px;color:var(--text3)">Run every Tuesday · Auto-calculated by sales rep</div>
+    </div>
+    <button class="btn btn-primary" onclick="openAddPayment()">+ Log Payment</button>
+  </div>
+
+  <!-- Rep selector -->
+  <div class="rep-tabs" id="repTabs">
+    <button class="rep-tab active" onclick="switchRep('Paul Vincent', this)">Paul Vincent</button>
+    <button class="rep-tab" onclick="switchRep('Sherrell Ezzell', this)">Sherrell Ezzell</button>
+    <button class="rep-tab" onclick="switchRep('Jeff Yates', this)">Jeff Yates</button>
+    <button class="rep-tab" onclick="switchRep('Yvonne Chiang', this)">Yvonne Chiang</button>
+    <button class="rep-tab" onclick="switchRep('Taylor Bassett', this)">Taylor Bassett</button>
+    <button class="rep-tab" onclick="switchRep('Jery Edgett', this)">Jery Edgett</button>
+  </div>
+
+  <!-- Rep summary cards -->
+  <div class="comm-summary">
+    <div class="comm-card">
+      <div class="comm-card-label">Commission This Week</div>
+      <div class="comm-card-value" id="comm-week-total">$784.00</div>
+    </div>
+    <div class="comm-card">
+      <div class="comm-card-label">Weekly Draw</div>
+      <div class="comm-card-value" style="color:var(--blue)" id="comm-draw">$0.00</div>
+    </div>
+    <div class="comm-card">
+      <div class="comm-card-label">Commission Available</div>
+      <div class="comm-card-value" style="color:var(--green)" id="comm-available">$784.00</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title" id="commRepTitle">Paul Vincent — Apr 22 Week</span>
+        <span style="font-size:11px;color:var(--text3)" id="commRateLabel">Rate: 6% / 8%</span>
+      </div>
+      <div class="scroll-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Customer</th>
+              <th>Invoice Total</th>
+              <th>Commission</th>
+              <th>Payment Amt</th>
+              <th>Comm Amount</th>
+              <th>Rate</th>
+              <th>Pre-Paid</th>
+              <th>Available</th>
+            </tr>
+          </thead>
+          <tbody id="commBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Commission History</span></div>
+      <div class="chart-wrap">
+        <canvas id="commHistoryChart"></canvas>
+      </div>
+      <div class="panel-body" style="padding-top:0;">
+        <div class="section-title">Year-to-Date by Rep</div>
+        <table class="data-table">
+          <thead><tr><th>Sales Rep</th><th>Jobs</th><th>Total Commission</th><th>Paid Out</th></tr></thead>
+          <tbody id="ytdCommBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TAB 5: SCHEDULE
+══════════════════════════════════════ -->
+<div id="tab-schedule" class="tab-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-family:'Bebas Neue';font-size:18px;color:var(--amber)">Weekly Job Schedule</div>
+      <div style="font-size:12px;color:var(--text3)">Managed by Taylor (GM) · Labour type determines cost calculation</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;">
+        <span class="labour-dot" style="background:var(--green)"></span>In-house
+        <span class="labour-dot" style="background:var(--red);margin-left:8px;"></span>Subs
+        <span class="labour-dot" style="background:#e3620980;margin-left:8px;"></span>Mixed
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openAddSchedule()">+ Add Job to Week</button>
+    </div>
+  </div>
+
+  <!-- Crew utilization -->
+  <div class="stat-grid" style="grid-template-columns: repeat(auto-fit,minmax(140px,1fr));margin-bottom:16px;">
+    <div class="stat-card blue">
+      <div class="stat-label">Crew Members</div>
+      <div class="stat-value blue">6</div>
+      <div class="stat-sub">Active this week</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Jobs Scheduled</div>
+      <div class="stat-value green" id="sch-jobCount">5</div>
+      <div class="stat-sub">This week</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Est. Labour Cost</div>
+      <div class="stat-value amber" id="sch-labourCost">$9,570</div>
+      <div class="stat-sub">Field crew</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Avg Completion</div>
+      <div class="stat-value purple" id="sch-avgComp">78%</div>
+      <div class="stat-sub">Across active jobs</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Schedule Grid — Week of Apr 21</span></div>
+    <div class="scroll-table">
+      <table class="data-table" id="scheduleTable">
+        <thead>
+          <tr>
+            <th>Job / Customer</th>
+            <th>Lead</th>
+            <th>Crew</th>
+            <th>Mon</th>
+            <th>Tue</th>
+            <th>Wed</th>
+            <th>Thu</th>
+            <th>Fri</th>
+            <th>Labour Type</th>
+            <th>% Done</th>
+            <th>Daily Labour $</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ══ ADD JOB MODAL ══ -->
+<div class="modal-backdrop" id="addJobModal">
+  <div class="modal">
+    <div class="modal-title">Add New Job</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Invoice Number</label>
+        <input class="form-input" id="new-invoiceNum" placeholder="e.g. C2145">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Invoice Date</label>
+        <input class="form-input" type="date" id="new-invoiceDate">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="grid-column:span 2">
+        <label class="form-label">Customer Name</label>
+        <input class="form-input" id="new-customer" placeholder="Full customer name">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Sales Rep</label>
+        <select class="form-select" id="new-salesRep">
+          <option>Paul Vincent</option>
+          <option>Sherrell Ezzell</option>
+          <option>Jeff Yates</option>
+          <option>Yvonne Chiang</option>
+          <option>Taylor Bassett</option>
+          <option>Jery Edgett</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Commission Rate</label>
+        <select class="form-select" id="new-commRate">
+          <option value="0.06">6%</option>
+          <option value="0.08">8%</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Invoice Total ($)</label>
+        <input class="form-input" type="number" id="new-total" placeholder="0.00" oninput="calcNewComm()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Initial Commission ($)</label>
+        <input class="form-input" type="number" id="new-commission" placeholder="Auto-calc">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Material Cost ($)</label>
+        <input class="form-input" type="number" id="new-material" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Field Labour Cost ($)</label>
+        <input class="form-input" type="number" id="new-labour" placeholder="0.00">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Job Start Date</label>
+        <input class="form-input" type="date" id="new-startDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Construction Days</label>
+        <input class="form-input" type="number" id="new-constDays" placeholder="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Job Type</label>
+        <select class="form-select" id="new-jobType">
+          <option>Fence</option>
+          <option>Deck</option>
+          <option>Pergola</option>
+          <option>Gate</option>
+          <option>Repair</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Construction Status</label>
+        <select class="form-select" id="new-status">
+          <option>In Progress</option>
+          <option>Completed</option>
+          <option>Scheduled</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addJobModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewJob()">Save Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOG PAYMENT MODAL ══ -->
+<div class="modal-backdrop" id="addPaymentModal">
+  <div class="modal">
+    <div class="modal-title">Log Payment Received</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Invoice Number</label>
+        <input class="form-input" id="pay-invoice" placeholder="Invoice #">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Date</label>
+        <input class="form-input" type="date" id="pay-date">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Payment Amount ($)</label>
+        <input class="form-input" type="number" id="pay-amount" placeholder="0.00" oninput="calcPayComm()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Commission Amount ($)</label>
+        <input class="form-input" type="number" id="pay-commAmount" placeholder="Auto-calc">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Payment Type</label>
+        <select class="form-select" id="pay-type">
+          <option>Check</option>
+          <option>ACH / Wire</option>
+          <option>Cash</option>
+          <option>Credit Card</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sales Rep</label>
+        <select class="form-select" id="pay-rep">
+          <option>Paul Vincent</option>
+          <option>Sherrell Ezzell</option>
+          <option>Jeff Yates</option>
+          <option>Yvonne Chiang</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addPaymentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePayment()">Log Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Saved successfully</div>
+
+<script>
+// ─────────────────────────────────────────
+// DATA (seeded from actual spreadsheets)
+// ─────────────────────────────────────────
+const JOBS = [
+  { inv: 'C2132', customer: 'Elizabeth Martinez', rep: 'Paul Vincent', total: 2850, material: 0, labour: 570, commission: 228, commRate: 0.08, outstanding: 0, startDate: '2026-04-22', status: 'Completed', payStatus: 'Completed', jobType: 'Fence' },
+  { inv: 'C2133', customer: 'Felicia Beltz', rep: 'Paul Vincent', total: 2850, material: 0, labour: 570, commission: 171, commRate: 0.06, outstanding: 0, startDate: '2026-04-22', status: 'Completed', payStatus: 'Completed', jobType: 'Deck' },
+  { inv: 'C2141', customer: 'Paul Bunnell', rep: 'Paul Vincent', total: 4750, material: 1200, labour: 975, commission: 285, commRate: 0.06, outstanding: 0, startDate: '2026-04-22', status: 'Completed', payStatus: 'Completed', jobType: 'Fence' },
+  { inv: 'C2123', customer: 'Ron Janysek', rep: 'Paul Vincent', total: 4340, material: 1800, labour: 780, commission: 347, commRate: 0.08, outstanding: 0, startDate: '2026-04-22', status: 'Completed', payStatus: 'Completed', jobType: 'Fence' },
+  { inv: 'C2118', customer: 'James Maikoetter', rep: 'Sherrell Ezzell', total: 2200, material: 650, labour: 390, commission: 132, commRate: 0.06, outstanding: 0, startDate: '2026-04-03', status: 'Completed', payStatus: 'Completed', jobType: 'Gate' },
+  { inv: 'C2120', customer: 'Leonard Robinson', rep: 'Sherrell Ezzell', total: 1250, material: 320, labour: 265, commission: 100, commRate: 0.08, outstanding: 0, startDate: '2026-04-03', status: 'Completed', payStatus: 'Completed', jobType: 'Repair' },
+  { inv: 'C2106', customer: 'Tammy Harger', rep: 'Jeff Yates', total: 30150, material: 12400, labour: 3900, commission: 1809, commRate: 0.06, outstanding: 14275, startDate: '2026-03-28', status: 'In Progress', payStatus: '1 of 2', jobType: 'Deck' },
+  { inv: 'C2104', customer: 'Ferguson Land Mgmt – Zac Ferguson', rep: 'Jeff Yates', total: 18440, material: 7200, labour: 2800, commission: 1475, commRate: 0.08, outstanding: 5530, startDate: '2026-03-13', status: 'Completed', payStatus: 'Partial', jobType: 'Fence' },
+  { inv: 'C2117', customer: 'Tanner McKibbon', rep: 'Paul Vincent', total: 8425, material: 3100, labour: 1560, commission: 674, commRate: 0.08, outstanding: 4000, startDate: '2026-03-23', status: 'Completed', payStatus: 'Partial', jobType: 'Pergola' },
+  { inv: 'C2074', customer: 'Melissa Proctor', rep: 'Paul Vincent', total: 11950, material: 4780, labour: 1170, commission: 717, commRate: 0.06, outstanding: 5975, startDate: '2026-02-12', status: 'Completed', payStatus: 'Partial', jobType: 'Deck' },
+  { inv: 'C2065', customer: 'Nicole Collins', rep: 'Paul Vincent', total: 13300, material: 5152, labour: 1350, commission: 798, commRate: 0.06, outstanding: 0, startDate: '2026-02-09', status: 'Completed', payStatus: 'Completed', jobType: 'Fence' },
+  { inv: 'C2087', customer: 'Trey Sewalt', rep: 'Paul Vincent', total: 6400, material: 2100, labour: 780, commission: 512, commRate: 0.08, outstanding: 3200, startDate: '2026-02-22', status: 'Completed', payStatus: 'Partial', jobType: 'Fence' },
+  { inv: 'C2090', customer: 'Carla Gonzalez', rep: 'Paul Vincent', total: 1600, material: 420, labour: 265, commission: 96, commRate: 0.06, outstanding: 0, startDate: '2026-03-02', status: 'Completed', payStatus: 'Completed', jobType: 'Repair' },
+  { inv: 'C2088', customer: 'Nicole Collins', rep: 'Paul Vincent', total: 8600, material: 3200, labour: 1170, commission: 688, commRate: 0.08, outstanding: 4300, startDate: '2026-03-02', status: 'Completed', payStatus: 'Partial', jobType: 'Fence' },
+];
+
+const SCHEDULE = [
+  { job: 'Tammy Harger', inv: 'C2106', lead: 'Adam', crew: ['Frankie', 'Carlos'], mon: true, tue: true, wed: true, thu: false, fri: false, labourType: 'inhouse', pct: 75, dailyRate: 690 },
+  { job: 'Ferguson Land Mgmt', inv: 'C2104', lead: 'JR', crew: ['Kyle', 'David'], mon: true, tue: true, wed: true, thu: true, fri: false, labourType: 'sub', pct: 100, dailyRate: 1030 },
+  { job: 'Tanner McKibbon', inv: 'C2117', lead: 'Justin', crew: ['Mauricio'], mon: true, tue: true, wed: false, thu: false, fri: false, labourType: 'inhouse', pct: 100, dailyRate: 630 },
+  { job: 'Paul Bunnell', inv: 'C2141', lead: 'Will', crew: [], mon: false, tue: false, wed: true, thu: true, fri: false, labourType: 'inhouse', pct: 50, dailyRate: 230 },
+  { job: 'Ron Janysek', inv: 'C2123', lead: 'Jorge', crew: [], mon: false, tue: true, wed: true, thu: true, fri: false, labourType: 'mixed', pct: 80, dailyRate: 400 },
+];
+
+const COMMISSIONS = {
+  'Paul Vincent': [
+    { inv: 2132, customer: 'Elizabeth Martinez', total: 2850, commTotal: 228, payAmt: 2850, commAmt: 228, prepaid: 0, available: 228, rate: '8%' },
+    { inv: 2133, customer: 'Felicia Beltz', total: 2850, commTotal: 171, payAmt: 2850, commAmt: 171, prepaid: 0, available: 171, rate: '6%' },
+    { inv: 2141, customer: 'Paul Bunnell', total: 4750, commTotal: 285, payAmt: 2375, commAmt: 142.5, prepaid: 0, available: 142.5, rate: '6%' },
+    { inv: 2123, customer: 'Ron Janysek', total: 4340, commTotal: 347.2, payAmt: 1965, commAmt: 157.2, prepaid: 0, available: 157.2, rate: '8%' },
+  ],
+  'Sherrell Ezzell': [
+    { inv: 2118, customer: 'James Maikoetter', total: 2200, commTotal: 132, payAmt: 2200, commAmt: 132, prepaid: 0, available: 132, rate: '6%' },
+    { inv: 2120, customer: 'Leonard Robinson', total: 1250, commTotal: 100, payAmt: 1250, commAmt: 100, prepaid: 0, available: 100, rate: '8%' },
+  ],
+  'Jeff Yates': [
+    { inv: 'C2106', customer: 'Tammy Harger', total: 30150, commTotal: 1809, payAmt: 15875, commAmt: 952.5, prepaid: 0, available: 952.5, rate: '6%' },
+  ],
+  'Yvonne Chiang': [],
+  'Taylor Bassett': [],
+  'Jery Edgett': [],
+};
+
+const YTD_COMM = [
+  { rep: 'Paul Vincent', jobs: 42, total: 28450, paid: 24600 },
+  { rep: 'Sherrell Ezzell', jobs: 38, total: 22180, paid: 19400 },
+  { rep: 'Jeff Yates', jobs: 35, total: 19870, paid: 17200 },
+  { rep: 'Yvonne Chiang', jobs: 12, total: 9340, paid: 8800 },
+  { rep: 'Taylor Bassett', jobs: 8, total: 4200, paid: 3900 },
+];
+
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+let currentRep = 'Paul Vincent';
+let activeWeek = new Date('2026-04-21');
+let filteredJobs = [...JOBS];
+
+// ─────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ─────────────────────────────────────────
+// WEEK NAVIGATION
+// ─────────────────────────────────────────
+function changeWeek(dir) {
+  activeWeek = new Date(activeWeek.getTime() + dir * 7 * 86400000);
+  updateWeekLabels();
+}
+
+function updateWeekLabels() {
+  const end = new Date(activeWeek.getTime() + 6 * 86400000);
+  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const label = `Week of ${fmt(activeWeek)} – ${fmt(end)}`;
+  document.getElementById('currentWeekLabel').textContent = label;
+  document.getElementById('reportDateLabel').textContent = label;
+}
+
+// ─────────────────────────────────────────
+// JOBS TABLE
+// ─────────────────────────────────────────
+function renderJobs(data) {
+  const tbody = document.getElementById('jobsBody');
+  tbody.innerHTML = '';
+  data.forEach(j => {
+    const pct = (j.commRate * 100).toFixed(0) + '%';
+    const outBadge = j.outstanding > 0
+      ? `<span class="outstanding-flag">$${j.outstanding.toLocaleString()}</span>`
+      : `<span class="badge badge-green">Paid</span>`;
+    const statusBadge = j.status === 'Completed' ? `<span class="badge badge-green">Completed</span>`
+      : j.status === 'In Progress' ? `<span class="badge badge-amber">In Progress</span>`
+      : `<span class="badge badge-gray">${j.status}</span>`;
+    const payBadge = j.payStatus === 'Completed' ? `<span class="badge badge-green">Paid</span>`
+      : `<span class="badge badge-amber">${j.payStatus}</span>`;
+    const rateStyle = pct === '8%' ? 'color:var(--amber2)' : '';
+    tbody.innerHTML += `
+      <tr>
+        <td>${j.inv}</td>
+        <td class="name-cell">${j.customer}</td>
+        <td>${j.rep}</td>
+        <td>$${j.total.toLocaleString()}</td>
+        <td>$${j.material.toLocaleString()}</td>
+        <td>$${j.labour.toLocaleString()}</td>
+        <td>$${j.commission.toLocaleString()}</td>
+        <td style="${rateStyle}">${pct}</td>
+        <td>${outBadge}</td>
+        <td>${j.startDate}</td>
+        <td>${statusBadge}</td>
+        <td>${payBadge}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="showToast('Job details coming soon!')">View</button></td>
+      </tr>`;
+  });
+  document.getElementById('jobs-count').textContent = `Showing ${data.length} jobs`;
+}
+
+function filterJobs(val) {
+  const q = val.toLowerCase();
+  filteredJobs = JOBS.filter(j =>
+    j.customer.toLowerCase().includes(q) ||
+    j.inv.toLowerCase().includes(q) ||
+    j.rep.toLowerCase().includes(q)
+  );
+  renderJobs(filteredJobs);
+}
+
+function filterByStatus(val) {
+  filteredJobs = val ? JOBS.filter(j => j.status === val) : [...JOBS];
+  renderJobs(filteredJobs);
+}
+
+function filterByRep(val) {
+  filteredJobs = val ? JOBS.filter(j => j.rep === val) : [...JOBS];
+  renderJobs(filteredJobs);
+}
+
+// ─────────────────────────────────────────
+// WEEKLY JOBS TABLE
+// ─────────────────────────────────────────
+function renderWeeklyJobs() {
+  const tbody = document.getElementById('weeklyJobsBody');
+  const weekJobs = JOBS.filter(j => j.status === 'In Progress' || j.startDate >= '2026-04-21');
+  tbody.innerHTML = '';
+  weekJobs.forEach(j => {
+    const labourDot = '<span class="labour-dot" style="background:var(--green)"></span>';
+    const pctVal = j.status === 'Completed' ? 100 : 75;
+    const revThisWk = ((j.total * pctVal) / 100).toFixed(0);
+    tbody.innerHTML += `
+      <tr>
+        <td>${j.inv}</td>
+        <td class="name-cell">${j.customer}</td>
+        <td>${j.rep}</td>
+        <td>$${j.total.toLocaleString()}</td>
+        <td>$${j.material.toLocaleString()}</td>
+        <td>$${j.labour.toLocaleString()}</td>
+        <td>${labourDot} In-house</td>
+        <td>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:${pctVal}%;background:${pctVal===100?'var(--green)':'var(--amber)'}"></div></div>
+            <span class="progress-pct">${pctVal}%</span>
+          </div>
+        </td>
+        <td style="color:var(--amber2)">$${Number(revThisWk).toLocaleString()}</td>
+      </tr>`;
+  });
+}
+
+// ─────────────────────────────────────────
+// SCHEDULE TABLE
+// ─────────────────────────────────────────
+function renderSchedule() {
+  const tbody = document.getElementById('scheduleBody');
+  tbody.innerHTML = '';
+  SCHEDULE.forEach(s => {
+    const dot = s.labourType === 'inhouse' ? 'var(--green)' : s.labourType === 'sub' ? 'var(--red)' : '#e3620980';
+    const pctColor = s.pct === 100 ? 'var(--green)' : s.pct >= 50 ? 'var(--amber)' : 'var(--red)';
+    const crew = [s.lead, ...s.crew].join(', ');
+    const days = ['mon','tue','wed','thu','fri'].map(d =>
+      `<td style="text-align:center">${s[d] ? '✓' : '·'}</td>`
+    ).join('');
+    tbody.innerHTML += `
+      <tr>
+        <td class="name-cell">${s.job}<br><span style="font-size:11px;color:var(--text3)">${s.inv}</span></td>
+        <td>${s.lead}</td>
+        <td>${s.crew.join(', ') || '—'}</td>
+        ${days}
+        <td><span class="labour-dot" style="background:${dot}"></span>${s.labourType}</td>
+        <td>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:${s.pct}%;background:${pctColor}"></div></div>
+            <span class="progress-pct">${s.pct}%</span>
+          </div>
+        </td>
+        <td>$${s.dailyRate.toLocaleString()}</td>
+      </tr>`;
+  });
+}
+
+// ─────────────────────────────────────────
+// COMMISSIONS
+// ─────────────────────────────────────────
+function switchRep(rep, btn) {
+  currentRep = rep;
+  document.querySelectorAll('.rep-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderCommissions();
+}
+
+function renderCommissions() {
+  const data = COMMISSIONS[currentRep] || [];
+  const tbody = document.getElementById('commBody');
+  tbody.innerHTML = '';
+  let weekTotal = 0, drawTotal = 0;
+  data.forEach(c => {
+    weekTotal += c.commAmt;
+    const rateStyle = c.rate === '8%' ? 'color:var(--amber2)' : '';
+    tbody.innerHTML += `
+      <tr>
+        <td>${c.inv}</td>
+        <td class="name-cell">${c.customer}</td>
+        <td>$${c.total.toLocaleString()}</td>
+        <td>$${c.commTotal.toFixed(2)}</td>
+        <td>$${c.payAmt.toLocaleString()}</td>
+        <td style="color:var(--green)">$${c.commAmt.toFixed(2)}</td>
+        <td style="${rateStyle}">${c.rate}</td>
+        <td>$${c.prepaid.toFixed(2)}</td>
+        <td style="color:var(--amber2)">$${c.available.toFixed(2)}</td>
+      </tr>`;
+  });
+  document.getElementById('comm-week-total').textContent = '$' + weekTotal.toFixed(2);
+  document.getElementById('comm-draw').textContent = '$' + drawTotal.toFixed(2);
+  document.getElementById('comm-available').textContent = '$' + (weekTotal - drawTotal).toFixed(2);
+  document.getElementById('commRepTitle').textContent = currentRep + ' — Apr 22 Week';
+
+  // YTD table
+  const ytdBody = document.getElementById('ytdCommBody');
+  ytdBody.innerHTML = '';
+  YTD_COMM.forEach(r => {
+    ytdBody.innerHTML += `
+      <tr>
+        <td class="name-cell">${r.rep}</td>
+        <td>${r.jobs}</td>
+        <td>$${r.total.toLocaleString()}</td>
+        <td style="color:var(--green)">$${r.paid.toLocaleString()}</td>
+      </tr>`;
+  });
+}
+
+// ─────────────────────────────────────────
+// CHARTS
+// ─────────────────────────────────────────
+let gaugeChart, costPie, incomeDonut, weeklyTrendChart, commHistChart;
+
+function initCharts() {
+  const darkGrid = { color: 'rgba(48,54,61,0.6)' };
+  const baseFont = { family: 'DM Sans', color: '#8b949e' };
+
+  // GAUGE (doughnut)
+  const gCtx = document.getElementById('gaugeChart').getContext('2d');
+  const gaugeVal = 59465, gaugeMax = 90000;
+  const pct = gaugeVal / gaugeMax;
+  gaugeChart = new Chart(gCtx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [
+          Math.min(pct * 100, 33),
+          Math.max(0, Math.min(pct * 100 - 33, 20)),
+          Math.max(0, Math.min(pct * 100 - 53, 47)),
+          Math.max(0, 100 - pct * 100),
+          100
+        ],
+        backgroundColor: ['#f85149', '#f0a500', '#3fb950', 'rgba(48,54,61,0.4)', 'transparent'],
+        borderWidth: 0, circumference: 180, rotation: 270,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      cutout: '72%',
+    }
+  });
+
+  // COST PIE
+  const cpCtx = document.getElementById('costPieChart').getContext('2d');
+  costPie = new Chart(cpCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Material', 'Field Labour', 'Overhead', 'Support Labour', 'Commission'],
+      datasets: [{
+        data: [20245.82, 9569.50, 10993.04, 14923.05, 3733.60],
+        backgroundColor: ['#58a6ff','#f0a500','#3fb950','#bc8cff','#f85149'],
+        borderColor: '#161b22', borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#8b949e', font: { family: 'DM Sans', size: 11 }, boxWidth: 12, padding: 10 } },
+        tooltip: { callbacks: { label: c => ` $${c.raw.toLocaleString()} (${(c.raw/59465*100).toFixed(0)}%)` } }
+      },
+    }
+  });
+
+  // INCOME DONUT
+  const idCtx = document.getElementById('incomeDonut').getContext('2d');
+  incomeDonut = new Chart(idCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Yonh John Du (50%)', 'Jim Winne (60%)', 'Sharon & Ray Zaiontz', 'Roger Huehlefeld', 'James Maikoetter', 'Leonard Robinson'],
+      datasets: [{
+        data: [41818, 7035, 3363, 3800, 2200, 1250],
+        backgroundColor: ['#f0a500','#58a6ff','#3fb950','#bc8cff','#e36209','#f85149'],
+        borderColor: '#161b22', borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#8b949e', font: { family: 'DM Sans', size: 10 }, boxWidth: 10, padding: 6 } },
+      }
+    }
+  });
+
+  // WEEKLY TREND
+  const wtCtx = document.getElementById('weeklyTrend').getContext('2d');
+  weeklyTrendChart = new Chart(wtCtx, {
+    type: 'line',
+    data: {
+      labels: ['Jan W1','Jan W2','Jan W3','Feb W1','Feb W2','Mar W1','Mar W2','Apr W1','Apr W2','This Wk'],
+      datasets: [{
+        label: 'Invoice Total',
+        data: [42000, 67000, 55000, 71000, 83000, 49000, 76000, 62000, 88000, 59465],
+        borderColor: '#f0a500', backgroundColor: 'rgba(240,165,0,0.1)',
+        tension: 0.4, fill: true, pointBackgroundColor: '#f0a500', pointRadius: 4,
+      },{
+        label: 'Target',
+        data: [90000,90000,90000,90000,90000,90000,90000,90000,90000,90000],
+        borderColor: 'rgba(248,81,73,0.5)', borderDash: [5,5],
+        pointRadius: 0, tension: 0, fill: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: darkGrid, ticks: { color: '#656d76', font: { size: 10 } } },
+        y: { grid: darkGrid, ticks: { color: '#656d76', callback: v => '$' + (v/1000).toFixed(0) + 'k', font: { size: 10 } } }
+      },
+      plugins: { legend: { labels: { color: '#8b949e', font: { size: 11 } } } }
+    }
+  });
+
+  // COMMISSION HISTORY
+  const chCtx = document.getElementById('commHistoryChart').getContext('2d');
+  commHistChart = new Chart(chCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Jan','Feb','Mar','Apr'],
+      datasets: [
+        { label: 'Paul V', data: [7200, 8100, 6800, 4200], backgroundColor: '#f0a500' },
+        { label: 'Sherrell E', data: [5400, 6200, 5900, 3200], backgroundColor: '#58a6ff' },
+        { label: 'Jeff Y', data: [4800, 5500, 5100, 2900], backgroundColor: '#3fb950' },
+        { label: 'Yvonne C', data: [2100, 2400, 2000, 1400], backgroundColor: '#bc8cff' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { stacked: true, grid: darkGrid, ticks: { color: '#656d76', font: { size: 10 } } },
+        y: { stacked: true, grid: darkGrid, ticks: { color: '#656d76', callback: v => '$' + v.toLocaleString(), font: { size: 10 } } }
+      },
+      plugins: { legend: { labels: { color: '#8b949e', font: { size: 10 }, boxWidth: 10 } } }
+    }
+  });
+}
+
+// ─────────────────────────────────────────
+// WEEKLY RECALC
+// ─────────────────────────────────────────
+function recalcWeekly() {
+  const mat = parseFloat(document.getElementById('wr-material').value.replace(/,/g,'')) || 0;
+  const lab = parseFloat(document.getElementById('wr-labour').value.replace(/,/g,'')) || 0;
+  const ovh = parseFloat(document.getElementById('wr-overhead').value.replace(/,/g,'')) || 0;
+  const sup = parseFloat(document.getElementById('wr-support').value.replace(/,/g,'')) || 0;
+  const total = 59465;
+  const netProfit = total - mat - lab - 3733.60;
+  const weeklyProfit = netProfit - ovh - sup;
+  document.getElementById('wr-mat-pct').textContent = (mat/total*100).toFixed(0) + '%';
+  document.getElementById('wr-lab-pct').textContent = (lab/total*100).toFixed(0) + '%';
+  document.getElementById('wr-weeklyProfit').textContent = '$' + weeklyProfit.toFixed(2);
+  document.getElementById('wr-weeklyProfit').style.color = weeklyProfit >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+// ─────────────────────────────────────────
+// MODALS
+// ─────────────────────────────────────────
+function openAddJob() { document.getElementById('addJobModal').classList.add('open'); }
+function openAddPayment() { document.getElementById('addPaymentModal').classList.add('open'); }
+function openAddSchedule() { showToast('Schedule editor coming in next update!'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+function calcNewComm() {
+  const total = parseFloat(document.getElementById('new-total').value) || 0;
+  const rate = parseFloat(document.getElementById('new-commRate').value);
+  document.getElementById('new-commission').value = (total * rate).toFixed(2);
+}
+
+function calcPayComm() {
+  const amt = parseFloat(document.getElementById('pay-amount').value) || 0;
+  // Default 6% for quick calc; actual rate pulled from job
+  document.getElementById('pay-commAmount').value = (amt * 0.06).toFixed(2);
+}
+
+function saveNewJob() {
+  const inv = document.getElementById('new-invoiceNum').value;
+  const cust = document.getElementById('new-customer').value;
+  if (!inv || !cust) { alert('Invoice # and Customer Name required'); return; }
+  JOBS.unshift({
+    inv, customer: cust,
+    rep: document.getElementById('new-salesRep').value,
+    total: parseFloat(document.getElementById('new-total').value) || 0,
+    material: parseFloat(document.getElementById('new-material').value) || 0,
+    labour: parseFloat(document.getElementById('new-labour').value) || 0,
+    commission: parseFloat(document.getElementById('new-commission').value) || 0,
+    commRate: parseFloat(document.getElementById('new-commRate').value),
+    outstanding: parseFloat(document.getElementById('new-total').value) || 0,
+    startDate: document.getElementById('new-startDate').value,
+    status: document.getElementById('new-status').value,
+    payStatus: 'Pending',
+    jobType: document.getElementById('new-jobType').value,
+  });
+  closeModal('addJobModal');
+  renderJobs(JOBS);
+  showToast('Job ' + inv + ' added!');
+}
+
+function savePayment() {
+  closeModal('addPaymentModal');
+  showToast('Payment logged successfully!');
+}
+
+// ─────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function printReport() {
+  window.print();
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateWeekLabels();
+  renderJobs(JOBS);
+  renderWeeklyJobs();
+  renderSchedule();
+  renderCommissions();
+  initCharts();
+});
+</script>
+</body>
+</html>
