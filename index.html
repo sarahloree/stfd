@@ -1084,7 +1084,9 @@ const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
 // For write operations we use the Anthropic API proxy approach
 async function fetchSheetData(range) {
   try {
-    const url = ;
+    const activeSheet = window.ACTIVE_SHEET_ID || SHEET_ID;
+    const apiKey = window.GSHEETS_API_KEY || '';
+    const url = SHEETS_API + '/' + activeSheet + '/values/' + encodeURIComponent(range) + '?key=' + apiKey;
     const res = await fetch(url);
     if (!res.ok) throw new Error('Sheets API error: ' + res.status);
     const data = await res.json();
@@ -1098,10 +1100,12 @@ async function fetchSheetData(range) {
 // Write a new row to the Jobs sheet
 async function appendToSheet(sheetName, rowData) {
   try {
-    const url = ;
+    const activeSheet = window.ACTIVE_SHEET_ID || SHEET_ID;
+    const token = window.GSHEETS_TOKEN || '';
+    const url = SHEETS_API + '/' + activeSheet + '/values/' + encodeURIComponent(sheetName) + '!A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization':  },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ values: [rowData] })
     });
     return res.ok;
@@ -2022,7 +2026,7 @@ function saveReport() {
     <div class="form-group" style="margin-bottom:14px;">
       <label class="form-label">Google Sheets API Key</label>
       <input class="form-input" id="settings-apikey" type="password" placeholder="AIzaSy…" style="font-family:'DM Mono',monospace;font-size:12px;">
-      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Paste your API key here. It will be saved in your browser.</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Paste your API key. You'll need to re-enter it each session (or keep this tab open).</div>
     </div>
 
     <div class="form-group" style="margin-bottom:14px;">
@@ -2101,7 +2105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="form-group" style="margin-bottom:14px;">
       <label class="form-label">Google Sheets API Key</label>
       <input class="form-input" id="settings-apikey" type="password" placeholder="AIzaSy…" style="font-family:'DM Mono',monospace;font-size:12px;">
-      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Paste your API key here. It will be saved in your browser.</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Paste your API key. You'll need to re-enter it each session (or keep this tab open).</div>
     </div>
 
     <div class="form-group" style="margin-bottom:14px;">
