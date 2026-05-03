@@ -1,8 +1,3114 @@
 {
-  "weeks": [],
-  "income": {},
-  "monthly": [],
-  "jobs": [],
-  "publishedAt": null,
-  "publishedBy": null
+  "weeks": [
+    {
+      "week": "1",
+      "start": "2026-01-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 39570.090000000004,
+      "outSP": 52859.7,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "2",
+      "start": "2026-01-04",
+      "inv": 56750,
+      "mat": 23345.454999999998,
+      "fl": 6363.575000000001,
+      "comm": 3509,
+      "oh": 10074.264701643267,
+      "sp": 13457.705298356726,
+      "ohPct": 0.25459291858176886,
+      "spPct": 0.25459291858176886,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 39570.090000000004,
+      "outSP": 52859.7,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "3",
+      "start": "2026-01-11",
+      "inv": 84825,
+      "mat": 34181.615000000005,
+      "fl": 11473.324999999999,
+      "comm": 5677.5,
+      "oh": 14338.489934147854,
+      "sp": 19154.070065852142,
+      "ohPct": 0.6169496868920722,
+      "spPct": 0.6169496868920722,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 29495.825298356736,
+      "outSP": 39401.99470164327,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "4",
+      "start": "2026-01-18",
+      "inv": 78424,
+      "mat": 32352.924,
+      "fl": 10804.36,
+      "comm": 5392.94,
+      "oh": 12789.25338854324,
+      "sp": 17084.52261145676,
+      "ohPct": 0.9401547488098804,
+      "spPct": 0.9401547488098804,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 15157.335364208884,
+      "outSP": 20247.92463579113,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "5",
+      "start": "2026-01-25",
+      "inv": 51821,
+      "mat": 23479.426,
+      "fl": 9380.34,
+      "comm": 3463.2599999999998,
+      "oh": 2368.081975665642,
+      "sp": 3163.4020243343693,
+      "ohPct": 1,
+      "spPct": 1,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 2368.081975665642,
+      "outSP": 3163.4020243343693,
+      "wp": 9966.489999999989,
+      "mp": 9966.489999999989
+    },
+    {
+      "week": "6",
+      "start": "2026-02-01",
+      "inv": 30136,
+      "mat": 12126.256,
+      "fl": 7118,
+      "comm": 1838,
+      "oh": 4104.699674381411,
+      "sp": 4949.044325618589,
+      "ohPct": 0.0860163926000249,
+      "spPct": 0.08601639260002492,
+      "monthOH": 47719.97,
+      "monthSP": 57536.06,
+      "outOH": 47719.97,
+      "outSP": 57536.06,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "7",
+      "start": "2026-02-08",
+      "inv": 99478.85,
+      "mat": 47516.05125,
+      "fl": 24061.92,
+      "comm": 7279.26,
+      "oh": 9349.231850198397,
+      "sp": 11272.386899801611,
+      "ohPct": 0.2819350373560547,
+      "spPct": 0.28193503735605463,
+      "monthOH": 47719.97,
+      "monthSP": 57536.06,
+      "outOH": 43615.27032561859,
+      "outSP": 52587.01567438141,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "8",
+      "start": "2026-02-15",
+      "inv": 115495.2,
+      "mat": 46870.538,
+      "fl": 19457.4,
+      "comm": 7991.634000000001,
+      "oh": 18667.811553325355,
+      "sp": 22507.816446674646,
+      "ohPct": 0.6731299931224844,
+      "spPct": 0.6731299931224843,
+      "monthOH": 47719.97,
+      "monthSP": 57536.06,
+      "outOH": 34266.038475420195,
+      "outSP": 41314.628774579796,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "9",
+      "start": "2026-02-22",
+      "inv": 61244.65,
+      "mat": 20414.09525,
+      "fl": 12048.75,
+      "comm": 4508.9310000000005,
+      "oh": 11004.602844737614,
+      "sp": 13268.270905262387,
+      "ohPct": 0.9037379093625327,
+      "spPct": 0.9037379093625325,
+      "monthOH": 47719.97,
+      "monthSP": 57536.06,
+      "outOH": 15598.226922094836,
+      "outSP": 18806.81232790515,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "10",
+      "start": "2026-03-01",
+      "inv": 88553,
+      "mat": 35734.21000000001,
+      "fl": 12073.269999999999,
+      "comm": 6099.26,
+      "oh": 15292.437087623677,
+      "sp": 19353.822912376316,
+      "ohPct": 0.31645838899354906,
+      "spPct": 0.31645838899354906,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": 48323.69,
+      "outSP": 61157.56,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "11",
+      "start": "2026-03-08",
+      "inv": 100072.4,
+      "mat": 48696.823,
+      "fl": 19927.46,
+      "comm": 7764.7919999999995,
+      "oh": 10453.531134045783,
+      "sp": 13229.793865954214,
+      "ohPct": 0.5327815036821373,
+      "spPct": 0.5327815036821373,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": 33031.25291237632,
+      "outSP": 41803.73708762368,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "12",
+      "start": "2026-03-15",
+      "inv": 106439.9,
+      "mat": 37773.08499999999,
+      "fl": 16259.514,
+      "comm": 7906.0419999999995,
+      "oh": 19642.31358817798,
+      "sp": 24858.945411822024,
+      "ohPct": 0.9392552971399212,
+      "spPct": 0.9392552971399211,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": 22577.721778330542,
+      "outSP": 28573.94322166947,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "13",
+      "start": "2026-03-22",
+      "inv": 91863.9,
+      "mat": 25321.216,
+      "fl": 24893.9508,
+      "comm": 6166.034,
+      "oh": 2935.408190152564,
+      "sp": 3714.9978098474458,
+      "ohPct": 1,
+      "spPct": 1,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": 2935.408190152564,
+      "outSP": 3714.9978098474458,
+      "wp": 28832.293199999986,
+      "mp": 28832.293199999986
+    },
+    {
+      "week": "14A",
+      "start": "2026-03-29",
+      "inv": 44470.700000000004,
+      "mat": 15040.571,
+      "fl": 8548.7628,
+      "comm": 2762.042,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 1,
+      "spPct": 1,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": -12726.222970471266,
+      "outSP": -16106.07022952872,
+      "wp": 18119.324200000003,
+      "mp": 46951.61739999999
+    },
+    {
+      "week": "14B",
+      "start": "2026-04-01",
+      "inv": 59465,
+      "mat": 20045.254999999997,
+      "fl": 9569.496,
+      "comm": 3733.5999999999995,
+      "oh": 11078.111983032877,
+      "sp": 15038.53701696713,
+      "ohPct": 0.2769527995758219,
+      "spPct": 0.2769527995758219,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "15",
+      "start": "2026-04-05",
+      "inv": 45867.9,
+      "mat": 17445.549,
+      "fl": 8582.936399999999,
+      "comm": 2924.074,
+      "oh": 7175.117963944858,
+      "sp": 9740.222636055145,
+      "ohPct": 0.4563307486744434,
+      "spPct": 0.45633074867444334,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "16",
+      "start": "2026-04-12",
+      "inv": 37117.58,
+      "mat": 11544.13,
+      "fl": 5499.299999999999,
+      "comm": 2303.7999999999997,
+      "oh": 7537.794273594913,
+      "sp": 10232.555726405093,
+      "ohPct": 0.6447756055143161,
+      "spPct": 0.6447756055143161,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 21746.770053022265,
+      "outSP": 29521.240346977727,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "17",
+      "start": "2026-04-19",
+      "inv": 51625.5,
+      "mat": 15724.627499999999,
+      "fl": 7535.4,
+      "comm": 3860.04,
+      "oh": 10394.669141039234,
+      "sp": 14110.763358960761,
+      "ohPct": 0.9046423340402969,
+      "spPct": 0.9046423340402969,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 14208.975779427354,
+      "outSP": 19288.684620572632,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "18",
+      "start": "2026-04-26",
+      "inv": 50640,
+      "mat": 8208.130000000001,
+      "fl": 20531.2,
+      "comm": 3272.4,
+      "oh": 3814.3066383881232,
+      "sp": 5177.921261611875,
+      "ohPct": 1,
+      "spPct": 1,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 3814.3066383881232,
+      "outSP": 5177.921261611875,
+      "wp": 9636.042099999995,
+      "mp": 9636.042099999995
+    },
+    {
+      "week": "18",
+      "start": "2026-05-01",
+      "inv": 50640,
+      "mat": 8208.130000000001,
+      "fl": 20531.2,
+      "comm": 3272.4,
+      "oh": 7901.7051961823945,
+      "sp": 10726.5648038176,
+      "ohPct": 0.19754262990455987,
+      "spPct": 0.19754262990455987,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "19",
+      "start": "2026-05-03",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0.19754262990455987,
+      "spPct": 0.19754262990455987,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "20",
+      "start": "2026-05-10",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0.19754262990455987,
+      "spPct": 0.19754262990455987,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 32098.294803817604,
+      "outSP": 43573.4351961824,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "21",
+      "start": "2026-05-17",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0.19754262990455987,
+      "spPct": 0.19754262990455987,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 32098.294803817604,
+      "outSP": 43573.4351961824,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "22",
+      "start": "2026-05-24",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0.19754262990455987,
+      "spPct": 0.19754262990455987,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 32098.294803817604,
+      "outSP": 43573.4351961824,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "23",
+      "start": "2026-05-31",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0.19754262990455987,
+      "spPct": 0.19754262990455987,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 32098.294803817604,
+      "outSP": 43573.4351961824,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "23",
+      "start": "2026-06-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "24",
+      "start": "2026-06-07",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "25",
+      "start": "2026-06-14",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "26",
+      "start": "2026-06-21",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "27",
+      "start": "2026-06-28",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "27",
+      "start": "2026-07-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "28",
+      "start": "2026-07-05",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    }
+  ],
+  "income": {
+    "2": [
+      {
+        "name": "Amy Irving",
+        "amount": 2900,
+        "pct": 1
+      },
+      {
+        "name": "Don Mikulenka Custom Builder, Inc.",
+        "amount": 18850,
+        "pct": 1
+      },
+      {
+        "name": "Tambra Hubbard",
+        "amount": 11400,
+        "pct": 1
+      },
+      {
+        "name": "5D - POC - Brianne Dlugosch",
+        "amount": 4500,
+        "pct": 1
+      },
+      {
+        "name": "SL Commercial Services/TSC - Edna",
+        "amount": 2300,
+        "pct": 1
+      },
+      {
+        "name": "Sandra and Don May",
+        "amount": 8700,
+        "pct": 1
+      },
+      {
+        "name": "Justin Guzman",
+        "amount": 8100,
+        "pct": 0.75
+      }
+    ],
+    "3": [
+      {
+        "name": "Justin Guzman",
+        "amount": 2700,
+        "pct": 0.25
+      },
+      {
+        "name": "Karnes County Residential Center - Jesus Fernandez",
+        "amount": 25625,
+        "pct": 1
+      },
+      {
+        "name": "Marcie Garcia",
+        "amount": 2300,
+        "pct": 1
+      },
+      {
+        "name": "Gwen Hall",
+        "amount": 3500,
+        "pct": 1
+      },
+      {
+        "name": "Lucas Johnson",
+        "amount": 19800,
+        "pct": 1
+      },
+      {
+        "name": "Don Mikulenka Custom Builder, Inc.",
+        "amount": 5000,
+        "pct": 1
+      },
+      {
+        "name": "Zoe Davis",
+        "amount": 5000,
+        "pct": 1
+      },
+      {
+        "name": "Kelly & Kyle Flessner",
+        "amount": 17500,
+        "pct": 1
+      },
+      {
+        "name": "Eddy Foods (Kristin McKinney)",
+        "amount": 3400,
+        "pct": 1
+      }
+    ],
+    "4": [
+      {
+        "name": "Elizabeth Smith",
+        "amount": 27500,
+        "pct": 1
+      },
+      {
+        "name": "Wayne Condra",
+        "amount": 8700,
+        "pct": 1
+      },
+      {
+        "name": "Laura Stuart",
+        "amount": 1000,
+        "pct": 1
+      },
+      {
+        "name": "Carol Tally",
+        "amount": 5525,
+        "pct": 1
+      },
+      {
+        "name": "Pawnee ISD - Danny Field (1-70%)",
+        "amount": 34349,
+        "pct": 0.7
+      },
+      {
+        "name": "Ryan Haycock",
+        "amount": 1350,
+        "pct": 1
+      }
+    ],
+    "5": [
+      {
+        "name": "Pawnee ISD - Danny Field (1-70%)",
+        "amount": 14721,
+        "pct": 0.3
+      },
+      {
+        "name": "Jan Hill",
+        "amount": 4450,
+        "pct": 1
+      },
+      {
+        "name": "Pete Guajardo",
+        "amount": 5750,
+        "pct": 1
+      },
+      {
+        "name": "Adelina Garza",
+        "amount": 9800,
+        "pct": 1
+      },
+      {
+        "name": "Dustin Kenne, Westhoff ISD",
+        "amount": 6500,
+        "pct": 1
+      },
+      {
+        "name": "Don Mikulenka Custom Builder, Inc.",
+        "amount": 1400,
+        "pct": 1
+      },
+      {
+        "name": "Kathleen Storz",
+        "amount": 9200,
+        "pct": 1
+      }
+    ],
+    "6": [
+      {
+        "name": "Richard Jones",
+        "amount": 4500,
+        "pct": 1
+      },
+      {
+        "name": "Kenneth Allen",
+        "amount": 4800,
+        "pct": 1
+      },
+      {
+        "name": "Allen Baas",
+        "amount": 2000,
+        "pct": 1
+      },
+      {
+        "name": "Pawnee ISD - Danny Field Add-on",
+        "amount": 14500,
+        "pct": 1
+      },
+      {
+        "name": "Robert Hopkins",
+        "amount": 4336,
+        "pct": 0.8
+      }
+    ],
+    "7": [
+      {
+        "name": "Jim Winne (1-50%)",
+        "amount": 2931.25,
+        "pct": 0.25
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (1-20%)",
+        "amount": 39132.4,
+        "pct": 1
+      },
+      {
+        "name": "Larry Heckman",
+        "amount": 9500,
+        "pct": 1
+      },
+      {
+        "name": "McKenzie Interceptor Upgrade (Cash Construction) (1-25%)",
+        "amount": 34104.8,
+        "pct": 0.8
+      },
+      {
+        "name": "McKenzie Interceptor Upgrade Add-On (Cash Construction)",
+        "amount": 6410.4,
+        "pct": 0.8
+      },
+      {
+        "name": "Christine Harbin",
+        "amount": 4900,
+        "pct": 1
+      },
+      {
+        "name": "Jessica Wise",
+        "amount": 2500,
+        "pct": 1
+      }
+    ],
+    "8": [
+      {
+        "name": "Robert Hopkins",
+        "amount": 1084,
+        "pct": 0.2
+      },
+      {
+        "name": "McKenzie Interceptor Upgrade (Cash Construction) (1-25%)",
+        "amount": 8526.2,
+        "pct": 0.2
+      },
+      {
+        "name": "McKenzie Interceptor Upgrade Add-On (Cash Construction)",
+        "amount": 1602.6,
+        "pct": 0.2
+      },
+      {
+        "name": "Nicole Collins",
+        "amount": 13300,
+        "pct": 1
+      },
+      {
+        "name": "Jesse McLane",
+        "amount": 5450,
+        "pct": 1
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (2-20%)",
+        "amount": 39132.4,
+        "pct": 1
+      },
+      {
+        "name": "Luis Delapena",
+        "amount": 7050,
+        "pct": 1
+      },
+      {
+        "name": "Melissa Proctor",
+        "amount": 11950,
+        "pct": 1
+      },
+      {
+        "name": "Port O'Connor Improvement District - Oscar Pena",
+        "amount": 3800,
+        "pct": 1
+      },
+      {
+        "name": "QRV - Madelyn Sanchez",
+        "amount": 13800,
+        "pct": 1
+      },
+      {
+        "name": "Christine Kidd",
+        "amount": 2100,
+        "pct": 1
+      },
+      {
+        "name": "Mike & Ashley Uresti",
+        "amount": 7700,
+        "pct": 1
+      }
+    ],
+    "9": [
+      {
+        "name": "Jim Winne (1-50%)",
+        "amount": 2931.25,
+        "pct": 0.25
+      },
+      {
+        "name": "Raymond Myers",
+        "amount": 2600,
+        "pct": 1
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (3-15%)",
+        "amount": 29349.3,
+        "pct": 1
+      },
+      {
+        "name": "Edgar Hinojosa",
+        "amount": 4200,
+        "pct": 1
+      },
+      {
+        "name": "Trey Sewalt",
+        "amount": 6400,
+        "pct": 1
+      },
+      {
+        "name": "David Ebert",
+        "amount": 8100,
+        "pct": 1
+      },
+      {
+        "name": "National Conductor - Joshua Dixon (2-10%)",
+        "amount": 6064.1,
+        "pct": 1
+      },
+      {
+        "name": "Carla Gonzalez",
+        "amount": 1600,
+        "pct": 1
+      }
+    ],
+    "10": [
+      {
+        "name": "Chris & Robert Handy",
+        "amount": 25650,
+        "pct": 0.95
+      },
+      {
+        "name": "HSL Family LTD",
+        "amount": 7699,
+        "pct": 1
+      },
+      {
+        "name": "Lisa Garrett",
+        "amount": 1800,
+        "pct": 1
+      },
+      {
+        "name": "Gary Morgan",
+        "amount": 3500,
+        "pct": 1
+      },
+      {
+        "name": "Doris Brown",
+        "amount": 3400,
+        "pct": 1
+      },
+      {
+        "name": "Martino Travino - Republic Services",
+        "amount": 10600,
+        "pct": 1
+      },
+      {
+        "name": "Texas Aqua Store - Travis Courange (1-50%)",
+        "amount": 3225,
+        "pct": 1
+      },
+      {
+        "name": "City of Corpus Christi Williams Lift Station Force Main (1-30%)",
+        "amount": 32679,
+        "pct": 1
+      }
+    ],
+    "11": [
+      {
+        "name": "Chris & Robert Handy",
+        "amount": 1350,
+        "pct": 0.05
+      },
+      {
+        "name": "Lisa Garrett",
+        "amount": 4100,
+        "pct": 1
+      },
+      {
+        "name": "Lauger Companies Inc",
+        "amount": 22190,
+        "pct": 0.7
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (4-20%)",
+        "amount": 39132.4,
+        "pct": 1
+      },
+      {
+        "name": "Jennifer Perez",
+        "amount": 3100,
+        "pct": 1
+      },
+      {
+        "name": "Martha Salazar",
+        "amount": 6600,
+        "pct": 1
+      },
+      {
+        "name": "John Smart",
+        "amount": 7600,
+        "pct": 1
+      },
+      {
+        "name": "Lewis and Henry Glover",
+        "amount": 11700,
+        "pct": 1
+      },
+      {
+        "name": "Mark Boname",
+        "amount": 4300,
+        "pct": 1
+      }
+    ],
+    "12": [
+      {
+        "name": "Lauger Companies Inc",
+        "amount": 9510,
+        "pct": 0.3
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (5-20%)",
+        "amount": 39132.4,
+        "pct": 1
+      },
+      {
+        "name": "Sarah Miller",
+        "amount": 5092.5,
+        "pct": 0.7
+      },
+      {
+        "name": "Donna & Wade Debolt",
+        "amount": 6200,
+        "pct": 1
+      },
+      {
+        "name": "Michael Hahn",
+        "amount": 8650,
+        "pct": 1
+      },
+      {
+        "name": "Ferguson Land Management - Zac Ferguson",
+        "amount": 18440,
+        "pct": 1
+      },
+      {
+        "name": "Jay Bonano",
+        "amount": 8900,
+        "pct": 0.5
+      },
+      {
+        "name": "Pawnee ISD - Danny Field (2-30%)",
+        "amount": 10515,
+        "pct": 0.5
+      }
+    ],
+    "13": [
+      {
+        "name": "Sarah Miller",
+        "amount": 2182.5,
+        "pct": 0.3
+      },
+      {
+        "name": "Jay Bonano",
+        "amount": 8900,
+        "pct": 0.5
+      },
+      {
+        "name": "Pawnee ISD - Danny Field (2-30%)",
+        "amount": 10094.4,
+        "pct": 0.48
+      },
+      {
+        "name": "Yonh John Du",
+        "amount": 16727,
+        "pct": 0.2
+      },
+      {
+        "name": "Joseph Garza",
+        "amount": 4000,
+        "pct": 1
+      },
+      {
+        "name": "Tammy Harger",
+        "amount": 30150,
+        "pct": 1
+      },
+      {
+        "name": "Ferguson Land Management - Zac Ferguson",
+        "amount": 19810,
+        "pct": 1
+      }
+    ],
+    "15": [
+      {
+        "name": "Yonh John Du",
+        "amount": 3345.4,
+        "pct": 0.04
+      },
+      {
+        "name": "Sharon & Ray Zaiontz",
+        "amount": 672.5,
+        "pct": 0.05
+      },
+      {
+        "name": "Nicole Collins",
+        "amount": 8600,
+        "pct": 1
+      },
+      {
+        "name": "Equalizer Inc. | Doug Stevens",
+        "amount": 18750,
+        "pct": 0.75
+      },
+      {
+        "name": "Ferdinand Siegel",
+        "amount": 14500,
+        "pct": 1
+      }
+    ],
+    "16": [
+      {
+        "name": "Donna & Wade Debolt",
+        "amount": 13260,
+        "pct": 0.85
+      },
+      {
+        "name": "Elizabeth Martinez",
+        "amount": 2850,
+        "pct": 1
+      },
+      {
+        "name": "Lauger Companies Inc",
+        "amount": 1500,
+        "pct": 1
+      },
+      {
+        "name": "Vickie Johnson",
+        "amount": 8600,
+        "pct": 1
+      },
+      {
+        "name": "DeAngela Nava/Pet Resort on Main",
+        "amount": 2100,
+        "pct": 1
+      },
+      {
+        "name": "Ron Janysek",
+        "amount": 4340,
+        "pct": 1
+      },
+      {
+        "name": "Felicia Beltz",
+        "amount": 2850,
+        "pct": 1
+      },
+      {
+        "name": "JoAnne Settles",
+        "amount": 1617.58,
+        "pct": 1
+      }
+    ],
+    "17": [
+      {
+        "name": "City of Corpus Christi Williams Lift Station Force Main (2-35%)",
+        "amount": 38125.5,
+        "pct": 1
+      },
+      {
+        "name": "Patty Boldt",
+        "amount": 3700,
+        "pct": 1
+      },
+      {
+        "name": "Cindy Fitzgerald",
+        "amount": 9800,
+        "pct": 1
+      }
+    ],
+    "18": [
+      {
+        "name": "Donna & Wade Debolt",
+        "amount": 2340,
+        "pct": 0.15
+      },
+      {
+        "name": "James Ken",
+        "amount": 16600,
+        "pct": 1
+      },
+      {
+        "name": "Adam Pustka",
+        "amount": 20000,
+        "pct": 1
+      },
+      {
+        "name": "Joe Narez",
+        "amount": 11700,
+        "pct": 1
+      }
+    ],
+    "14A": [
+      {
+        "name": "Pawnee ISD - Danny Field (2-30%)",
+        "amount": 420.6,
+        "pct": 0.02
+      },
+      {
+        "name": "Yonh John Du",
+        "amount": 21745.1,
+        "pct": 0.26
+      },
+      {
+        "name": "Sharon & Ray Zaiontz",
+        "amount": 9415,
+        "pct": 0.7
+      },
+      {
+        "name": "Billie Hanke",
+        "amount": 8200,
+        "pct": 1
+      },
+      {
+        "name": "Jim Winne (2-50%)",
+        "amount": 4690,
+        "pct": 0.4
+      }
+    ],
+    "14B": [
+      {
+        "name": "Yonh John Du",
+        "amount": 41817.5,
+        "pct": 0.5
+      },
+      {
+        "name": "Sharon & Ray Zaiontz",
+        "amount": 3362.5,
+        "pct": 0.25
+      },
+      {
+        "name": "Jim Winne (2-50%)",
+        "amount": 7035,
+        "pct": 0.6
+      },
+      {
+        "name": "Roger Huehlefeld",
+        "amount": 3800,
+        "pct": 1
+      },
+      {
+        "name": "James Maikoetter",
+        "amount": 2200,
+        "pct": 1
+      },
+      {
+        "name": "Leonard Robinson",
+        "amount": 1250,
+        "pct": 1
+      }
+    ]
+  },
+  "monthly": [
+    {
+      "start": "2026-01-01",
+      "inv": 271820,
+      "mat": 113359.42000000001,
+      "fl": 38021.600000000006,
+      "oh": 39570.090000000004,
+      "sp": 52859.7,
+      "comm": 18042.699999999997,
+      "profit": 9966.489999999989
+    },
+    {
+      "start": "2026-02-01",
+      "inv": 306354.7,
+      "mat": 126926.9405,
+      "fl": 62686.07,
+      "oh": 43126.34592264278,
+      "sp": 51997.51857735723,
+      "comm": 21617.825,
+      "profit": 0
+    },
+    {
+      "start": "2026-03-01",
+      "inv": 431399.89999999997,
+      "mat": 162565.90499999997,
+      "fl": 81702.9576,
+      "oh": 48323.69,
+      "sp": 61157.56,
+      "comm": 30698.17,
+      "profit": 46951.61739999999
+    },
+    {
+      "start": "2026-04-01",
+      "inv": 244715.97999999998,
+      "mat": 72967.6915,
+      "fl": 51718.3324,
+      "oh": 40000,
+      "sp": 54300,
+      "comm": 16093.913999999999,
+      "profit": 9636.042099999995
+    },
+    {
+      "start": "2026-05-01",
+      "inv": 50640,
+      "mat": 8208.130000000001,
+      "fl": 20531.2,
+      "oh": 7901.7051961823945,
+      "sp": 10726.5648038176,
+      "comm": 3272.4,
+      "profit": 0
+    }
+  ],
+  "jobs": [
+    {
+      "invoice": "C1671",
+      "customer": "Industrial Projects & Services - Rusty Beals",
+      "rep": "Paul Vincent",
+      "total": 29695,
+      "mat": 8780.72,
+      "fl": 5469.32,
+      "comm": 1187.8,
+      "outstanding": 1195,
+      "status": "1195",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 14257.16
+    },
+    {
+      "invoice": "C1718",
+      "customer": "National Conductor - Joshua Dixon (1-90%)",
+      "rep": "Paul Vincent",
+      "total": 54576.9,
+      "mat": 21977.7,
+      "fl": 7360.099999999999,
+      "comm": 2183.076,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 23056.02
+    },
+    {
+      "invoice": "C1791",
+      "customer": "Airline Lift Station upgrades (TAKNET, LLC)",
+      "rep": "Yvonne Chiang",
+      "total": 39832,
+      "mat": 28971.890000000003,
+      "fl": 7609.389999999999,
+      "comm": 2389.92,
+      "outstanding": 3000,
+      "status": "3000",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 860.8
+    },
+    {
+      "invoice": "C2013",
+      "customer": "Josh Clarke",
+      "rep": "Paul Vincent",
+      "total": 2500,
+      "mat": 300,
+      "fl": 500,
+      "comm": 200,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1500
+    },
+    {
+      "invoice": "C2018",
+      "customer": "Lauger Companies Inc",
+      "rep": "Sherrell Ezzell",
+      "total": 2200,
+      "mat": 423.8,
+      "fl": 230,
+      "comm": 176,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1370.2
+    },
+    {
+      "invoice": "C2022",
+      "customer": "Lauger Companies Inc",
+      "rep": "Sherrell Ezzell",
+      "total": 4600,
+      "mat": 2579.26,
+      "fl": 900,
+      "comm": 368,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Fri",
+      "profit": 752.74
+    },
+    {
+      "invoice": "C2019",
+      "customer": "Cuero Dodge - Brad Reynolds",
+      "rep": "Sherrell Ezzell",
+      "total": 4975,
+      "mat": 2031.81,
+      "fl": 1390,
+      "comm": 398,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1155.19
+    },
+    {
+      "invoice": "2028",
+      "customer": "Amy Irving",
+      "rep": "Paul Vincent",
+      "total": 2900,
+      "mat": 612.98,
+      "fl": 530.2,
+      "comm": 232,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1524.82
+    },
+    {
+      "invoice": "C2020",
+      "customer": "Don Mikulenka Custom Builder, Inc.",
+      "rep": "Jeff Yates",
+      "total": 18850,
+      "mat": 10830.619999999999,
+      "fl": 1855.7000000000003,
+      "comm": 1131,
+      "outstanding": 942.5,
+      "status": "942.5",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 5032.68
+    },
+    {
+      "invoice": "1995",
+      "customer": "Tambra Hubbard",
+      "rep": "Sherrell Ezzell",
+      "total": 11400,
+      "mat": 5261.34,
+      "fl": 1060.4,
+      "comm": 684,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 4394.26
+    },
+    {
+      "invoice": "C2002",
+      "customer": "5D - POC - Brianne Dlugosch",
+      "rep": "Paul Vincent",
+      "total": 4500,
+      "mat": 2036.01,
+      "fl": 265.1,
+      "comm": 270,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 1928.89
+    },
+    {
+      "invoice": "C2030",
+      "customer": "SL Commercial Services/TSC - Edna",
+      "rep": "Jeff Yates",
+      "total": 2300,
+      "mat": 0,
+      "fl": 465.1,
+      "comm": 184,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 1650.9
+    },
+    {
+      "invoice": "2021",
+      "customer": "Sandra and Don May",
+      "rep": "Paul Vincent",
+      "total": 8700,
+      "mat": 2897.88,
+      "fl": 530.2,
+      "comm": 522,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 4749.92
+    },
+    {
+      "invoice": "2027",
+      "customer": "Justin Guzman",
+      "rep": "Paul Vincent",
+      "total": 10800,
+      "mat": 2275.5,
+      "fl": 1855.7000000000003,
+      "comm": 648,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 6020.8
+    },
+    {
+      "invoice": "C1968",
+      "customer": "Karnes County Residential Center - Jesus Fernandez",
+      "rep": "Sherrell Ezzell",
+      "total": 25625,
+      "mat": 11220.32,
+      "fl": 1782.7,
+      "comm": 1537.5,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 11084.48
+    },
+    {
+      "invoice": "2032",
+      "customer": "Marcie Garcia",
+      "rep": "Paul Vincent",
+      "total": 2300,
+      "mat": 438.01,
+      "fl": 300,
+      "comm": 138,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 1423.99
+    },
+    {
+      "invoice": "2033",
+      "customer": "Gwen Hall",
+      "rep": "Jeff Yates",
+      "total": 3500,
+      "mat": 1139.78,
+      "fl": 720,
+      "comm": 280,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 1360.22
+    },
+    {
+      "invoice": "2034",
+      "customer": "Lucas Johnson",
+      "rep": "Jeff Yates",
+      "total": 19800,
+      "mat": 11020.279999999999,
+      "fl": 3381.2000000000003,
+      "comm": 1188,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 4210.52
+    },
+    {
+      "invoice": "C2035",
+      "customer": "Don Mikulenka Custom Builder, Inc.",
+      "rep": "Jeff Yates",
+      "total": 5000,
+      "mat": 748.9000000000001,
+      "fl": 530.2,
+      "comm": 400,
+      "outstanding": 250,
+      "status": "250",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 3320.9
+    },
+    {
+      "invoice": "S2038",
+      "customer": "Zoe Davis",
+      "rep": "Paul Vincent",
+      "total": 5000,
+      "mat": 686.65,
+      "fl": 1300,
+      "comm": 300,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 2713.35
+    },
+    {
+      "invoice": "2037",
+      "customer": "Kelly & Kyle Flessner",
+      "rep": "Jeff Yates",
+      "total": 17500,
+      "mat": 7545.5,
+      "fl": 2530.2,
+      "comm": 1400,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 6024.3
+    },
+    {
+      "invoice": "C2042",
+      "customer": "Eddy Foods (Kristin McKinney)",
+      "rep": "Jeff Yates",
+      "total": 3400,
+      "mat": 813.3,
+      "fl": 465.1,
+      "comm": 272,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 1849.6
+    },
+    {
+      "invoice": "2036",
+      "customer": "Elizabeth Smith",
+      "rep": "Sherrell Ezzell",
+      "total": 27500,
+      "mat": 10406.95,
+      "fl": 4340.6,
+      "comm": 2200,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 10552.45
+    },
+    {
+      "invoice": "2039",
+      "customer": "Wayne Condra",
+      "rep": "Jeff Yates",
+      "total": 8700,
+      "mat": 1952.46,
+      "fl": 1060.4,
+      "comm": 522,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 5165.14
+    },
+    {
+      "invoice": "S2044",
+      "customer": "Laura Stuart",
+      "rep": "Paul Vincent",
+      "total": 1000,
+      "mat": 164.18,
+      "fl": 300,
+      "comm": 60,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 475.82
+    },
+    {
+      "invoice": "2043",
+      "customer": "Carol Tally",
+      "rep": "Jeff Yates",
+      "total": 5525,
+      "mat": 2427.5099999999998,
+      "fl": 1158,
+      "comm": 442,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 1497.49
+    },
+    {
+      "invoice": "C2041",
+      "customer": "Pawnee ISD - Danny Field (1-70%)",
+      "rep": "Sherrell Ezzell",
+      "total": 49070,
+      "mat": 24022.92,
+      "fl": 4971.8,
+      "comm": 2944.2,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 17131.08
+    },
+    {
+      "invoice": "2040",
+      "customer": "Ryan Haycock",
+      "rep": "Sherrell Ezzell",
+      "total": 1350,
+      "mat": 585.7800000000001,
+      "fl": 200,
+      "comm": 108,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 456.22
+    },
+    {
+      "invoice": "2047",
+      "customer": "Jan Hill",
+      "rep": "Sherrell Ezzell",
+      "total": 4450,
+      "mat": 2125.81,
+      "fl": 812.5,
+      "comm": 267,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 1244.69
+    },
+    {
+      "invoice": "2045",
+      "customer": "Pete Guajardo",
+      "rep": "Jeff Yates",
+      "total": 5750,
+      "mat": 1663.89,
+      "fl": 1200,
+      "comm": 345,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 2541.11
+    },
+    {
+      "invoice": "2051",
+      "customer": "Adelina Garza",
+      "rep": "Paul Vincent",
+      "total": 9800,
+      "mat": 3571.47,
+      "fl": 1590.6000000000001,
+      "comm": 784,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 3853.93
+    },
+    {
+      "invoice": "C2053",
+      "customer": "Dustin Kenne, Westhoff ISD",
+      "rep": "Jeff Yates",
+      "total": 6500,
+      "mat": 3559.52,
+      "fl": 530.2,
+      "comm": 520,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 1890.28
+    },
+    {
+      "invoice": "C2054",
+      "customer": "Don Mikulenka Custom Builder, Inc.",
+      "rep": "Jeff Yates",
+      "total": 1400,
+      "mat": 1114.4,
+      "fl": 0,
+      "comm": 112,
+      "outstanding": 70,
+      "status": "70",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 173.6
+    },
+    {
+      "invoice": "S2056",
+      "customer": "Kathleen Storz",
+      "rep": "Sherrell Ezzell",
+      "total": 9200,
+      "mat": 4237.46,
+      "fl": 2430,
+      "comm": 552,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 1980.54
+    },
+    {
+      "invoice": "2057",
+      "customer": "Richard Jones",
+      "rep": "Jeff Yates",
+      "total": 4500,
+      "mat": 1751.5,
+      "fl": 585,
+      "comm": 270,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1893.5
+    },
+    {
+      "invoice": "2060",
+      "customer": "Kenneth Allen",
+      "rep": "Sherrell Ezzell",
+      "total": 4800,
+      "mat": 1821.13,
+      "fl": 1462.5,
+      "comm": 288,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 1228.37
+    },
+    {
+      "invoice": "2061",
+      "customer": "Allen Baas",
+      "rep": "Paul Vincent",
+      "total": 2000,
+      "mat": 395.48,
+      "fl": 292.5,
+      "comm": 120,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 1192.02
+    },
+    {
+      "invoice": "C2055",
+      "customer": "Pawnee ISD - Danny Field Add-on",
+      "rep": "Sherrell Ezzell",
+      "total": 14500,
+      "mat": 7328.05,
+      "fl": 2340,
+      "comm": 1160,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 3671.95
+    },
+    {
+      "invoice": "2064",
+      "customer": "Robert Hopkins",
+      "rep": "Phillip Johns",
+      "total": 5420,
+      "mat": 1037.62,
+      "fl": 1585,
+      "comm": 0,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Fri",
+      "profit": 2797.38
+    },
+    {
+      "invoice": "2062",
+      "customer": "Jim Winne (1-50%)",
+      "rep": "Sherrell Ezzell",
+      "total": 11725,
+      "mat": 5184.525,
+      "fl": 4695,
+      "comm": 938,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 907.48
+    },
+    {
+      "invoice": "C2052",
+      "customer": "Construction of Unit 1 & 2 Detention Pond (Stout) (1-20%)",
+      "rep": "Yvonne Chiang",
+      "total": 39132.4,
+      "mat": 19806.552,
+      "fl": 10214.57,
+      "comm": 3130.592,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 5980.69
+    },
+    {
+      "invoice": "1945",
+      "customer": "Larry Heckman",
+      "rep": "Jeff Yates",
+      "total": 9500,
+      "mat": 4422.94,
+      "fl": 2721,
+      "comm": 570,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 1786.06
+    },
+    {
+      "invoice": "C1771",
+      "customer": "McKenzie Interceptor Upgrade (Cash Construction) (1-25%)",
+      "rep": "Yvonne Chiang",
+      "total": 42631,
+      "mat": 21093.109999999997,
+      "fl": 7222,
+      "comm": 2984.17,
+      "outstanding": 18170.87,
+      "status": "18170.87",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 11331.72
+    },
+    {
+      "invoice": "C2049",
+      "customer": "McKenzie Interceptor Upgrade Add-On (Cash Construction)",
+      "rep": "Yvonne Chiang",
+      "total": 8013,
+      "mat": 1272.4499999999998,
+      "fl": 2500,
+      "comm": 641.04,
+      "outstanding": 8013,
+      "status": "8013",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 3599.51
+    },
+    {
+      "invoice": "S2066",
+      "customer": "Christine Harbin",
+      "rep": "Sherrell Ezzell",
+      "total": 4900,
+      "mat": 2119.16,
+      "fl": 1237.5,
+      "comm": 294,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 1249.34
+    },
+    {
+      "invoice": "2070",
+      "customer": "Jessica Wise",
+      "rep": "Sherrell Ezzell",
+      "total": 2500,
+      "mat": 1978.8200000000002,
+      "fl": 645,
+      "comm": 150,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Fri",
+      "profit": -273.82
+    },
+    {
+      "invoice": "2065",
+      "customer": "Nicole Collins",
+      "rep": "Paul Vincent",
+      "total": 13300,
+      "mat": 5152.08,
+      "fl": 1350,
+      "comm": 798,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 5999.92
+    },
+    {
+      "invoice": "2076",
+      "customer": "Jesse McLane",
+      "rep": "Sherrell Ezzell",
+      "total": 5450,
+      "mat": 2506.22,
+      "fl": 585,
+      "comm": 436,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1922.78
+    },
+    {
+      "invoice": "C2052",
+      "customer": "Construction of Unit 1 & 2 Detention Pond (Stout) (2-20%)",
+      "rep": "Yvonne Chiang",
+      "total": 39132.4,
+      "mat": 14323.712,
+      "fl": 4680,
+      "comm": 3130.592,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 16998.1
+    },
+    {
+      "invoice": "S2077",
+      "customer": "Luis Delapena",
+      "rep": "Sherrell Ezzell",
+      "total": 7050,
+      "mat": 3317.03,
+      "fl": 1800,
+      "comm": 423,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 1509.97
+    },
+    {
+      "invoice": "2074",
+      "customer": "Melissa Proctor",
+      "rep": "Paul Vincent",
+      "total": 11950,
+      "mat": 4780.06,
+      "fl": 1170,
+      "comm": 717,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 5282.94
+    },
+    {
+      "invoice": "C2079",
+      "customer": "Port O'Connor Improvement District - Oscar Pena",
+      "rep": "Paul Vincent",
+      "total": 3800,
+      "mat": 813.1800000000001,
+      "fl": 1000,
+      "comm": 304,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 1682.82
+    },
+    {
+      "invoice": "CS2075",
+      "customer": "QRV - Madelyn Sanchez",
+      "rep": "Paul Vincent",
+      "total": 13800,
+      "mat": 6827.01,
+      "fl": 3360,
+      "comm": 828,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 2784.99
+    },
+    {
+      "invoice": "2078",
+      "customer": "Christine Kidd",
+      "rep": "Paul Vincent",
+      "total": 2100,
+      "mat": 579.17,
+      "fl": 350,
+      "comm": 168,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 1002.83
+    },
+    {
+      "invoice": "S2069",
+      "customer": "Mike & Ashley Uresti",
+      "rep": "Sherrell Ezzell",
+      "total": 7700,
+      "mat": 3891.44,
+      "fl": 1731,
+      "comm": 462,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 1615.56
+    },
+    {
+      "invoice": "2084",
+      "customer": "Raymond Myers",
+      "rep": "Paul Vincent",
+      "total": 2600,
+      "mat": 1173.27,
+      "fl": 585,
+      "comm": 156,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 685.73
+    },
+    {
+      "invoice": "C2052",
+      "customer": "Construction of Unit 1 & 2 Detention Pond (Stout) (3-15%)",
+      "rep": "Yvonne Chiang",
+      "total": 29349.3,
+      "mat": 10742.784,
+      "fl": 3510,
+      "comm": 2347.944,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 12748.57
+    },
+    {
+      "invoice": "CS2082",
+      "customer": "Edgar Hinojosa",
+      "rep": "Sherrell Ezzell",
+      "total": 4200,
+      "mat": 1030.97,
+      "fl": 1280,
+      "comm": 252,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1637.03
+    },
+    {
+      "invoice": "2087",
+      "customer": "Trey Sewalt",
+      "rep": "Paul Vincent",
+      "total": 6400,
+      "mat": 2800.64,
+      "fl": 585,
+      "comm": 512,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 2502.36
+    },
+    {
+      "invoice": "S2080",
+      "customer": "David Ebert",
+      "rep": "Jeff Yates",
+      "total": 8100,
+      "mat": 2426.72,
+      "fl": 1990,
+      "comm": 486,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 3197.28
+    },
+    {
+      "invoice": "C1718",
+      "customer": "National Conductor - Joshua Dixon (2-10%)",
+      "rep": "Paul Vincent",
+      "total": 6064.1,
+      "mat": 0,
+      "fl": 585,
+      "comm": 424.4870000000001,
+      "outstanding": 6064.1,
+      "status": "6064.1",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 5054.61
+    },
+    {
+      "invoice": "2090",
+      "customer": "Carla Gonzalez",
+      "rep": "Paul Vincent",
+      "total": 1600,
+      "mat": 943.58,
+      "fl": 585,
+      "comm": 96,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": -24.58
+    },
+    {
+      "invoice": "2094",
+      "customer": "Chris & Robert Handy",
+      "rep": "Jeff Yates",
+      "total": 27000,
+      "mat": 13343.2,
+      "fl": 4591.8,
+      "comm": 1620,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 7445
+    },
+    {
+      "invoice": "C2093",
+      "customer": "HSL Family LTD",
+      "rep": "Phillip Johns",
+      "total": 7699,
+      "mat": 4550.56,
+      "fl": 918.36,
+      "comm": 461.94,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1768.14
+    },
+    {
+      "invoice": "2095",
+      "customer": "Lisa Garrett",
+      "rep": "Jeff Yates",
+      "total": 1800,
+      "mat": 652.45,
+      "fl": 612.24,
+      "comm": 108,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 427.31
+    },
+    {
+      "invoice": "2096",
+      "customer": "Gary Morgan",
+      "rep": "Phillip Johns",
+      "total": 3500,
+      "mat": 1528.58,
+      "fl": 952.5,
+      "comm": 210,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 808.92
+    },
+    {
+      "invoice": "S2098",
+      "customer": "Doris Brown",
+      "rep": "Sherrell Ezzell",
+      "total": 3400,
+      "mat": 1570.49,
+      "fl": 679,
+      "comm": 272,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 878.51
+    },
+    {
+      "invoice": "CS2089",
+      "customer": "Martino Travino - Republic Services",
+      "rep": "Sherrell Ezzell",
+      "total": 10600,
+      "mat": 6717.11,
+      "fl": 1224.48,
+      "comm": 636,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 2022.41
+    },
+    {
+      "invoice": "C2073",
+      "customer": "Texas Aqua Store - Travis Courange (1-50%)",
+      "rep": "Paul Vincent",
+      "total": 3225,
+      "mat": 0,
+      "fl": 612.24,
+      "comm": 258,
+      "outstanding": 1800,
+      "status": "1800",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 2354.76
+    },
+    {
+      "invoice": "C2083",
+      "customer": "City of Corpus Christi Williams Lift Station Force Main (1-30%)",
+      "rep": "Yvonne Chiang",
+      "total": 32679,
+      "mat": 8038.98,
+      "fl": 2712.24,
+      "comm": 2614.32,
+      "outstanding": 1410.7000000000007,
+      "status": "1410.7000000000007",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 19313.46
+    },
+    {
+      "invoice": "2102",
+      "customer": "Lisa Garrett",
+      "rep": "Jeff Yates",
+      "total": 4100,
+      "mat": 1595.82,
+      "fl": 612.24,
+      "comm": 328,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1563.94
+    },
+    {
+      "invoice": "C2023",
+      "customer": "Lauger Companies Inc",
+      "rep": "Sherrell Ezzell",
+      "total": 31700,
+      "mat": 13707.73,
+      "fl": 5468,
+      "comm": 2536,
+      "outstanding": 21350,
+      "status": "21350",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 9988.27
+    },
+    {
+      "invoice": "C2052",
+      "customer": "Construction of Unit 1 & 2 Detention Pond (Stout) (4-20%)",
+      "rep": "Yvonne Chiang",
+      "total": 39132.4,
+      "mat": 22649.872,
+      "fl": 7885.95,
+      "comm": 3130.592,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 5465.99
+    },
+    {
+      "invoice": "S2099",
+      "customer": "Jennifer Perez",
+      "rep": "Sherrell Ezzell",
+      "total": 3100,
+      "mat": 1299.2,
+      "fl": 885,
+      "comm": 186,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 729.8
+    },
+    {
+      "invoice": "2058",
+      "customer": "Martha Salazar",
+      "rep": "Jeff Yates",
+      "total": 6600,
+      "mat": 1798.9199999999998,
+      "fl": 918.36,
+      "comm": 528,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 3354.72
+    },
+    {
+      "invoice": "S2101",
+      "customer": "John Smart",
+      "rep": "Sherrell Ezzell",
+      "total": 7600,
+      "mat": 4382.36,
+      "fl": 1370,
+      "comm": 456,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 1391.64
+    },
+    {
+      "invoice": "S2097",
+      "customer": "Lewis and Henry Glover",
+      "rep": "Sherrell Ezzell",
+      "total": 11700,
+      "mat": 5620.71,
+      "fl": 2362,
+      "comm": 936,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 2781.29
+    },
+    {
+      "invoice": "2063",
+      "customer": "Mark Boname",
+      "rep": "Paul Vincent",
+      "total": 4300,
+      "mat": 1087.37,
+      "fl": 306.12,
+      "comm": 344,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 2562.51
+    },
+    {
+      "invoice": "C2052",
+      "customer": "Construction of Unit 1 & 2 Detention Pond (Stout) (5-20%)",
+      "rep": "Yvonne Chiang",
+      "total": 39132.4,
+      "mat": 14323.712,
+      "fl": 4897.92,
+      "comm": 3130.592,
+      "outstanding": 5468.4000000000015,
+      "status": "5468.4000000000015",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 16780.18
+    },
+    {
+      "invoice": "S2109",
+      "customer": "Sarah Miller",
+      "rep": "Sherrell Ezzell",
+      "total": 7275,
+      "mat": 2424.57,
+      "fl": 1071.42,
+      "comm": 436.5,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 3342.51
+    },
+    {
+      "invoice": "S2111",
+      "customer": "Donna & Wade Debolt",
+      "rep": "Jeff Yates",
+      "total": 6200,
+      "mat": 2206.19,
+      "fl": 612.24,
+      "comm": 372,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 3009.57
+    },
+    {
+      "invoice": "S2112",
+      "customer": "Michael Hahn",
+      "rep": "Sherrell Ezzell",
+      "total": 8650,
+      "mat": 3712.2,
+      "fl": 1814,
+      "comm": 519,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 2604.8
+    },
+    {
+      "invoice": "C2105",
+      "customer": "Ferguson Land Management - Zac Ferguson",
+      "rep": "Paul Vincent",
+      "total": 18440,
+      "mat": 7561.91,
+      "fl": 1224.48,
+      "comm": 1475.2,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 8178.41
+    },
+    {
+      "invoice": "C2110",
+      "customer": "Jay Bonano",
+      "rep": "Jeff Yates",
+      "total": 17800,
+      "mat": 8319.109999999999,
+      "fl": 3030.6,
+      "comm": 1424,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 5026.29
+    },
+    {
+      "invoice": "C2041",
+      "customer": "Pawnee ISD - Danny Field (2-30%)",
+      "rep": "Sherrell Ezzell",
+      "total": 21030,
+      "mat": 0,
+      "fl": 7610.36,
+      "comm": 1261.8,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Fri",
+      "profit": 12157.84
+    },
+    {
+      "invoice": "2103",
+      "customer": "Yonh John Du",
+      "rep": "Sherrell Ezzell",
+      "total": 83635,
+      "mat": 24099.609999999997,
+      "fl": 10837.66,
+      "comm": 5018.099999999999,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 43679.63
+    },
+    {
+      "invoice": "2108",
+      "customer": "Joseph Garza",
+      "rep": "Jeff Yates",
+      "total": 4000,
+      "mat": 1664.69,
+      "fl": 750,
+      "comm": 320,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1265.31
+    },
+    {
+      "invoice": "2106",
+      "customer": "Tammy Harger",
+      "rep": "Paul Vincent",
+      "total": 30150,
+      "mat": 4177.46,
+      "fl": 12650,
+      "comm": 1809,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 11513.54
+    },
+    {
+      "invoice": "C2104",
+      "customer": "Ferguson Land Management - Zac Ferguson",
+      "rep": "Paul Vincent",
+      "total": 19810,
+      "mat": 9810.57,
+      "fl": 1836.72,
+      "comm": 1584.8,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 6577.91
+    },
+    {
+      "invoice": "2107",
+      "customer": "Sharon & Ray Zaiontz",
+      "rep": "Jeff Yates",
+      "total": 13450,
+      "mat": 3526.7,
+      "fl": 3830.6,
+      "comm": 807,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 5285.7
+    },
+    {
+      "invoice": "2115",
+      "customer": "Billie Hanke",
+      "rep": "Jeff Yates",
+      "total": 8200,
+      "mat": 3164.07,
+      "fl": 1650,
+      "comm": 492,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 2893.93
+    },
+    {
+      "invoice": "2062",
+      "customer": "Jim Winne (2-50%)",
+      "rep": "Sherrell Ezzell",
+      "total": 11725,
+      "mat": 8153.8949999999995,
+      "fl": 3118.36,
+      "comm": 938,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": -485.25
+    },
+    {
+      "invoice": "2122",
+      "customer": "Roger Huehlefeld",
+      "rep": "Jeff Yates",
+      "total": 3800,
+      "mat": 1107,
+      "fl": 652,
+      "comm": 228,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 1813
+    },
+    {
+      "invoice": "2118",
+      "customer": "James Maikoetter",
+      "rep": "Paul Vincent",
+      "total": 2200,
+      "mat": 875,
+      "fl": 355,
+      "comm": 132,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 838
+    },
+    {
+      "invoice": "2120",
+      "customer": "Leonard Robinson",
+      "rep": "Paul Vincent",
+      "total": 1250,
+      "mat": 440,
+      "fl": 315,
+      "comm": 100,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Fri",
+      "profit": 395
+    },
+    {
+      "invoice": "2088",
+      "customer": "Nicole Collins",
+      "rep": "Paul Vincent",
+      "total": 8600,
+      "mat": 3880,
+      "fl": 750,
+      "comm": 688,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 3282
+    },
+    {
+      "invoice": "C2114",
+      "customer": "Equalizer Inc. | Doug Stevens",
+      "rep": "Paul Vincent",
+      "total": 25000,
+      "mat": 9500,
+      "fl": 3800,
+      "comm": 1500,
+      "outstanding": 25000,
+      "status": "25000",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 10200
+    },
+    {
+      "invoice": "S2124",
+      "customer": "Ferdinand Siegel",
+      "rep": "Sherrell Ezzell",
+      "total": 14500,
+      "mat": 5307.9,
+      "fl": 4357.9,
+      "comm": 870,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 3964.2
+    },
+    {
+      "invoice": "2129",
+      "customer": "Donna & Wade Debolt",
+      "rep": "Jeff Yates",
+      "total": 15600,
+      "mat": 3800,
+      "fl": 2898,
+      "comm": 936,
+      "outstanding": 1800,
+      "status": "1800",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 7966
+    },
+    {
+      "invoice": "2132",
+      "customer": "Elizabeth Martinez",
+      "rep": "Paul Vincent",
+      "total": 2850,
+      "mat": 950,
+      "fl": 599.5,
+      "comm": 228,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1072.5
+    },
+    {
+      "invoice": "C2031",
+      "customer": "Lauger Companies Inc",
+      "rep": "Sherrell Ezzell",
+      "total": 1500,
+      "mat": 855.28,
+      "fl": 0,
+      "comm": 120,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 524.72
+    },
+    {
+      "invoice": "2128",
+      "customer": "Vickie Johnson",
+      "rep": "Jeff Yates",
+      "total": 8600,
+      "mat": 3157,
+      "fl": 1120,
+      "comm": 516,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 3807
+    },
+    {
+      "invoice": "C2130",
+      "customer": "DeAngela Nava/Pet Resort on Main",
+      "rep": "Jeff Yates",
+      "total": 2100,
+      "mat": 719,
+      "fl": 275,
+      "comm": 126,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 980
+    },
+    {
+      "invoice": "2123",
+      "customer": "Ron Janysek",
+      "rep": "Paul Vincent",
+      "total": 4340,
+      "mat": 1530,
+      "fl": 377,
+      "comm": 347.2,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Fri",
+      "profit": 2085.8
+    },
+    {
+      "invoice": "2133",
+      "customer": "Felicia Beltz",
+      "rep": "Paul Vincent",
+      "total": 2850,
+      "mat": 571,
+      "fl": 349.5,
+      "comm": 171,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Fri",
+      "profit": 1758.5
+    },
+    {
+      "invoice": "S2137",
+      "customer": "JoAnne Settles",
+      "rep": "Taylor Bassett",
+      "total": 1617.58,
+      "mat": 531.85,
+      "fl": 315,
+      "comm": 0,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 770.73
+    },
+    {
+      "invoice": "C2083",
+      "customer": "City of Corpus Christi Williams Lift Station Force Main (2-35%)",
+      "rep": "Yvonne Chiang",
+      "total": 38125.5,
+      "mat": 12832.697499999998,
+      "fl": 5850,
+      "comm": 3050.04,
+      "outstanding": 38125.5,
+      "status": "38125.5",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 16392.76
+    },
+    {
+      "invoice": "S2138",
+      "customer": "Patty Boldt",
+      "rep": "Sherrell Ezzell",
+      "total": 3700,
+      "mat": 1181.93,
+      "fl": 359.4,
+      "comm": 222,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 1936.67
+    },
+    {
+      "invoice": "S2127",
+      "customer": "Cindy Fitzgerald",
+      "rep": "Jeff Yates",
+      "total": 9800,
+      "mat": 2710,
+      "fl": 1326,
+      "comm": 588,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Thu",
+      "profit": 5176
+    },
+    {
+      "invoice": "2142",
+      "customer": "James Ken",
+      "rep": "Jeff Yates",
+      "total": 16600,
+      "mat": 2786,
+      "fl": 3448,
+      "comm": 996,
+      "outstanding": 8300,
+      "status": "8300",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 9370
+    },
+    {
+      "invoice": "S2135",
+      "customer": "Adam Pustka",
+      "rep": "Jeff Yates",
+      "total": 20000,
+      "mat": 0,
+      "fl": 15000,
+      "comm": 1200,
+      "outstanding": 0,
+      "status": "Completed",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 3800
+    },
+    {
+      "invoice": "S2136",
+      "customer": "Joe Narez",
+      "rep": "Sherrell Ezzell",
+      "total": 11700,
+      "mat": 4852.13,
+      "fl": 1648.5,
+      "comm": 936,
+      "outstanding": 5850,
+      "status": "5850",
+      "commRate": "",
+      "startDate": "Mon",
+      "profit": 4263.37
+    },
+    {
+      "invoice": "2117",
+      "customer": "Tanner McKibbon",
+      "rep": "Paul Vincent",
+      "total": 8425,
+      "mat": 3700,
+      "fl": 1000,
+      "comm": 674,
+      "outstanding": 4425,
+      "status": "4425",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 3051
+    },
+    {
+      "invoice": "2139",
+      "customer": "Paulette Clay",
+      "rep": "Jery Edgett",
+      "total": 6988.45,
+      "mat": 2783.19,
+      "fl": 1980,
+      "comm": 419.30699999999996,
+      "outstanding": 3588.45,
+      "status": "3588.45",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 1805.95
+    },
+    {
+      "invoice": "2140",
+      "customer": "Michael Philip Klein",
+      "rep": "Jeff Yates",
+      "total": 18500,
+      "mat": 7631,
+      "fl": 3634,
+      "comm": 1110,
+      "outstanding": 9250,
+      "status": "9250",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 6125
+    },
+    {
+      "invoice": "C1771",
+      "customer": "McKenzie Interceptor Upgrade (Cash Construction) (2-75%)",
+      "rep": "Yvonne Chiang",
+      "total": 127893,
+      "mat": 64790.35499999999,
+      "fl": 31232,
+      "comm": 8952.51,
+      "outstanding": 127893,
+      "status": "127893",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 22918.14
+    },
+    {
+      "invoice": "C1778",
+      "customer": "Bellville ISD Package C District Renovations",
+      "rep": "Yvonne Chiang",
+      "total": 38650,
+      "mat": 15644.12,
+      "fl": 3806.5,
+      "comm": 2319,
+      "outstanding": 38650,
+      "status": "38650",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 16880.38
+    },
+    {
+      "invoice": "C1996",
+      "customer": "Construction of Water Treatment Plant and Wastewater Treatment Plant for New Spring ISD High School",
+      "rep": "Yvonne Chiang",
+      "total": 61540,
+      "mat": 23431.99,
+      "fl": 13000,
+      "comm": 4923.2,
+      "outstanding": 61540,
+      "status": "61540",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 20184.81
+    },
+    {
+      "invoice": "C2052",
+      "customer": "Construction of Unit 1 & 2 Detention Pond (Stout) (6-5%)",
+      "rep": "Yvonne Chiang",
+      "total": 9783.1,
+      "mat": 3580.928,
+      "fl": 11500,
+      "comm": 782.648,
+      "outstanding": 9783.1,
+      "status": "9783.1",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": -6080.48
+    },
+    {
+      "invoice": "C2073",
+      "customer": "Texas Aqua Store - Travis Courange (2-50%)",
+      "rep": "Paul Vincent",
+      "total": 3225,
+      "mat": 1325,
+      "fl": 1400,
+      "comm": 258,
+      "outstanding": 3225,
+      "status": "3225",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 242
+    },
+    {
+      "invoice": "C2083",
+      "customer": "City of Corpus Christi Williams Lift Station Force Main (3-35%)",
+      "rep": "Yvonne Chiang",
+      "total": 38125.5,
+      "mat": 12832.697499999998,
+      "fl": 11959.5,
+      "comm": 3050.04,
+      "outstanding": 38125.5,
+      "status": "38125.5",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 10283.26
+    },
+    {
+      "invoice": "S2085",
+      "customer": "Jackie Lee Elroy",
+      "rep": "Jeff Yates",
+      "total": 7700,
+      "mat": 2068,
+      "fl": 2700,
+      "comm": 462,
+      "outstanding": 7700,
+      "status": "7700",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 2470
+    },
+    {
+      "invoice": "S2143",
+      "customer": "Gloria Zapata",
+      "rep": "Sherrell Ezzell",
+      "total": 5000,
+      "mat": 1739.94,
+      "fl": 1849.3,
+      "comm": 300,
+      "outstanding": 5000,
+      "status": "5000",
+      "commRate": "",
+      "startDate": "Sat",
+      "profit": 1110.76
+    },
+    {
+      "invoice": "C1783",
+      "customer": "PLPS (Jim Wyman)",
+      "rep": "Phillip Johns",
+      "total": 15480,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "outstanding": 15480,
+      "status": "15480",
+      "commRate": "",
+      "startDate": "Tue",
+      "profit": 15480
+    },
+    {
+      "invoice": "2100",
+      "customer": "Robert Hopkins",
+      "rep": "Phillip Johns",
+      "total": 4640,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "outstanding": 2320,
+      "status": "2320",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 4640
+    },
+    {
+      "invoice": "2141",
+      "customer": "Paul Bunnell",
+      "rep": "Paul Vincent",
+      "total": 4750,
+      "mat": 0,
+      "fl": 0,
+      "comm": 285,
+      "outstanding": 2375,
+      "status": "2375",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 4465
+    },
+    {
+      "invoice": "C2125",
+      "customer": "Karnes County Residential Center - Jesus Fernandez",
+      "rep": "Sherrell Ezzell",
+      "total": 32000,
+      "mat": 0,
+      "fl": 0,
+      "comm": 2560,
+      "outstanding": 16000,
+      "status": "16000",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 29440
+    },
+    {
+      "invoice": "C2144",
+      "customer": "Debbie Escalante",
+      "rep": "Paul Vincent",
+      "total": 1350,
+      "mat": 0,
+      "fl": 0,
+      "comm": 108,
+      "outstanding": 1350,
+      "status": "1350",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 1242
+    },
+    {
+      "invoice": "2145",
+      "customer": "Everett Johnson",
+      "rep": "Sherrell Ezzell",
+      "total": 13200,
+      "mat": 0,
+      "fl": 0,
+      "comm": 792,
+      "outstanding": 13200,
+      "status": "13200",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 12408
+    },
+    {
+      "invoice": "2146",
+      "customer": "Everett Johnson",
+      "rep": "Sherrell Ezzell",
+      "total": 11800,
+      "mat": 0,
+      "fl": 0,
+      "comm": 708,
+      "outstanding": 11800,
+      "status": "11800",
+      "commRate": "",
+      "startDate": "Wed",
+      "profit": 11092
+    }
+  ],
+  "publishedAt": "2026-05-03T22:12:35.502Z",
+  "publishedBy": "Yvonne"
 }
