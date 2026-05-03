@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STFD Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;--border:#2a2f45;--accent:#f5a623;--green:#22c55e;--red:#ef4444;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee;--orange:#fb923c;--text:#e2e8f0;--muted:#64748b;--dim:#3a4060}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;min-height:100vh}
+#loading{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#loading .logo{font-family:'IBM Plex Mono',monospace;font-size:26px;letter-spacing:4px;color:var(--accent)}
+#loading p{color:var(--muted);font-size:12px}
+.spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hdr{background:var(--s1);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:stretch;position:sticky;top:0;z-index:200}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;letter-spacing:3px;color:var(--accent)}
+.sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.hdr-brand{display:flex;align-items:center;padding:12px 20px 12px 0;border-right:1px solid var(--border);margin-right:4px}
+.tabs{display:flex;align-items:stretch;flex:1}
+.tab{display:flex;align-items:center;padding:0 15px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.hdr-right{display:flex;align-items:center;gap:10px;padding:0 0 0 16px;border-left:1px solid var(--border);margin-left:auto}
+.published-time{font-size:10px;color:var(--muted)}
+select{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:5px;font-family:inherit;font-size:12px;cursor:pointer;outline:none}
+.page{display:none;padding:14px 20px}
+.page.active{display:block}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:14px}
+.ct{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.kpi-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:10px}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:10px 12px;border-top:2px solid var(--dim)}
+.ka{border-top-color:var(--accent)}.kb{border-top-color:var(--blue)}.kg{border-top-color:var(--green)}.kr{border-top-color:var(--red)}.kp{border-top-color:var(--purple)}.ko{border-top-color:var(--orange)}.kc{border-top-color:var(--cyan)}
+.kl{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px}
+.kv{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;line-height:1}
+.ks{font-size:9px;color:var(--muted);margin-top:3px}
+table{width:100%;border-collapse:collapse}
+th{background:var(--s2);padding:6px 10px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;font-family:'IBM Plex Mono',monospace}
+td{padding:6px 10px;border-bottom:1px solid rgba(42,47,69,.5);font-size:12px;vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.015)}
+.num{text-align:right;font-family:'IBM Plex Mono',monospace}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.bg{background:rgba(34,197,94,.12);color:var(--green)}.by{background:rgba(245,166,35,.12);color:var(--accent)}.br{background:rgba(239,68,68,.12);color:var(--red)}.bb{background:rgba(96,165,250,.12);color:var(--blue)}.bx{background:rgba(100,116,139,.1);color:var(--muted)}
+.pw{margin-bottom:10px}
+.ph{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.pt{height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px}
+.pft{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px}
+.ch{position:relative}
+.ir{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(42,47,69,.3)}
+.idot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.in{flex:1;font-size:11px}.ip{font-size:10px;color:var(--muted);min-width:32px;text-align:right}
+.ia{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;min-width:70px;text-align:right}
+hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+.sx{overflow-x:auto}.sy{overflow-y:auto;max-height:420px}
+.mr-g td:first-child{border-left:2px solid var(--green)}.mr-r td:first-child{border-left:2px solid var(--red)}
+#jobModal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
+#jobModal.open{display:flex}
+.modal-box{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:24px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+.modal-title{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal-item{background:var(--s2);border-radius:6px;padding:10px 12px}
+.modal-item .ml{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px}
+.modal-item .mv{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">STFD</div>
+  <div class="spinner"></div>
+  <p id="loadMsg">Loading dashboard...</p>
+</div>
+
+<div id="dashboard" style="display:none">
+<header class="hdr">
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations</div></div></div>
+  <nav class="tabs">
+    <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
+    <div class="tab" onclick="showTab('monthly')" id="t-monthly">Monthly Summary</div>
+    <div class="tab" onclick="showTab('jobs')" id="t-jobs">Job Costs</div>
+  </nav>
+  <div class="hdr-right">
+    <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
+    <select id="weekSel" onchange="loadWeek(this.value)"></select>
+    <span class="published-time" id="publishedTime"></span>
+  </div>
+</header>
+
+<!-- WEEKLY SUMMARY -->
+<div class="page active" id="p-weekly">
+  <div class="kpi-strip">
+    <div class="kpi ka"><div class="kl">Invoice Total</div><div class="kv" id="k-inv">—</div><div class="ks">Weekly revenue</div></div>
+    <div class="kpi kb"><div class="kl">Material</div><div class="kv" id="k-mat">—</div><div class="ks" id="k-mat-p">—</div></div>
+    <div class="kpi ko"><div class="kl">Field Labour</div><div class="kv" id="k-fl">—</div><div class="ks" id="k-fl-p">—</div></div>
+    <div class="kpi kr"><div class="kl">Overhead</div><div class="kv" id="k-oh">—</div><div class="ks" id="k-oh-p">—</div></div>
+    <div class="kpi kp"><div class="kl">Support Labour</div><div class="kv" id="k-sp">—</div><div class="ks" id="k-sp-p">—</div></div>
+    <div class="kpi kc"><div class="kl">Commission</div><div class="kv" id="k-cm">—</div><div class="ks">Sales</div></div>
+    <div class="kpi kg"><div class="kl">Weekly Profit</div><div class="kv" id="k-wp">—</div><div class="ks">Net this week</div></div>
+    <div class="kpi ka"><div class="kl">Monthly Profit</div><div class="kv" id="k-mp">—</div><div class="ks">Month-to-date</div></div>
+  </div>
+  <div class="grid g3" style="margin-bottom:10px">
+    <div class="card"><div class="ct">Cost Breakdown</div><div class="ch" style="height:200px"><canvas id="costChart"></canvas></div></div>
+    <div class="card">
+      <div class="ct">Invoice Total Performance</div>
+      <svg viewBox="0 0 300 165" width="100%" style="max-height:155px">
+        <path d="M 35 148 A 115 115 0 0 1 88 42" stroke="#ef444430" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <path d="M 88 42 A 115 115 0 0 1 150 28" stroke="#f5a62330" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <path d="M 150 28 A 115 115 0 0 1 212 42" stroke="#22c55e30" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <path d="M 212 42 A 115 115 0 0 1 265 148" stroke="#60a5fa30" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <path d="M 35 148 A 115 115 0 0 1 88 42" stroke="#ef4444" stroke-width="20" fill="none" stroke-linecap="round" opacity=".6"/>
+        <path d="M 88 42 A 115 115 0 0 1 150 28" stroke="#f5a623" stroke-width="20" fill="none" stroke-linecap="round" opacity=".6"/>
+        <path d="M 150 28 A 115 115 0 0 1 212 42" stroke="#22c55e" stroke-width="20" fill="none" stroke-linecap="round" opacity=".6"/>
+        <path d="M 212 42 A 115 115 0 0 1 265 148" stroke="#60a5fa" stroke-width="20" fill="none" stroke-linecap="round" opacity=".6"/>
+        <text x="24" y="163" fill="#ef4444" font-size="8" font-family="IBM Plex Mono" opacity=".8">30k</text>
+        <text x="48" y="86" fill="#ef4444" font-size="8" font-family="IBM Plex Mono" opacity=".8">Loss</text>
+        <text x="105" y="33" fill="#f5a623" font-size="8" font-family="IBM Plex Mono" opacity=".8">Risk</text>
+        <text x="183" y="33" fill="#22c55e" font-size="8" font-family="IBM Plex Mono" opacity=".8">Target</text>
+        <text x="232" y="86" fill="#60a5fa" font-size="8" font-family="IBM Plex Mono" opacity=".8">Exceed</text>
+        <text x="263" y="163" fill="#60a5fa" font-size="8" font-family="IBM Plex Mono" opacity=".8">110k</text>
+        <line id="needle" x1="150" y1="148" x2="150" y2="36" stroke="white" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90,150,148)"/>
+        <circle cx="150" cy="148" r="6" fill="white" opacity=".9"/>
+        <text id="gaugeAmt" x="150" y="123" fill="white" font-size="19" font-family="IBM Plex Mono" font-weight="600" text-anchor="middle">—</text>
+        <text x="150" y="136" fill="#64748b" font-size="8" text-anchor="middle">vs $90,000 target</text>
+      </svg>
+      <hr>
+      <div class="grid g3" style="gap:6px">
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Cumul. OH</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red)" id="g-oh-cum">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">% Paid</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red)" id="g-oh-pct">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Outstanding</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)" id="g-oh-out">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Cumul. SP</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--purple)" id="g-sp-cum">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">% Paid</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--purple)" id="g-sp-pct">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Outstanding</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)" id="g-sp-out">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Income Distribution</div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div class="ch" style="width:120px;height:120px;flex-shrink:0"><canvas id="incomeChart" width="120" height="120"></canvas></div>
+        <div style="flex:1" id="incomeDist"></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid g3">
+    <div class="card">
+      <div class="ct">Overhead &amp; Support Tracker</div>
+      <div class="pw">
+        <div class="ph"><span style="color:var(--muted)">Overhead Paid</span><span style="color:var(--red);font-family:'IBM Plex Mono',monospace" id="oh-pct-lbl">—</span></div>
+        <div class="pt"><div class="pf" id="oh-bar" style="background:var(--red);width:0%"></div></div>
+        <div class="pft"><span id="oh-paid">—</span><span id="oh-total">of —</span></div>
+      </div>
+      <div class="pw">
+        <div class="ph"><span style="color:var(--muted)">Support Labour Paid</span><span style="color:var(--purple);font-family:'IBM Plex Mono',monospace" id="sp-pct-lbl">—</span></div>
+        <div class="pt"><div class="pf" id="sp-bar" style="background:var(--purple);width:0%"></div></div>
+        <div class="pft"><span id="sp-paid">—</span><span id="sp-total">of —</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Invoice Target</div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="position:relative;width:88px;height:88px;flex-shrink:0"><canvas id="invTargetChart" width="88" height="88"></canvas><div id="invTargetPct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);text-align:center">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Target $90,000</div><div id="invTargetAmt" style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600">—</div><div id="invTargetDiff" style="font-size:10px;color:var(--muted);margin-top:2px">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Profit Target</div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="position:relative;width:88px;height:88px;flex-shrink:0"><canvas id="profTargetChart" width="88" height="88"></canvas><div id="profTargetPct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);text-align:center">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Monthly Target $41,667</div><div id="profTargetAmt" style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600">—</div><div id="profTargetDiff" style="font-size:10px;color:var(--muted);margin-top:2px">—</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MONTHLY SUMMARY -->
+<div class="page" id="p-monthly">
+  <div class="grid g2" style="margin-bottom:10px">
+    <div class="card"><div class="ct">2026 Monthly P&amp;L</div><div class="sx"><table><thead><tr><th>Month</th><th class="num">Sales</th><th class="num">Material</th><th class="num">Field Lab.</th><th class="num">Overhead</th><th class="num">Supp. Lab.</th><th class="num">Commission</th><th class="num">Profit</th></tr></thead><tbody id="monthlyBody"></tbody></table></div></div>
+    <div class="card"><div class="ct">Monthly Trends</div><div class="ch" style="height:220px"><canvas id="monthlyChart"></canvas></div></div>
+  </div>
+  <div class="card"><div class="ct">YTD Summary</div><div class="grid g4" id="ytdGrid" style="gap:8px;margin-top:4px"></div></div>
+</div>
+
+<!-- JOB COSTS -->
+<div class="page" id="p-jobs">
+  <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px" id="jobsKpiStrip"></div>
+  <div class="card"><div class="ct">All Jobs — Click any row for details</div><div class="sx sy" style="max-height:500px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Sales Rep</th><th class="num">Total</th><th class="num">Material</th><th class="num">Field Labour</th><th class="num">Commission</th><th class="num">Outstanding</th><th class="num">Profit</th><th>Status</th></tr></thead><tbody id="jobsBody"></tbody></table></div></div>
+</div>
+</div>
+
+<div id="jobModal"><div class="modal-box"><button class="modal-close" onclick="closeModal()">✕</button><div class="modal-title" id="modalTitle"></div><div class="modal-grid" id="modalGrid"></div></div></div>
+
+<script>
+const GITHUB_REPO='sarahloree/stfd';
+const DATA_FILE='data.json';
+const IC=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'];
+let DATA={weeks:[],income:{},monthly:[],jobs:[]};
+let charts={};
+const $=id=>document.getElementById(id);
+const fmt=n=>n==null||isNaN(n)?'$0':'$'+Math.round(Math.abs(n)).toLocaleString();
+const fmtD=n=>(n<0?'-':'')+fmt(n);
+const pct=n=>(n*100).toFixed(1)+'%';
+const monthLabel=s=>{if(!s)return'';const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',year:'numeric'})};
+
+async function init(){
+  try{
+    $('loadMsg').textContent='Fetching latest data...';
+    // Use raw GitHub URL with cache-busting
+    const url=`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${DATA_FILE}?t=${Date.now()}`;
+    const res=await fetch(url);
+    if(!res.ok)throw new Error('Data not published yet. Ask Yvonne to publish the dashboard.');
+    DATA=await res.json();
+    $('loading').style.display='none';
+    $('dashboard').style.display='block';
+    if(DATA.publishedAt){
+      const d=new Date(DATA.publishedAt);
+      $('publishedTime').textContent=`Updated ${d.toLocaleDateString()} ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+    }
+    buildWeekSel();
+    renderMonthly();
+    renderJobs();
+    if(DATA.weeks.length){$('weekSel').value=DATA.weeks.length-1;loadWeek(DATA.weeks.length-1)}
+  }catch(e){
+    $('loadMsg').textContent=e.message;
+    $('loadMsg').style.color='#ef4444';
+    document.querySelector('.spinner').style.display='none';
+  }
+}
+
+function showTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('t-'+id).classList.add('active');$('p-'+id).classList.add('active')}
+function buildWeekSel(){const s=$('weekSel');s.innerHTML='';DATA.weeks.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`Wk ${w.week} — ${w.start}`;s.appendChild(o)})}
+function dc(id){if(charts[id]){try{charts[id].destroy()}catch(e){}delete charts[id]}}
+function donut(id,ratio,col){dc(id);const c=$(id);if(!c)return;const r=Math.max(0,Math.min(ratio,1.5));charts[id]=new Chart(c.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[Math.min(r,1),Math.max(1-r,0)],backgroundColor:[col,'#242840'],borderWidth:0}]},options:{responsive:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:400}}})}
+
+function loadWeek(idx){
+  const d=DATA.weeks[idx];if(!d)return;
+  $('k-inv').textContent=fmt(d.inv);$('k-mat').textContent=fmt(d.mat);$('k-mat-p').textContent=d.inv?pct(d.mat/d.inv)+' of inv':'—';
+  $('k-fl').textContent=fmt(d.fl);$('k-fl-p').textContent=d.inv?pct(d.fl/d.inv)+' of inv':'—';
+  $('k-oh').textContent=fmt(d.oh);$('k-oh-p').textContent=pct(d.ohPct)+' paid';
+  $('k-sp').textContent=fmt(d.sp);$('k-sp-p').textContent=pct(d.spPct)+' paid';
+  $('k-cm').textContent=fmt(d.comm);
+  $('k-wp').textContent=fmt(d.wp);$('k-wp').className='kv '+(d.wp>=0?'pos':'neg');
+  $('k-mp').textContent=fmt(d.mp);$('k-mp').className='kv '+(d.mp>=0?'pos':'neg');
+  const ratio=Math.max(0,Math.min((d.inv-30000)/80000,1));
+  $('needle').setAttribute('transform',`rotate(${-90+ratio*180},150,148)`);$('gaugeAmt').textContent=fmt(d.inv);
+  $('g-oh-cum').textContent=fmt(d.oh);$('g-oh-pct').textContent=pct(d.ohPct);$('g-oh-out').textContent=fmt(d.outOH);
+  $('g-sp-cum').textContent=fmt(d.sp);$('g-sp-pct').textContent=pct(d.spPct);$('g-sp-out').textContent=fmt(d.outSP);
+  $('oh-pct-lbl').textContent=pct(d.ohPct);$('oh-bar').style.width=Math.min(d.ohPct*100,100)+'%';$('oh-paid').textContent=fmt(d.oh);$('oh-total').textContent='of '+fmt(d.monthOH);
+  $('sp-pct-lbl').textContent=pct(d.spPct);$('sp-bar').style.width=Math.min(d.spPct*100,100)+'%';$('sp-paid').textContent=fmt(d.sp);$('sp-total').textContent='of '+fmt(d.monthSP);
+  const iR=d.inv/90000;$('invTargetPct').textContent=(iR*100).toFixed(1)+'%';$('invTargetAmt').textContent=fmt(d.inv);
+  const iD=d.inv-90000;$('invTargetDiff').textContent=(iD>=0?'+':'')+fmt(iD)+(iD>=0?' above':' below')+' target';$('invTargetDiff').className=iD>=0?'pos':'neg';donut('invTargetChart',iR,'#f5a623');
+  const pR=d.mp/41666.67;$('profTargetPct').textContent=d.mp?(pR*100).toFixed(1)+'%':'0.0%';$('profTargetAmt').textContent=fmt(d.mp);$('profTargetDiff').textContent=d.mp?((pR>=1?'+':'')+fmtD(d.mp-41666.67)+(pR>=1?' above':' below')):'Month in progress';donut('profitTargetChart',d.mp?pR:0,'#22c55e');
+  dc('costChart');charts['costChart']=new Chart($('costChart').getContext('2d'),{type:'doughnut',data:{labels:['Material','Field Labour','Overhead','Support Labour'],datasets:[{data:[d.mat,d.fl,d.oh,d.sp],backgroundColor:['#60a5fa','#fb923c','#ef4444','#a78bfa'],borderColor:'#141720',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{color:'#64748b',font:{size:10},padding:8,boxWidth:10,boxHeight:10}},tooltip:{callbacks:{label:ctx=>{const t=d.mat+d.fl+d.oh+d.sp;return ` ${ctx.label}: ${fmt(ctx.parsed)} (${t?(ctx.parsed/t*100).toFixed(1):0}%)`}}}}}});
+  const wk=d.week.toString();const inc=DATA.income[wk]||DATA.income[wk+'.0']||[];
+  dc('incomeChart');
+  if(inc.length){
+    charts['incomeChart']=new Chart($('incomeChart').getContext('2d'),{type:'doughnut',data:{labels:inc.map(x=>x.name),datasets:[{data:inc.map(x=>x.amount),backgroundColor:IC.slice(0,inc.length),borderColor:'#141720',borderWidth:2}]},options:{responsive:false,cutout:'30%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.parsed)}`}}}}});
+    const tot=inc.reduce((s,x)=>s+x.amount,0);
+    $('incomeDist').innerHTML=inc.map((x,i)=>`<div class="ir"><span class="idot" style="background:${IC[i]}"></span><span class="in">${x.name}</span><span class="ip">${tot?(x.amount/tot*100).toFixed(0):0}%</span><span class="ia">${fmt(x.amount)}</span></div>`).join('')+`<div class="ir" style="border-top:1px solid var(--border);margin-top:4px"><span class="idot"></span><span class="in" style="font-weight:600">Total</span><span class="ip"></span><span class="ia" style="color:var(--accent)">${fmt(tot)}</span></div>`
+  }else{$('incomeDist').innerHTML=`<div style="color:var(--muted);font-size:11px;padding:8px 0">No income data for week ${wk}</div>`}
+}
+
+function renderMonthly(){
+  const months=DATA.monthly.filter(m=>m.inv>0);
+  let yi=0,ym=0,yf=0,yo=0,ys=0,yc=0,yp=0;
+  $('monthlyBody').innerHTML=months.map(m=>{yi+=m.inv;ym+=m.mat;yf+=m.fl;yo+=m.oh;ys+=m.sp;yc+=m.comm;yp+=m.profit;return`<tr class="${m.profit>=0?'mr-g':'mr-r'}"><td>${monthLabel(m.start)}</td><td class="num">${fmt(m.inv)}</td><td class="num">${fmt(m.mat)}</td><td class="num">${fmt(m.fl)}</td><td class="num">${fmt(m.oh)}</td><td class="num">${fmt(m.sp)}</td><td class="num">${fmt(m.comm)}</td><td class="num ${m.profit>=0?'pos':'neg'}">${fmtD(m.profit)}</td></tr>`}).join('')+`<tr style="border-top:1px solid var(--border);font-weight:600"><td>YTD</td><td class="num" style="color:var(--accent)">${fmt(yi)}</td><td class="num">${fmt(ym)}</td><td class="num">${fmt(yf)}</td><td class="num">${fmt(yo)}</td><td class="num">${fmt(ys)}</td><td class="num">${fmt(yc)}</td><td class="num ${yp>=0?'pos':'neg'}">${fmtD(yp)}</td></tr>`;
+  dc('monthlyChart');charts['monthlyChart']=new Chart($('monthlyChart').getContext('2d'),{type:'bar',data:{labels:months.map(m=>monthLabel(m.start)),datasets:[{label:'Sales',data:months.map(m=>m.inv),backgroundColor:'rgba(245,166,35,.2)',borderColor:'#f5a623',borderWidth:1,yAxisID:'y'},{label:'Profit/Loss',data:months.map(m=>m.profit),backgroundColor:months.map(m=>m.profit>=0?'rgba(34,197,94,.5)':'rgba(239,68,68,.5)'),borderColor:months.map(m=>m.profit>=0?'#22c55e':'#ef4444'),borderWidth:1,yAxisID:'y2',type:'line'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}},y2:{position:'right',grid:{display:false},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}}},plugins:{legend:{labels:{color:'#64748b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}}}});
+  $('ytdGrid').innerHTML=[{l:'Total Revenue',v:fmt(yi),c:'var(--accent)'},{l:'Net Profit',v:fmtD(yp),c:yp>=0?'var(--green)':'var(--red)'},{l:'Material %',v:yi?(ym/yi*100).toFixed(1)+'%':'—',c:'var(--blue)'},{l:'Profit Margin',v:yi?(yp/yi*100).toFixed(1)+'%':'—',c:yp>=0?'var(--green)':'var(--red)'}].map(it=>`<div class="card" style="padding:12px;border-top:2px solid ${it.c}"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">${it.l}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:${it.c}">${it.v}</div></div>`).join('')
+}
+
+function renderJobs(){
+  const jobs=DATA.jobs;const tot=jobs.reduce((s,j)=>s+j.total,0);
+  $('jobsKpiStrip').innerHTML=[{l:'Jobs Tracked',v:jobs.length,c:'ka'},{l:'Total Revenue',v:fmt(tot),c:'kg'},{l:'Avg Job Value',v:fmt(jobs.length?tot/jobs.length:0),c:'kb'},{l:'Avg Material %',v:tot?(jobs.reduce((s,j)=>s+j.mat,0)/tot*100).toFixed(1)+'%':'—',c:'kp'}].map(k=>`<div class="kpi ${k.c}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div></div>`).join('');
+  const bm={Completed:'bg','In Progress':'by',Pending:'bx',Scheduled:'bb','Pending Payment':'by'};
+  $('jobsBody').innerHTML=jobs.map((j,i)=>`<tr style="cursor:pointer" onclick="openModal(${i})"><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice}</td><td>${j.customer}</td><td><span class="badge bx">${j.rep}</span></td><td class="num">${j.total?fmt(j.total):'—'}</td><td class="num">${j.mat?fmt(j.mat):'—'}</td><td class="num">${j.fl?fmt(j.fl):'—'}</td><td class="num">${j.comm?fmt(j.comm):'—'}</td><td class="num ${j.outstanding>0?'by':'pos'}">${j.outstanding?fmt(j.outstanding):'—'}</td><td class="num ${j.profit>0?'pos':j.profit<0?'neg':''}">${j.profit?fmtD(j.profit):'—'}</td><td><span class="badge ${bm[j.status]||'bx'}">${j.status}</span></td></tr>`).join('')
+}
+
+function openModal(i){
+  const j=DATA.jobs[i];if(!j)return;
+  $('modalTitle').textContent=`${j.invoice} — ${j.customer}`;
+  $('modalGrid').innerHTML=[{l:'Invoice Total',v:fmt(j.total),c:'var(--accent)'},{l:'Sales Rep',v:j.rep||'—',c:'var(--text)'},{l:'Material',v:fmt(j.mat),c:'var(--blue)'},{l:'Field Labour',v:fmt(j.fl),c:'var(--orange)'},{l:'Commission',v:fmt(j.comm),c:'var(--cyan)'},{l:'Outstanding',v:fmt(j.outstanding),c:j.outstanding>0?'var(--accent)':'var(--green)'},{l:'Profit',v:fmtD(j.profit),c:j.profit>=0?'var(--green)':'var(--red)'},{l:'Status',v:j.status,c:'var(--text)'},{l:'Start Date',v:j.startDate||'—',c:'var(--text)'}].map(it=>`<div class="modal-item"><div class="ml">${it.l}</div><div class="mv" style="color:${it.c}">${it.v}</div></div>`).join('');
+  $('jobModal').classList.add('open')
+}
+function closeModal(){$('jobModal').classList.remove('open')}
+$('jobModal').addEventListener('click',e=>{if(e.target===$('jobModal'))closeModal()})
+init();
+</script>
+</body>
+</html>
