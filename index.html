@@ -1,6 +1,3 @@
-Stfd dashboard · HTML
-Copy
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,7 +97,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 </style>
 </head>
 <body>
- 
+
 <div id="loadScreen">
   <div><div class="logo">STFD</div><div class="sub" style="text-align:center;margin-top:2px">Operations Dashboard</div></div>
   <p>Select your 4 Excel files to load the dashboard. Your files stay on your computer — nothing is uploaded anywhere.</p>
@@ -118,7 +115,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   <input type="file" id="fileInput" accept=".xlsx" multiple style="display:none" onchange="handleFiles(this.files)">
   <button class="btn-load" id="btnLoad" onclick="buildDashboard()">Open Dashboard →</button>
 </div>
- 
+
 <div id="dashboard" style="display:none">
 <header class="hdr">
   <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations</div></div></div>
@@ -137,7 +134,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <span id="publishStatus"></span>
   </div>
 </header>
- 
+
 <div class="page active" id="p-weekly">
   <div class="kpi-strip">
     <div class="kpi ka"><div class="kl">Invoice Total</div><div class="kv" id="k-inv">—</div><div class="ks">Weekly revenue</div></div>
@@ -221,12 +218,12 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     </div>
   </div>
 </div>
- 
+
 <div class="page" id="p-schedule">
   <div class="card" style="margin-bottom:10px"><div class="ct">Job Schedule — Week <span id="sched-wk">—</span></div><div class="sx"><table><thead id="schedHead"></thead><tbody id="schedBody"></tbody></table></div></div>
   <div class="card"><div class="ct">Crew Utilization</div><div class="grid g4" id="crewGrid" style="gap:8px"></div></div>
 </div>
- 
+
 <div class="page" id="p-commissions">
   <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px">
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Statement Week</span>
@@ -237,7 +234,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="card"><div class="ct">Other Job Details</div><div id="comm-other-section"></div></div>
   </div>
 </div>
- 
+
 <div class="page" id="p-monthly">
   <div class="grid g2" style="margin-bottom:10px">
     <div class="card"><div class="ct">2026 Monthly P&amp;L</div><div class="sx"><table><thead><tr><th>Month</th><th class="num">Sales</th><th class="num">Material</th><th class="num">Field Lab.</th><th class="num">Overhead</th><th class="num">Supp. Lab.</th><th class="num">Commission</th><th class="num">Profit</th></tr></thead><tbody id="monthlyBody"></tbody></table></div></div>
@@ -245,15 +242,15 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   </div>
   <div class="card"><div class="ct">YTD Summary</div><div class="grid g4" id="ytdGrid" style="gap:8px;margin-top:4px"></div></div>
 </div>
- 
+
 <div class="page" id="p-jobs">
   <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px" id="jobsKpiStrip"></div>
   <div class="card"><div class="ct">All Jobs — Click any row to see full details</div><div class="sx sy" style="max-height:500px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Sales Rep</th><th class="num">Total</th><th class="num">Material</th><th class="num">Field Labour</th><th class="num">Commission</th><th class="num">Outstanding</th><th class="num">Profit</th><th>Status</th></tr></thead><tbody id="jobsBody"></tbody></table></div></div>
 </div>
 </div>
- 
+
 <div id="jobModal"><div class="modal-box"><button class="modal-close" onclick="closeModal()">✕</button><div class="modal-title" id="modalTitle">Job Detail</div><div class="modal-grid" id="modalGrid"></div></div></div>
- 
+
 <script>
 const STATE={outlook:null,jobs:null,schedule:null,commissions:null};
 let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{}};
@@ -264,7 +261,7 @@ const fmt=n=>n==null||isNaN(n)?'$0':'$'+Math.round(Math.abs(n)).toLocaleString()
 const fmtD=n=>(n<0?'-':'')+fmt(n);
 const pct=n=>(n*100).toFixed(1)+'%';
 const monthLabel=s=>{if(!s)return'';const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',year:'numeric'})};
- 
+
 function handleFiles(files){
   for(const f of files){
     const n=f.name.toLowerCase().replace(/[\s_-]/g,'');
@@ -277,7 +274,7 @@ function handleFiles(files){
 }
 function markLoaded(id,name){const el=$(id);el.classList.add('loaded');el.querySelector('.fi-name').textContent=name;el.querySelector('.fi-status').textContent='✓ Loaded'}
 function readWB(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>{res(XLSX.read(e.target.result,{type:'array',cellDates:true}))};r.readAsArrayBuffer(file)})}
- 
+
 async function buildDashboard(){
   $('loadScreen').style.display='none';$('dashboard').style.display='block';
   if(STATE.outlook){const wb=await readWB(STATE.outlook);DATA.weeks=parseWeekly(wb);DATA.income=parseIncome(wb);DATA.monthly=parseMonthly(wb)}
@@ -288,9 +285,9 @@ async function buildDashboard(){
   if(DATA.weeks.length){$('weekSel').value=DATA.weeks.length-1;loadWeek(DATA.weeks.length-1)}
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm'].forEach(id=>{const el=$(id);el.classList.remove('loaded');el.querySelector('.fi-status').textContent='Not loaded'});Object.keys(STATE).forEach(k=>STATE[k]=null)}
- 
+
 function sheetArr(wb,name){const ws=wb.Sheets[name];if(!ws)return[];return XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true})}
- 
+
 function xlDateToStr(v){
   // SheetJS raw:true returns serial numbers for dates
   if(typeof v==='number'&&v>40000&&v<60000){
@@ -329,7 +326,7 @@ function parseWeekly(wb){
   }
   return results;
 }
- 
+
 function parseIncome(wb){
   const rows=sheetArr(wb,'Data copy');const byWeek={};
   rows.slice(1).forEach(r=>{
@@ -346,7 +343,7 @@ function parseIncome(wb){
     }
   });return byWeek
 }
- 
+
 function parseMonthly(wb){
   const rows=sheetArr(wb,'New Summary (Monthly)');
   const results=[];
@@ -359,7 +356,7 @@ function parseMonthly(wb){
   }
   return results;
 }
- 
+
 function parseJobs(wb){
   const sn=wb.SheetNames.includes('Data')?'Data':wb.SheetNames[0];
   const rows=sheetArr(wb,sn);if(!rows.length)return[];
@@ -372,7 +369,7 @@ function parseJobs(wb){
     return{invoice:inv,customer:String(r[iC]||'').trim(),rep:String(r[iR]||'').trim(),total:t,mat:m,fl:f,comm:c,outstanding:+r[iO]||0,status:String(r[iS]||'Pending').trim(),commRate:String(r[iCr]||'').trim(),startDate:r[iD]?String(r[iD]).split(' ')[0]:'',profit:Math.round((t-m-f-c)*100)/100}
   }).filter(Boolean)
 }
- 
+
 function parseSched(wb){
   const out={};
   wb.SheetNames.forEach(sn=>{
@@ -396,7 +393,7 @@ function parseSched(wb){
     }catch(e){}
   });return out
 }
- 
+
 function parseComm(wb){
   const out={};
   wb.SheetNames.forEach(sn=>{
@@ -430,16 +427,16 @@ function parseComm(wb){
     }catch(e){}
   });return out
 }
- 
+
 function showTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('t-'+id).classList.add('active');$('p-'+id).classList.add('active')}
- 
+
 function buildWeekSel(){const s=$('weekSel');s.innerHTML='';DATA.weeks.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`Wk ${w.week} — ${w.start}`;s.appendChild(o)})}
- 
+
 function buildCommSel(){const s=$('commWeekSel');Object.keys(DATA.commissions).sort().reverse().forEach(k=>{const o=document.createElement('option');o.value=k;const c=DATA.commissions[k];o.textContent=`${k} — ${c.repName}`;s.appendChild(o)});const keys=Object.keys(DATA.commissions).sort();if(keys.length)loadCommission(keys[keys.length-1])}
- 
+
 function dc(id){if(charts[id]){try{charts[id].destroy()}catch(e){}delete charts[id]}}
 function donut(id,ratio,col){dc(id);const c=$(id);if(!c)return;const r=Math.max(0,Math.min(ratio,1.5));charts[id]=new Chart(c.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[Math.min(r,1),Math.max(1-r,0)],backgroundColor:[col,'#242840'],borderWidth:0}]},options:{responsive:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:400}}})}
- 
+
 function loadWeek(idx){
   const d=DATA.weeks[idx];if(!d)return;
   $('k-inv').textContent=fmt(d.inv);
@@ -469,7 +466,7 @@ function loadWeek(idx){
   }else{$('incomeDist').innerHTML=`<div style="color:var(--muted);font-size:11px;padding:8px 0">No income data for week ${wk}</div>`}
   loadSchedWeek(d.start)
 }
- 
+
 function loadSchedWeek(startDate){
   if(!startDate)return;
   // Try multiple key formats to match schedule sheet names like '4-26'
@@ -489,7 +486,7 @@ function loadSchedWeek(startDate){
   const cm={};sch.jobs.forEach(j=>j.crew.split(',').map(c=>c.trim()).filter(Boolean).forEach(c=>{if(!cm[c])cm[c]={a:0,t:0};cm[c].a+=j.days.reduce((x,y)=>x+y,0);cm[c].t+=sch.dayLabels.length}));
   $('crewGrid').innerHTML=Object.entries(cm).map(([name,d])=>{const u=d.t?d.a/d.t:0;return`<div class="card" style="padding:10px"><div style="font-size:12px;font-weight:600;margin-bottom:5px">${name}</div><div class="pt"><div class="pf" style="background:var(--cyan);width:${Math.round(u*100)}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:3px">${d.a}/${sch.dayLabels.length} days — ${Math.round(u*100)}%</div></div>`}).join('')
 }
- 
+
 function loadCommission(key){
   const s=DATA.commissions[key];if(!s)return;$('commWeekSel').value=key;
   $('comm-rep-title').textContent=`${s.repName} — ${s.dateLine}`;
@@ -499,7 +496,7 @@ function loadCommission(key){
   const othRows=[...(s.scheduled||[]),...(s.unscheduled||[])].map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num bb">${fmt(p.available)}</td></tr>`).join('');
   $('comm-other-section').innerHTML=(pendRows?`<div class="cst">Completed — Pending Payment</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${pendRows}</tbody></table><br>`:'')+( othRows?`<div class="cst">Scheduled / Unscheduled Jobs</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${othRows}</tbody></table>`:'')
 }
- 
+
 function renderMonthly(){
   const months=DATA.monthly.filter(m=>m.inv>0);
   let yi=0,ym=0,yf=0,yo=0,ys=0,yc=0,yp=0;
@@ -507,14 +504,14 @@ function renderMonthly(){
   dc('monthlyChart');charts['monthlyChart']=new Chart($('monthlyChart').getContext('2d'),{type:'bar',data:{labels:months.map(m=>monthLabel(m.start)),datasets:[{label:'Sales',data:months.map(m=>m.inv),backgroundColor:'rgba(245,166,35,.2)',borderColor:'#f5a623',borderWidth:1,yAxisID:'y'},{label:'Profit/Loss',data:months.map(m=>m.profit),backgroundColor:months.map(m=>m.profit>=0?'rgba(34,197,94,.5)':'rgba(239,68,68,.5)'),borderColor:months.map(m=>m.profit>=0?'#22c55e':'#ef4444'),borderWidth:1,yAxisID:'y2',type:'line'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}},y2:{position:'right',grid:{display:false},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}}},plugins:{legend:{labels:{color:'#64748b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}}}});
   $('ytdGrid').innerHTML=[{l:'Total Revenue',v:fmt(yi),c:'var(--accent)'},{l:'Net Profit',v:fmtD(yp),c:yp>=0?'var(--green)':'var(--red)'},{l:'Material %',v:yi?(ym/yi*100).toFixed(1)+'%':'—',c:'var(--blue)'},{l:'Profit Margin',v:yi?(yp/yi*100).toFixed(1)+'%':'—',c:yp>=0?'var(--green)':'var(--red)'}].map(it=>`<div class="card" style="padding:12px;border-top:2px solid ${it.c}"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">${it.l}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:${it.c}">${it.v}</div></div>`).join('')
 }
- 
+
 function renderJobs(){
   const jobs=DATA.jobs;const tot=jobs.reduce((s,j)=>s+j.total,0);
   $('jobsKpiStrip').innerHTML=[{l:'Jobs Tracked',v:jobs.length,c:'ka'},{l:'Total Revenue',v:fmt(tot),c:'kg'},{l:'Avg Job Value',v:fmt(jobs.length?tot/jobs.length:0),c:'kb'},{l:'Avg Material %',v:tot?(jobs.reduce((s,j)=>s+j.mat,0)/tot*100).toFixed(1)+'%':'—',c:'kp'}].map(k=>`<div class="kpi ${k.c}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div></div>`).join('');
   const bm={Completed:'bg','In Progress':'by',Pending:'bx',Scheduled:'bb','Pending Payment':'by'};
   $('jobsBody').innerHTML=jobs.map((j,i)=>`<tr style="cursor:pointer" onclick="openModal(${i})"><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice}</td><td>${j.customer}</td><td><span class="badge bx">${j.rep}</span></td><td class="num">${j.total?fmt(j.total):'—'}</td><td class="num">${j.mat?fmt(j.mat):'—'}</td><td class="num">${j.fl?fmt(j.fl):'—'}</td><td class="num">${j.comm?fmt(j.comm):'—'}</td><td class="num ${j.outstanding>0?'by':'pos'}">${j.outstanding?fmt(j.outstanding):'—'}</td><td class="num ${j.profit>0?'pos':j.profit<0?'neg':''}">${j.profit?fmtD(j.profit):'—'}</td><td><span class="badge ${bm[j.status]||'bx'}">${j.status}</span></td></tr>`).join('')
 }
- 
+
 function openModal(i){
   const j=DATA.jobs[i];if(!j)return;
   $('modalTitle').textContent=`${j.invoice} — ${j.customer}`;
@@ -523,14 +520,14 @@ function openModal(i){
 }
 function closeModal(){$('jobModal').classList.remove('open')}
 $('jobModal').addEventListener('click',e=>{if(e.target===$('jobModal'))closeModal()})
- 
+
 // ═══════════════════════════════════════════════════════════════
 // PUBLISH TO PHILLIP
 // ═══════════════════════════════════════════════════════════════
 const GITHUB_REPO = 'sarahloree/stfd';
-const GITHUB_TOKEN = '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';
+const GITHUB_TOKEN = 'PASTE_YOUR_NEW_TOKEN_HERE';
 const DATA_FILE = 'data.json';
- 
+
 async function publishToPhillip() {
   const btn = $('publishBtn');
   const status = $('publishStatus');
@@ -538,7 +535,7 @@ async function publishToPhillip() {
   btn.classList.add('publishing');
   btn.textContent = '⬆ Publishing...';
   status.textContent = '';
- 
+
   try {
     // Build the publish payload — current state of all data
     const payload = {
@@ -550,14 +547,14 @@ async function publishToPhillip() {
       publishedBy: 'Yvonne'
     };
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
- 
+
     // Check if file exists to get its SHA (required for updates)
     let sha = null;
     const checkRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${DATA_FILE}`, {
       headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
     });
     if (checkRes.ok) { const existing = await checkRes.json(); sha = existing.sha; }
- 
+
     // Write data.json to GitHub
     const body = { message: `Dashboard update ${new Date().toLocaleDateString()}`, content: encoded };
     if (sha) body.sha = sha;
@@ -566,7 +563,7 @@ async function publishToPhillip() {
       headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
- 
+
     if (res.ok) {
       btn.textContent = '✓ Published!';
       btn.style.background = 'var(--accent)';
