@@ -543,7 +543,7 @@ async function publishToPhillip() {
       publishedBy: 'Yvonne'
     };
     // Call our Netlify function which handles GitHub securely
-    const res = await fetch('/.netlify/functions/publish', {
+    const res = await fetch('https://stfd.netlify.app/.netlify/functions/publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: payload })
