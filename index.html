@@ -524,10 +524,6 @@ $('jobModal').addEventListener('click',e=>{if(e.target===$('jobModal'))closeModa
 // ═══════════════════════════════════════════════════════════════
 // PUBLISH TO PHILLIP
 // ═══════════════════════════════════════════════════════════════
-const GITHUB_REPO = 'sarahloree/stfd';
-const GITHUB_TOKEN = '';
-const DATA_FILE = 'data.json';
-
 async function publishToPhillip() {
   const btn = $('publishBtn');
   const status = $('publishStatus');
@@ -546,22 +542,11 @@ async function publishToPhillip() {
       publishedAt: new Date().toISOString(),
       publishedBy: 'Yvonne'
     };
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-
-    // Check if file exists to get its SHA (required for updates)
-    let sha = null;
-    const checkRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${DATA_FILE}`, {
-      headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
-    });
-    if (checkRes.ok) { const existing = await checkRes.json(); sha = existing.sha; }
-
-    // Write data.json to GitHub
-    const body = { message: `Dashboard update ${new Date().toLocaleDateString()}`, content: encoded };
-    if (sha) body.sha = sha;
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${DATA_FILE}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+    // Call our Netlify function which handles GitHub securely
+    const res = await fetch('/.netlify/functions/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: payload })
     });
 
     if (res.ok) {
