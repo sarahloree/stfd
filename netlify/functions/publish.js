@@ -1,9 +1,19 @@
 const https = require('https');
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 exports.handler = async (event) => {
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers: CORS_HEADERS, body: '' };
+  }
   // Only allow POST
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
+    return { statusCode: 405, headers: CORS_HEADERS, body: 'Method not allowed' };
   }
 
   const token = process.env.GITHUB_TOKEN;
@@ -37,13 +47,13 @@ exports.handler = async (event) => {
   if (result.ok) {
     return {
       statusCode: 200,
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: CORS_HEADERS,
       body: JSON.stringify({ success: true })
     };
   } else {
     return {
       statusCode: result.status,
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: CORS_HEADERS,
       body: JSON.stringify({ error: result.message })
     };
   }
