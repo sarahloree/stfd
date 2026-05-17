@@ -225,9 +225,11 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 </div>
 
 <div class="page" id="p-commissions">
-  <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px">
+  <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Statement Week</span>
     <select id="commWeekSel" onchange="loadCommission(this.value)"><option value="">-- Select --</option></select>
+    <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Sales Rep</span>
+    <select id="commRepSel" onchange="filterCommByRep(this.value)"><option value="">All Reps</option></select>
   </div>
   <div class="grid g2">
     <div class="card"><div class="ct" id="comm-rep-title">Commission Statement</div><div id="comm-payments-section"></div></div>
@@ -252,7 +254,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 <div id="jobModal"><div class="modal-box"><button class="modal-close" onclick="closeModal()">✕</button><div class="modal-title" id="modalTitle">Job Detail</div><div class="modal-grid" id="modalGrid"></div></div></div>
 
 <script>
-const STATE={outlook:null,jobs:null,schedule:null,commissions:null};
+const STATE={outlook:null,jobs:null,schedule:null,commissions:null}; // commissions becomes array when files loaded
 let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{}};
 let charts={};
 const IC=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'];
@@ -263,12 +265,23 @@ const pct=n=>(n*100).toFixed(1)+'%';
 const monthLabel=s=>{if(!s)return'';const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',year:'numeric'})};
 
 function handleFiles(files){
+  let commCount=0;
   for(const f of files){
     const n=f.name.toLowerCase().replace(/[\s_-]/g,'');
     if(n.includes('outlook')||n.startsWith('04')){STATE.outlook=f;markLoaded('fi-outlook',f.name)}
     else if(n.includes('jobcost')||n.includes('job_cost')||n.startsWith('01')){STATE.jobs=f;markLoaded('fi-jobs',f.name)}
     else if(n.includes('schedule')||n.startsWith('02')){STATE.schedule=f;markLoaded('fi-schedule',f.name)}
-    else if(n.includes('commission')||n.startsWith('06')){STATE.commissions=f;markLoaded('fi-comm',f.name)}
+    else if(n.includes('commission')||n.startsWith('06')){
+      // Support multiple commission files — store as array
+      if(!STATE.commissions)STATE.commissions=[];
+      STATE.commissions.push(f);
+      commCount++;
+      // Update the commission file indicator
+      const fiComm=$('fi-comm');
+      fiComm.classList.add('loaded');
+      fiComm.querySelector('.fi-name').textContent=`${commCount} commission file${commCount>1?'s':''} loaded`;
+      fiComm.querySelector('.fi-status').textContent=`✓ ${commCount} loaded`;
+    }
   }
   if(STATE.outlook||STATE.jobs)$('btnLoad').classList.add('visible');
 }
@@ -280,7 +293,22 @@ async function buildDashboard(){
   if(STATE.outlook){const wb=await readWB(STATE.outlook);DATA.weeks=parseWeekly(wb);DATA.income=parseIncome(wb);DATA.monthly=parseMonthly(wb)}
   if(STATE.jobs){const wb=await readWB(STATE.jobs);DATA.jobs=parseJobs(wb)}
   if(STATE.schedule){const wb=await readWB(STATE.schedule);DATA.schedules=parseSched(wb)}
-  if(STATE.commissions){const wb=await readWB(STATE.commissions);DATA.commissions=parseComm(wb)}
+  if(STATE.commissions&&STATE.commissions.length){
+    DATA.commissions={};
+    for(const cf of STATE.commissions){
+      const wb=await readWB(cf);
+      const parsed=parseComm(wb);
+      // Merge all commission files into one object — week keys combined
+      Object.keys(parsed).forEach(k=>{
+        if(!DATA.commissions[k]){DATA.commissions[k]=parsed[k]}
+        else{
+          // Same week in multiple files — merge payments arrays and recalculate
+          DATA.commissions[k].payments=[...DATA.commissions[k].payments,...parsed[k].payments];
+          DATA.commissions[k].pending=[...DATA.commissions[k].pending,...parsed[k].pending];
+        }
+      });
+    }
+  }
   buildWeekSel();buildCommSel();renderMonthly();renderJobs();
   if(DATA.weeks.length){$('weekSel').value=DATA.weeks.length-1;loadWeek(DATA.weeks.length-1)}
 }
@@ -432,7 +460,27 @@ function showTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.re
 
 function buildWeekSel(){const s=$('weekSel');s.innerHTML='';DATA.weeks.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`Wk ${w.week} — ${w.start}`;s.appendChild(o)})}
 
-function buildCommSel(){const s=$('commWeekSel');Object.keys(DATA.commissions).sort().reverse().forEach(k=>{const o=document.createElement('option');o.value=k;const c=DATA.commissions[k];o.textContent=`${k} — ${c.repName}`;s.appendChild(o)});const keys=Object.keys(DATA.commissions).sort();if(keys.length)loadCommission(keys[keys.length-1])}
+function buildCommSel(){
+  const s=$('commWeekSel');
+  Object.keys(DATA.commissions).sort().reverse().forEach(k=>{
+    const o=document.createElement('option');o.value=k;
+    const c=DATA.commissions[k];
+    o.textContent=`${k} — ${c.repName}`;
+    s.appendChild(o);
+  });
+  // Populate rep selector
+  const repSel=$('commRepSel');
+  const reps=[...new Set(Object.values(DATA.commissions).map(c=>c.repName).filter(Boolean))].sort();
+  reps.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;repSel.appendChild(o)});
+  const keys=Object.keys(DATA.commissions).sort();
+  if(keys.length)loadCommission(keys[keys.length-1]);
+}
+function filterCommByRep(rep){
+  const s=$('commWeekSel');s.innerHTML='<option value="">-- Select --</option>';
+  const filtered=Object.keys(DATA.commissions).filter(k=>!rep||DATA.commissions[k].repName===rep).sort().reverse();
+  filtered.forEach(k=>{const o=document.createElement('option');o.value=k;const c=DATA.commissions[k];o.textContent=`${k} — ${c.repName}`;s.appendChild(o)});
+  if(filtered.length)loadCommission(filtered[0]);
+}
 
 function dc(id){if(charts[id]){try{charts[id].destroy()}catch(e){}delete charts[id]}}
 function donut(id,ratio,col){dc(id);const c=$(id);if(!c)return;const r=Math.max(0,Math.min(ratio,1.5));charts[id]=new Chart(c.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[Math.min(r,1),Math.max(1-r,0)],backgroundColor:[col,'#242840'],borderWidth:0}]},options:{responsive:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:400}}})}
@@ -469,10 +517,15 @@ function loadWeek(idx){
 
 function loadSchedWeek(startDate){
   if(!startDate)return;
-  // Try multiple key formats to match schedule sheet names like '4-26'
-  const d=new Date(startDate+'T12:00:00');
-  const key1=`${d.getMonth()+1}-${d.getDate()}`;
-  const key2=`${d.getMonth()+1}-${String(d.getDate()).padStart(2,'0')}`;
+  // Timezone-independent date matching — parse date string directly
+  // avoids UTC shift issues for Yvonne in Hong Kong (GMT+8)
+  // startDate format: 'YYYY-MM-DD'
+  const parts=startDate.split('-');
+  const month=parts[1]?parseInt(parts[1],10):0;
+  const day=parts[2]?parseInt(parts[2],10):0;
+  const key1=`${month}-${day}`;
+  const key2=`${month}-${String(day).padStart(2,'0')}`;
+  // Also try matching by week number from DATA.weeks
   const sch=DATA.schedules[key1]||DATA.schedules[key2]||DATA.schedules[startDate];
   $('sched-wk').textContent=startDate;
   if(!sch||!sch.jobs.length){$('schedHead').innerHTML='<tr><th colspan="10" style="color:var(--muted)">No schedule data for this week</th></tr>';$('schedBody').innerHTML='';$('crewGrid').innerHTML='';return}
