@@ -100,12 +100,20 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="loadScreen">
   <div><div class="logo">STFD</div><div class="sub" style="text-align:center;margin-top:2px">Operations Dashboard</div></div>
-  <p>Select your 4 Excel files to load the dashboard. Your files stay on your computer — nothing is uploaded anywhere.</p>
+  <p>Select your Excel files to load the dashboard — 3 main files plus all 5 commission statements. Your files stay on your computer — nothing is uploaded anywhere.</p>
   <div class="file-list">
     <div class="file-item" id="fi-outlook"><span class="fi-dot"></span><span class="fi-name">04_Outlook_Analysis_2026.xlsx</span><span class="fi-status">Not loaded</span></div>
     <div class="file-item" id="fi-jobs"><span class="fi-dot"></span><span class="fi-name">01_Job_Costs_2026.xlsx</span><span class="fi-status">Not loaded</span></div>
     <div class="file-item" id="fi-schedule"><span class="fi-dot"></span><span class="fi-name">02_Weekly_Schedule.xlsx</span><span class="fi-status">Not loaded</span></div>
-    <div class="file-item" id="fi-comm"><span class="fi-dot"></span><span class="fi-name">06_STFD_Commission_statements.xlsx</span><span class="fi-status">Not loaded</span></div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:4px 0 2px 2px;margin-top:4px">Additional Analysis Files</div>
+    <div class="file-item" id="fi-conversion"><span class="fi-dot"></span><span class="fi-name">05_Conversion_Analysis.xlsx</span><span class="fi-status">Not loaded</span></div>
+    <div class="file-item" id="fi-monthly"><span class="fi-dot"></span><span class="fi-name">05_STFD_average_monthly_analysis.xlsx</span><span class="fi-status">Not loaded</span></div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:4px 0 2px 2px;margin-top:4px">Commission Statements — select all 5</div>
+    <div class="file-item" id="fi-comm-paul"><span class="fi-dot"></span><span class="fi-name">06_STFD_Commission_statements (A Paul).xlsx</span><span class="fi-status">Not loaded</span></div>
+    <div class="file-item" id="fi-comm-jeff"><span class="fi-dot"></span><span class="fi-name">06_STFD_Commission_statements_2026 (B Jeff).xlsx</span><span class="fi-status">Not loaded</span></div>
+    <div class="file-item" id="fi-comm-sherrell"><span class="fi-dot"></span><span class="fi-name">06_STFD_Commission_statements_2026 (C Sherrell).xlsx</span><span class="fi-status">Not loaded</span></div>
+    <div class="file-item" id="fi-comm-taylor"><span class="fi-dot"></span><span class="fi-name">06_STFD_Commission_statements_2026 (D Taylor).xlsx</span><span class="fi-status">Not loaded</span></div>
+    <div class="file-item" id="fi-comm-jery"><span class="fi-dot"></span><span class="fi-name">06_STFD_Commission_statements_2026 (E Jery).xlsx</span><span class="fi-status">Not loaded</span></div>
   </div>
   <div class="file-drop-zone" onclick="document.getElementById('fileInput').click()">
     <div class="icon">📂</div>
@@ -125,6 +133,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="tab" onclick="showTab('commissions')" id="t-commissions">Commissions</div>
     <div class="tab" onclick="showTab('monthly')" id="t-monthly">Monthly Summary</div>
     <div class="tab" onclick="showTab('jobs')" id="t-jobs">Job Costs</div>
+    <div class="tab" onclick="showTab('conversion')" id="t-conversion">Conversion Analysis</div>
   </nav>
   <div class="hdr-right">
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
@@ -226,10 +235,10 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div class="page" id="p-commissions">
   <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Statement Week</span>
-    <select id="commWeekSel" onchange="loadCommission(this.value)"><option value="">-- Select --</option></select>
+    <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
+    <select id="commWeekSel" onchange="updateCommission()"><option value="">-- Select Week --</option></select>
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Sales Rep</span>
-    <select id="commRepSel" onchange="filterCommByRep(this.value)"><option value="">All Reps</option></select>
+    <select id="commRepSel" onchange="updateCommission()"><option value="">-- Select Rep --</option></select>
   </div>
   <div class="grid g2">
     <div class="card"><div class="ct" id="comm-rep-title">Commission Statement</div><div id="comm-payments-section"></div></div>
@@ -245,6 +254,34 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   <div class="card"><div class="ct">YTD Summary</div><div class="grid g4" id="ytdGrid" style="gap:8px;margin-top:4px"></div></div>
 </div>
 
+<div class="page" id="p-conversion">
+  <div class="grid g3" style="margin-bottom:10px" id="conv-kpi-row"></div>
+  <div class="grid g2" style="margin-bottom:10px">
+    <div class="card">
+      <div class="ct">Monthly Conversion Rate by Rep</div>
+      <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Month</span>
+        <select id="convMonthSel" onchange="loadConvMonth(this.value)"><option value="">-- Select Month --</option></select>
+      </div>
+      <div class="sx"><table><thead><tr><th>Sales Rep</th><th class="num">Quoted</th><th class="num">Converted</th><th class="num">Close Rate</th><th class="num">Revenue Quoted</th><th class="num">Revenue Won</th></tr></thead><tbody id="convRepBody"></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="ct">Monthly Close Rate Trend</div>
+      <div class="ch" style="height:220px"><canvas id="convTrendChart"></canvas></div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="ct">Job Type Breakdown — Selected Month</div>
+      <div class="ch" style="height:220px"><canvas id="jobTypeChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ct">Rep Performance — YTD 2026</div>
+      <div class="ch" style="height:220px"><canvas id="repPerfChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="p-jobs">
   <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px" id="jobsKpiStrip"></div>
   <div class="card"><div class="ct">All Jobs — Click any row to see full details</div><div class="sx sy" style="max-height:500px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Sales Rep</th><th class="num">Total</th><th class="num">Material</th><th class="num">Field Labour</th><th class="num">Commission</th><th class="num">Outstanding</th><th class="num">Profit</th><th>Status</th></tr></thead><tbody id="jobsBody"></tbody></table></div></div>
@@ -254,8 +291,8 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 <div id="jobModal"><div class="modal-box"><button class="modal-close" onclick="closeModal()">✕</button><div class="modal-title" id="modalTitle">Job Detail</div><div class="modal-grid" id="modalGrid"></div></div></div>
 
 <script>
-const STATE={outlook:null,jobs:null,schedule:null,commissions:null}; // commissions becomes array when files loaded
-let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{}};
+const STATE={outlook:null,jobs:null,schedule:null,commissions:null,conversion:null,monthly:null}; // commissions becomes array when files loaded
+let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{},conversion:{months:[],jobTypes:{}},monthlyAvg:{}};
 let charts={};
 const IC=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'];
 const $=id=>document.getElementById(id);
@@ -271,16 +308,22 @@ function handleFiles(files){
     if(n.includes('outlook')||n.startsWith('04')){STATE.outlook=f;markLoaded('fi-outlook',f.name)}
     else if(n.includes('jobcost')||n.includes('job_cost')||n.startsWith('01')){STATE.jobs=f;markLoaded('fi-jobs',f.name)}
     else if(n.includes('schedule')||n.startsWith('02')){STATE.schedule=f;markLoaded('fi-schedule',f.name)}
+    else if(n.includes('conversion')||n.includes('05_conv')){STATE.conversion=f;markLoaded('fi-conversion',f.name)}
+    else if(n.includes('average_monthly')||n.includes('monthly_analysis')||(n.startsWith('05')&&n.includes('average'))){STATE.monthly=f;markLoaded('fi-monthly',f.name)}
     else if(n.includes('commission')||n.startsWith('06')){
       // Support multiple commission files — store as array
       if(!STATE.commissions)STATE.commissions=[];
       STATE.commissions.push(f);
       commCount++;
-      // Update the commission file indicator
-      const fiComm=$('fi-comm');
-      fiComm.classList.add('loaded');
-      fiComm.querySelector('.fi-name').textContent=`${commCount} commission file${commCount>1?'s':''} loaded`;
-      fiComm.querySelector('.fi-status').textContent=`✓ ${commCount} loaded`;
+      // Mark individual rep file indicators based on filename
+      const fn=f.name.toLowerCase();
+      let repId='fi-comm-paul';
+      if(fn.includes('_b_')||fn.includes('jeff'))repId='fi-comm-jeff';
+      else if(fn.includes('_c_')||fn.includes('sherrell'))repId='fi-comm-sherrell';
+      else if(fn.includes('_d_')||fn.includes('taylor'))repId='fi-comm-taylor';
+      else if(fn.includes('_e_')||fn.includes('jery'))repId='fi-comm-jery';
+      const fiEl=$(repId);
+      if(fiEl){fiEl.classList.add('loaded');fiEl.querySelector('.fi-name').textContent=f.name;fiEl.querySelector('.fi-status').textContent='✓ Loaded';}
     }
   }
   if(STATE.outlook||STATE.jobs)$('btnLoad').classList.add('visible');
@@ -293,23 +336,19 @@ async function buildDashboard(){
   if(STATE.outlook){const wb=await readWB(STATE.outlook);DATA.weeks=parseWeekly(wb);DATA.income=parseIncome(wb);DATA.monthly=parseMonthly(wb)}
   if(STATE.jobs){const wb=await readWB(STATE.jobs);DATA.jobs=parseJobs(wb)}
   if(STATE.schedule){const wb=await readWB(STATE.schedule);DATA.schedules=parseSched(wb)}
+  if(STATE.conversion){const wb=await readWB(STATE.conversion);DATA.conversion=parseConversion(wb)}
+  if(STATE.monthly){const wb=await readWB(STATE.monthly);DATA.monthlyAvg=parseMonthlyAvg(wb)}
   if(STATE.commissions&&STATE.commissions.length){
     DATA.commissions={};
     for(const cf of STATE.commissions){
       const wb=await readWB(cf);
       const parsed=parseComm(wb);
-      // Merge all commission files into one object — week keys combined
-      Object.keys(parsed).forEach(k=>{
-        if(!DATA.commissions[k]){DATA.commissions[k]=parsed[k]}
-        else{
-          // Same week in multiple files — merge payments arrays and recalculate
-          DATA.commissions[k].payments=[...DATA.commissions[k].payments,...parsed[k].payments];
-          DATA.commissions[k].pending=[...DATA.commissions[k].pending,...parsed[k].pending];
-        }
-      });
+      // Merge all files — keys are repName|week so no collision between reps
+      Object.assign(DATA.commissions, parsed);
     }
   }
   buildWeekSel();buildCommSel();renderMonthly();renderJobs();
+  renderConversion();
   if(DATA.weeks.length){$('weekSel').value=DATA.weeks.length-1;loadWeek(DATA.weeks.length-1)}
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm'].forEach(id=>{const el=$(id);el.classList.remove('loaded');el.querySelector('.fi-status').textContent='Not loaded'});Object.keys(STATE).forEach(k=>STATE[k]=null)}
@@ -385,6 +424,78 @@ function parseMonthly(wb){
   return results;
 }
 
+function parseConversion(wb){
+  // Parse monthly conversion rates by rep from 'Conversion Analysis 2026' sheet
+  const sheetName = wb.SheetNames.find(s=>s.includes('2026')&&s.includes('Conversion'))||wb.SheetNames[0];
+  const rows = sheetArr(wb, sheetName);
+  const months=[]; let currentMonth=null;
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i]; if(!r)continue;
+    // Detect month rows — col 0 has a date, col 2 has number of converted jobs
+    const start=r[0]; const convJobs=parseFloat(r[2])||0; const quotedJobs=parseFloat(r[3])||0;
+    if(start&&String(start).match(/\d{4}-\d{2}-\d{2}/)&&convJobs>0){
+      const dateStr=String(start).split(' ')[0];
+      const isAnnual=dateStr.endsWith('01-01')&&dateStr.split('-')[1]==='01';
+      if(!isAnnual){
+        currentMonth={start:dateStr,converted:convJobs,quoted:quotedJobs,rate:parseFloat(r[4])||0,invConverted:parseFloat(r[5])||0,invQuoted:parseFloat(r[6])||0,reps:[]};
+        months.push(currentMonth);
+      }
+    }
+    // Detect rep rows — col 8 has rep name
+    if(currentMonth&&r[8]&&String(r[8]).trim()&&!String(r[8]).includes('Sales rep')&&!String(r[8]).includes('NaN')){
+      const repName=String(r[8]).trim();
+      if(repName.length>2){
+        currentMonth.reps.push({
+          name:repName,
+          converted:parseFloat(r[9])||0,
+          quoted:parseFloat(r[10])||0,
+          rate:parseFloat(r[11])||0,
+          invConverted:parseFloat(r[12])||0,
+          invQuoted:parseFloat(r[13])||0
+        });
+      }
+    }
+  }
+  // Parse job type analysis
+  const jSheet=wb.SheetNames.find(s=>s.includes('Job Type')&&s.includes('2026'))||'';
+  const jRows=jSheet?sheetArr(wb,jSheet):[];
+  const jobTypes={}; let jMonth=null;
+  for(let i=0;i<jRows.length;i++){
+    const r=jRows[i];if(!r)continue;
+    const start=r[0];
+    if(start&&String(start).match(/\d{4}-\d{2}-\d{2}/)){
+      const dateStr=String(start).split(' ')[0];
+      const isAnnual=dateStr.endsWith('01-01')&&dateStr.split('-')[1]==='01';
+      if(!isAnnual){jMonth=dateStr;if(!jobTypes[jMonth])jobTypes[jMonth]={}}
+    }
+    if(jMonth&&r[1]&&String(r[1]).includes('Job count')){
+      ['Chain link','Wooden privacy','Decorative metal','Vinyl','Ranch/Field fence','Custom Fence','Deck & Covers','Repair & Others'].forEach((type,ti)=>{
+        const col=4+ti*2; const val=parseFloat(r[col])||0;
+        if(val>0)jobTypes[jMonth][type]=(jobTypes[jMonth][type]||0)+val;
+      });
+    }
+  }
+  return {months, jobTypes};
+}
+
+function parseMonthlyAvg(wb){
+  const rows=sheetArr(wb,'Sheet1');if(!rows.length)return{};
+  // Monthly sales by year: cols 1-5 = 2022-2026, rows 2-13 = Jan-Dec
+  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const years=[2022,2023,2024,2025,2026];
+  const data={};
+  monthNames.forEach((m,mi)=>{
+    const r=rows[mi+2];if(!r)return;
+    data[m]={};
+    years.forEach((y,yi)=>{data[m][y]=parseFloat(r[yi+1])||0});
+    // 4-year avg is in col 9
+    data[m].avg4yr=parseFloat(r[9])||0;
+    data[m].min=parseFloat(r[8])||0;
+    data[m].max=parseFloat(r[9+1])||0;
+  });
+  return data;
+}
+
 function parseJobs(wb){
   const sn=wb.SheetNames.includes('Data')?'Data':wb.SheetNames[0];
   const rows=sheetArr(wb,sn);if(!rows.length)return[];
@@ -429,6 +540,7 @@ function parseComm(wb){
     try{
       const rows=sheetArr(wb,sn);if(!rows||rows.length<7)return;
       const repName=String(rows[0][0]||'').trim();
+      if(!repName||repName==='null')return;
       const dateLine=String(rows[2]?rows[2][0]||'':'').trim();
       let payments=[],pending=[],scheduled=[],unscheduled=[],section='';
       let weeklyDraw=0,payPJCJ=0,payRep=0;
@@ -436,8 +548,9 @@ function parseComm(wb){
         const lbl=String(r[0]||'').trim().toLowerCase();
         if(lbl.includes('payments received')){section='pay';return}
         if(lbl.includes('completed')&&lbl.includes('pending')){section='pend';return}
-        if(lbl.includes('scheduled jobs')){section='sched';return}
-        if(lbl.includes('unscheduled')){section='unsched';return}
+        if(lbl.includes('scheduled jobs')||lbl==='scheduled'){section='sched';return}
+        if(lbl.includes('unscheduled')||lbl.includes('un-scheduled')){section='unsched';return}
+        if(lbl.includes('other job details')){section='';return}
         const payLbl=String(r[4]||'').trim().toLowerCase();
         const payVal=parseFloat(r[7])||0;
         if(payLbl.includes('weekly draw'))weeklyDraw=payVal;
@@ -451,7 +564,11 @@ function parseComm(wb){
         else if(section==='sched')scheduled.push(obj);
         else if(section==='unsched')unscheduled.push(obj);
       });
-      if(payments.length||pending.length)out[sn]={repName,dateLine,payments,pending,scheduled,unscheduled,weeklyDraw,payPJCJ,payRep}
+      // Key by repName|week so multiple reps in same week don't overwrite each other
+      const key=`${repName}|${sn}`;
+      if(payments.length||pending.length||scheduled.length||unscheduled.length){
+        out[key]={repName,weekSheet:sn,dateLine,payments,pending,scheduled,unscheduled,weeklyDraw,payPJCJ,payRep}
+      }
     }catch(e){}
   });return out
 }
@@ -461,25 +578,42 @@ function showTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.re
 function buildWeekSel(){const s=$('weekSel');s.innerHTML='';DATA.weeks.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`Wk ${w.week} — ${w.start}`;s.appendChild(o)})}
 
 function buildCommSel(){
-  const s=$('commWeekSel');
-  Object.keys(DATA.commissions).sort().reverse().forEach(k=>{
-    const o=document.createElement('option');o.value=k;
-    const c=DATA.commissions[k];
-    o.textContent=`${k} — ${c.repName}`;
-    s.appendChild(o);
-  });
-  // Populate rep selector
-  const repSel=$('commRepSel');
+  // Populate WEEK selector with unique weeks only — no rep names
+  const weeks=[...new Set(Object.values(DATA.commissions).map(c=>c.weekSheet).filter(Boolean))]
+    .sort((a,b)=>{
+      // Sort by month-day numerically e.g. 4-8 < 4-15 < 5-13
+      const [am,ad]=a.split('-').map(Number);
+      const [bm,bd]=b.split('-').map(Number);
+      return bm!==am?bm-am:bd-ad; // descending
+    });
+  const wSel=$('commWeekSel');
+  weeks.forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent=w;wSel.appendChild(o)});
+
+  // Populate REP selector with unique rep names only
   const reps=[...new Set(Object.values(DATA.commissions).map(c=>c.repName).filter(Boolean))].sort();
-  reps.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;repSel.appendChild(o)});
-  const keys=Object.keys(DATA.commissions).sort();
-  if(keys.length)loadCommission(keys[keys.length-1]);
+  const rSel=$('commRepSel');
+  reps.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;rSel.appendChild(o)});
+
+  // Default: latest week, first rep
+  if(weeks.length)wSel.value=weeks[0];
+  if(reps.length)rSel.value=reps[0];
+  updateCommission();
 }
-function filterCommByRep(rep){
-  const s=$('commWeekSel');s.innerHTML='<option value="">-- Select --</option>';
-  const filtered=Object.keys(DATA.commissions).filter(k=>!rep||DATA.commissions[k].repName===rep).sort().reverse();
-  filtered.forEach(k=>{const o=document.createElement('option');o.value=k;const c=DATA.commissions[k];o.textContent=`${k} — ${c.repName}`;s.appendChild(o)});
-  if(filtered.length)loadCommission(filtered[0]);
+
+function updateCommission(){
+  const week=$('commWeekSel').value;
+  const rep=$('commRepSel').value;
+  if(!week||!rep)return;
+  // Find the key that matches this rep + week
+  const key=`${rep}|${week}`;
+  if(DATA.commissions[key]){
+    loadCommission(key);
+  } else {
+    // No data for this rep in this week
+    $('comm-rep-title').textContent=`${rep} — ${week}`;
+    $('comm-payments-section').innerHTML=`<div style="color:var(--muted);font-size:12px;padding:16px 0">No commission statement found for ${rep} in week ${week}</div>`;
+    $('comm-other-section').innerHTML='';
+  }
 }
 
 function dc(id){if(charts[id]){try{charts[id].destroy()}catch(e){}delete charts[id]}}
@@ -550,10 +684,105 @@ function loadCommission(key){
   $('comm-other-section').innerHTML=(pendRows?`<div class="cst">Completed — Pending Payment</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${pendRows}</tbody></table><br>`:'')+( othRows?`<div class="cst">Scheduled / Unscheduled Jobs</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${othRows}</tbody></table>`:'')
 }
 
+function renderConversion(){
+  const conv=DATA.conversion;
+  if(!conv||!conv.months||!conv.months.length){
+    document.getElementById('conv-kpi-row').innerHTML='<div style="color:var(--muted);font-size:12px;padding:16px">Load 05_Conversion_Analysis.xlsx to see conversion data</div>';
+    return;
+  }
+  // Build month selector
+  const sel=document.getElementById('convMonthSel');
+  sel.innerHTML='<option value="">-- Select Month --</option>';
+  conv.months.filter(m=>m.start.startsWith('2026')).forEach((m,i)=>{
+    const o=document.createElement('option');o.value=i;o.textContent=monthLabel(m.start);sel.appendChild(o);
+  });
+  // Load latest month
+  const months2026=conv.months.filter(m=>m.start.startsWith('2026'));
+  if(months2026.length){sel.value=months2026.length-1;loadConvMonth(months2026.length-1);}
+
+  // YTD KPIs
+  const ytd=conv.months.find(m=>m.start==='2026-01-01')||conv.months[0];
+  const kpis=ytd?[
+    {l:'YTD Quoted',v:ytd.quoted,c:'var(--blue)'},
+    {l:'YTD Converted',v:ytd.converted,c:'var(--green)'},
+    {l:'YTD Close Rate',v:(ytd.rate*100).toFixed(1)+'%',c:ytd.rate>=0.4?'var(--green)':'var(--accent)'},
+  ]:[];
+  document.getElementById('conv-kpi-row').innerHTML=kpis.map(k=>`<div class="card" style="border-top:2px solid ${k.c};padding:12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">${k.l}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:${k.c}">${typeof k.v==='number'?k.v.toLocaleString():k.v}</div></div>`).join('');
+
+  // Trend chart — monthly close rate 2026
+  const months2026Filtered=conv.months.filter(m=>m.start.startsWith('2026')&&!m.start.endsWith('01-01'));
+  dc('convTrendChart');
+  if(months2026Filtered.length){
+    charts['convTrendChart']=new Chart(document.getElementById('convTrendChart').getContext('2d'),{
+      type:'line',
+      data:{labels:months2026Filtered.map(m=>monthLabel(m.start)),datasets:[{label:'Close Rate',data:months2026Filtered.map(m=>+(m.rate*100).toFixed(1)),borderColor:'#f5a623',backgroundColor:'rgba(245,166,35,.1)',borderWidth:2,fill:true,tension:.3}]},
+      options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10},callback:v=>v+'%'},min:0,max:100}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` Close Rate: ${ctx.parsed.y}%`}}}}
+    });
+  }
+
+  // Rep performance YTD chart
+  const ytdReps=ytd?ytd.reps:[];
+  dc('repPerfChart');
+  if(ytdReps.length){
+    charts['repPerfChart']=new Chart(document.getElementById('repPerfChart').getContext('2d'),{
+      type:'bar',
+      data:{labels:ytdReps.map(r=>r.name.split(' ')[0]),datasets:[
+        {label:'Quoted',data:ytdReps.map(r=>r.quoted),backgroundColor:'rgba(96,165,250,.3)',borderColor:'#60a5fa',borderWidth:1},
+        {label:'Converted',data:ytdReps.map(r=>r.converted),backgroundColor:'rgba(34,197,94,.5)',borderColor:'#22c55e',borderWidth:1}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10}}}},plugins:{legend:{labels:{color:'#64748b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y}`}}}}
+    });
+  }
+}
+
+function loadConvMonth(idx){
+  const months2026=DATA.conversion.months.filter(m=>m.start.startsWith('2026')&&!m.start.endsWith('01-01'));
+  const m=months2026[idx];if(!m)return;
+  document.getElementById('convMonthSel').value=idx;
+
+  // Rep table
+  const repColors=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee'];
+  document.getElementById('convRepBody').innerHTML=m.reps.map((r,i)=>{
+    const ratePct=(r.rate*100).toFixed(1)+'%';
+    const rateColor=r.rate>=0.5?'var(--green)':r.rate>=0.35?'var(--accent)':'var(--red)';
+    return`<tr>
+      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${repColors[i]};margin-right:6px"></span>${r.name}</td>
+      <td class="num">${r.quoted}</td>
+      <td class="num">${r.converted}</td>
+      <td class="num" style="color:${rateColor};font-weight:600">${ratePct}</td>
+      <td class="num">${fmt(r.invQuoted)}</td>
+      <td class="num pos">${fmt(r.invConverted)}</td>
+    </tr>`;
+  }).join('');
+
+  // Job type pie
+  const jt=DATA.conversion.jobTypes[m.start]||{};
+  const jtLabels=Object.keys(jt);const jtVals=Object.values(jt);
+  dc('jobTypeChart');
+  if(jtLabels.length){
+    charts['jobTypeChart']=new Chart(document.getElementById('jobTypeChart').getContext('2d'),{
+      type:'doughnut',
+      data:{labels:jtLabels,datasets:[{data:jtVals,backgroundColor:['#60a5fa','#f5a623','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'],borderColor:'#141720',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'45%',plugins:{legend:{position:'right',labels:{color:'#64748b',font:{size:10},padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed.toFixed(1)} jobs`}}}}
+    });
+  }else{
+    document.getElementById('jobTypeChart').parentElement.innerHTML='<div style="color:var(--muted);font-size:12px;padding:16px">No job type data for this month</div>';
+  }
+}
+
 function renderMonthly(){
   const months=DATA.monthly.filter(m=>m.inv>0);
   let yi=0,ym=0,yf=0,yo=0,ys=0,yc=0,yp=0;
-  $('monthlyBody').innerHTML=months.map(m=>{yi+=m.inv;ym+=m.mat;yf+=m.fl;yo+=m.oh;ys+=m.sp;yc+=m.comm;yp+=m.profit;return`<tr class="${m.profit>=0?'mr-g':'mr-r'}"><td>${monthLabel(m.start)}</td><td class="num">${fmt(m.inv)}</td><td class="num">${fmt(m.mat)}</td><td class="num">${fmt(m.fl)}</td><td class="num">${fmt(m.oh)}</td><td class="num">${fmt(m.sp)}</td><td class="num">${fmt(m.comm)}</td><td class="num ${m.profit>=0?'pos':'neg'}">${fmtD(m.profit)}</td></tr>`}).join('')+`<tr style="border-top:1px solid var(--border);font-weight:600"><td>YTD</td><td class="num" style="color:var(--accent)">${fmt(yi)}</td><td class="num">${fmt(ym)}</td><td class="num">${fmt(yf)}</td><td class="num">${fmt(yo)}</td><td class="num">${fmt(ys)}</td><td class="num">${fmt(yc)}</td><td class="num ${yp>=0?'pos':'neg'}">${fmtD(yp)}</td></tr>`;
+  $('monthlyBody').innerHTML=months.map(m=>{
+    yi+=m.inv;ym+=m.mat;yf+=m.fl;yo+=m.oh;ys+=m.sp;yc+=m.comm;yp+=m.profit;
+    // Get historical average for this month if available
+    const mName=monthLabel(m.start).split(' ')[0];
+    const avg=DATA.monthlyAvg[mName];
+    const avgVal=avg?avg.avg4yr:0;
+    const vsAvg=avgVal?(m.inv-avgVal)/avgVal*100:null;
+    const vsStr=vsAvg!==null?` <span style="font-size:9px;color:${vsAvg>=0?'var(--green)':'var(--red)'}">(${vsAvg>=0?'+':''}${vsAvg.toFixed(0)}% vs avg)</span>`:'';
+    return`<tr class="${m.profit>=0?'mr-g':'mr-r'}"><td>${monthLabel(m.start)}</td><td class="num">${fmt(m.inv)}${vsStr}</td><td class="num">${fmt(m.mat)}</td><td class="num">${fmt(m.fl)}</td><td class="num">${fmt(m.oh)}</td><td class="num">${fmt(m.sp)}</td><td class="num">${fmt(m.comm)}</td><td class="num ${m.profit>=0?'pos':'neg'}">${fmtD(m.profit)}</td></tr>`;
+  }).join('')+`<tr style="border-top:1px solid var(--border);font-weight:600"><td>YTD</td><td class="num" style="color:var(--accent)">${fmt(yi)}</td><td class="num">${fmt(ym)}</td><td class="num">${fmt(yf)}</td><td class="num">${fmt(yo)}</td><td class="num">${fmt(ys)}</td><td class="num">${fmt(yc)}</td><td class="num ${yp>=0?'pos':'neg'}">${fmtD(yp)}</td></tr>`;
   dc('monthlyChart');charts['monthlyChart']=new Chart($('monthlyChart').getContext('2d'),{type:'bar',data:{labels:months.map(m=>monthLabel(m.start)),datasets:[{label:'Sales',data:months.map(m=>m.inv),backgroundColor:'rgba(245,166,35,.2)',borderColor:'#f5a623',borderWidth:1,yAxisID:'y'},{label:'Profit/Loss',data:months.map(m=>m.profit),backgroundColor:months.map(m=>m.profit>=0?'rgba(34,197,94,.5)':'rgba(239,68,68,.5)'),borderColor:months.map(m=>m.profit>=0?'#22c55e':'#ef4444'),borderWidth:1,yAxisID:'y2',type:'line'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}},y2:{position:'right',grid:{display:false},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}}},plugins:{legend:{labels:{color:'#64748b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}}}});
   $('ytdGrid').innerHTML=[{l:'Total Revenue',v:fmt(yi),c:'var(--accent)'},{l:'Net Profit',v:fmtD(yp),c:yp>=0?'var(--green)':'var(--red)'},{l:'Material %',v:yi?(ym/yi*100).toFixed(1)+'%':'—',c:'var(--blue)'},{l:'Profit Margin',v:yi?(yp/yi*100).toFixed(1)+'%':'—',c:yp>=0?'var(--green)':'var(--red)'}].map(it=>`<div class="card" style="padding:12px;border-top:2px solid ${it.c}"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">${it.l}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:${it.c}">${it.v}</div></div>`).join('')
 }
