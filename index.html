@@ -236,9 +236,9 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 <div class="page" id="p-commissions">
   <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
-    <select id="commWeekSel" onchange="updateCommission()"><option value="">-- Select Week --</option></select>
+    <select id="commWeekSel" onchange="onCommWeekChange()"><option value="">-- Select Week --</option></select>
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Sales Rep</span>
-    <select id="commRepSel" onchange="updateCommission()"><option value="">-- Select Rep --</option></select>
+    <select id="commRepSel" onchange="onCommRepChange()"><option value="">-- Select Rep --</option></select>
   </div>
   <div class="grid g2">
     <div class="card"><div class="ct" id="comm-rep-title">Commission Statement</div><div id="comm-payments-section"></div></div>
@@ -604,16 +604,24 @@ function updateCommission(){
   const week=$('commWeekSel').value;
   const rep=$('commRepSel').value;
   if(!week||!rep)return;
-  // Find the key that matches this rep + week
   const key=`${rep}|${week}`;
   if(DATA.commissions[key]){
     loadCommission(key);
   } else {
-    // No data for this rep in this week
     $('comm-rep-title').textContent=`${rep} — ${week}`;
-    $('comm-payments-section').innerHTML=`<div style="color:var(--muted);font-size:12px;padding:16px 0">No commission statement found for ${rep} in week ${week}</div>`;
+    $('comm-payments-section').innerHTML=`<div style="color:var(--muted);font-size:12px;padding:16px 0">No statement for ${rep} in week ${week}</div>`;
     $('comm-other-section').innerHTML='';
   }
+}
+
+function onCommWeekChange(){
+  // Week changed — keep current rep selected, just reload
+  updateCommission();
+}
+
+function onCommRepChange(){
+  // Rep changed — keep current WEEK selected, just reload
+  updateCommission();
 }
 
 function dc(id){if(charts[id]){try{charts[id].destroy()}catch(e){}delete charts[id]}}
@@ -693,15 +701,23 @@ function renderConversion(){
   // Build month selector
   const sel=document.getElementById('convMonthSel');
   sel.innerHTML='<option value="">-- Select Month --</option>';
-  conv.months.filter(m=>m.start.startsWith('2026')).forEach((m,i)=>{
+  // Filter to monthly rows only (not annual summaries)
+  // Monthly rows have a date range < 35 days; annual rows span a full year
+  const months2026=conv.months.filter(m=>{
+    if(!m.start.startsWith('2026'))return false;
+    // Exclude the annual summary row (Jan 1 to Dec 31)
+    if(m.start==='2026-01-01'&&m.quoted>200)return false;
+    return true;
+  });
+  months2026.forEach((m,i)=>{
     const o=document.createElement('option');o.value=i;o.textContent=monthLabel(m.start);sel.appendChild(o);
   });
-  // Load latest month
-  const months2026=conv.months.filter(m=>m.start.startsWith('2026'));
+  // Store filtered months for loadConvMonth to use
+  DATA.conversion.months2026=months2026;
   if(months2026.length){sel.value=months2026.length-1;loadConvMonth(months2026.length-1);}
 
-  // YTD KPIs
-  const ytd=conv.months.find(m=>m.start==='2026-01-01')||conv.months[0];
+  // YTD KPIs — find the annual summary row (Jan 1 with large quoted count)
+  const ytd=conv.months.find(m=>m.start==='2026-01-01'&&m.quoted>50)||conv.months.find(m=>m.start.startsWith('2026'))||conv.months[0];
   const kpis=ytd?[
     {l:'YTD Quoted',v:ytd.quoted,c:'var(--blue)'},
     {l:'YTD Converted',v:ytd.converted,c:'var(--green)'},
@@ -736,7 +752,7 @@ function renderConversion(){
 }
 
 function loadConvMonth(idx){
-  const months2026=DATA.conversion.months.filter(m=>m.start.startsWith('2026')&&!m.start.endsWith('01-01'));
+  const months2026=DATA.conversion.months2026||DATA.conversion.months.filter(m=>m.start.startsWith('2026')&&m.quoted<200);
   const m=months2026[idx];if(!m)return;
   document.getElementById('convMonthSel').value=idx;
 
