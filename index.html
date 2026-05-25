@@ -1274,22 +1274,20 @@ async function generateStatement(){
 
   if(sb){
     try {
-      // Get payments for this rep in this week
-      const { data: payData } = await sb
-        .from('commission_entries')
-        .select('*, payments(*), jobs(*)')
+      // Get payments from historical_commission_entries for this rep and week
+      const { data: histData } = await sb
+        .from('historical_commission_entries')
+        .select('*')
         .eq('rep_name', rep)
-        .gte('week_ending', wStartStr)
-        .lte('week_ending', weekEnding);
+        .eq('week_ending', weekEnding);
 
-      if(payData) payments = payData;
+      if(histData && histData.length > 0) payments = histData;
 
-      // Get all active jobs for this rep
+      // Get all jobs for this rep from Supabase
       const { data: jobData } = await sb
         .from('jobs')
         .select('*')
-        .eq('sales_rep', rep)
-        .neq('status', 'Completed');
+        .eq('sales_rep', rep);
 
       if(jobData) allJobs = jobData;
     } catch(e) {
@@ -1297,9 +1295,8 @@ async function generateStatement(){
     }
   }
 
-  // Fall back to Excel data if no Supabase data
-  if(payments.length === 0 && allJobs.length === 0){
-    // Use Excel-loaded data
+  // Fall back to Excel data for jobs if needed
+  if(allJobs.length === 0){
     allJobs = DATA.jobs
       .filter(j => j.rep === rep)
       .map(j => ({
@@ -1312,39 +1309,25 @@ async function generateStatement(){
       }));
   }
 
-  // Build payments section from commission_entries
+  // Build payments section from historical_commission_entries
   let totalCommOnPayments = 0;
   let payRows = '';
-  payments.forEach(entry => {
-    const job = entry.jobs || {};
-    const payment = entry.payments || {};
-    const commPct = (entry.commission_rate * 100).toFixed(0) + '%';
-    const totalComm = (entry.jobs?.invoice_total || 0) * entry.commission_rate;
-    totalCommOnPayments += entry.commission_amount || 0;
-    payRows += `<tr>
-      <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${job.invoice_number||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd">${job.customer_name||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(job.invoice_total||0).toLocaleString()}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${commPct}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(totalComm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(payment.payment_amount||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#22543d;font-weight:600">$${Number(entry.commission_amount||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-    </tr>`;
-  });
 
-  // If no payments from DB, show Excel data payments
-  if(payments.length === 0){
-    const excelJobs = DATA.jobs.filter(j=>j.rep===rep&&j.comm>0);
-    excelJobs.slice(0,5).forEach(j=>{
-      const rate = parseFloat(j.commRate)||6;
+  if(payments.length > 0){
+    // Find customer name from jobs list for each payment
+    payments.forEach(entry => {
+      const job = allJobs.find(j => (j.invoice_number||j.invoice) === entry.invoice_number) || {};
+      const customerName = job.customer_name || job.customer || entry.invoice_number;
+      const commPct = (entry.commission_rate * 100).toFixed(0) + '%';
+      totalCommOnPayments += parseFloat(entry.commission_on_payment) || 0;
       payRows += `<tr>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${j.invoice}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd">${j.customer}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(j.total).toLocaleString()}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${rate}%</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(j.comm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">—</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#22543d;font-weight:600">—</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${entry.invoice_number||'—'}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd">${customerName}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.invoice_total||0).toLocaleString()}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${commPct}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.total_commission||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.payment_received||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#22543d;font-weight:600">$${Number(entry.commission_on_payment||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       </tr>`;
     });
   }
@@ -1356,8 +1339,12 @@ async function generateStatement(){
     ? `<tr style="background:#f0f4fa;font-weight:700"><td colspan="6" style="padding:5px 8px;border:1px solid #ddd;text-align:right">Total Commission This Week</td><td style="padding:5px 8px;border:1px solid #ddd;text-align:right;color:#1B3A6B">$${Number(totalCommOnPayments).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`
     : '';
 
-  // Pending payment jobs (completed but outstanding > 0)
-  const pendingJobs = allJobs.filter(j => j.status === 'Completed' && (j.outstanding || j.invoice_total) > 0);
+  // Pending payment jobs — completed but still have outstanding balance
+  const pendingJobs = allJobs.filter(j => {
+    const status = j.status || j.status;
+    const outstanding = parseFloat(j.outstanding) || parseFloat(j.invoice_total) || 0;
+    return status === 'Completed' && outstanding > 0;
+  });
   let pendingRows = pendingJobs.map(j => {
     const total = j.invoice_total || j.total || 0;
     const rate = j.commission_rate || 0.06;
