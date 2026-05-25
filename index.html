@@ -5,12 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STFD Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 :root{--bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;--border:#2a2f45;--accent:#f5a623;--green:#22c55e;--red:#ef4444;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee;--orange:#fb923c;--text:#e2e8f0;--muted:#64748b;--dim:#3a4060}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;min-height:100vh}
+#loginScreen{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.login-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:32px 40px;width:360px;display:flex;flex-direction:column;gap:16px}
+.login-box h2{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);text-align:center;letter-spacing:2px}
+.login-box p{font-size:12px;color:var(--muted);text-align:center}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.form-group input,.form-group select,.form-group textarea{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-family:inherit;font-size:13px;outline:none;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.btn-primary{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;width:100%;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-secondary{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:6px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:var(--red);color:#fff;border:none;padding:6px 14px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.login-error{color:var(--red);font-size:12px;text-align:center;display:none}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-content{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:28px;width:520px;max-width:90%;max-height:85vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h3{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.sb-status{font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px}
+.sb-status.offline{color:var(--muted)}
 #loadScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
 #loadScreen h1{font-family:'IBM Plex Mono',monospace;font-size:26px;letter-spacing:4px;color:var(--accent)}
 #loadScreen p{color:var(--muted);font-size:13px;max-width:460px;text-align:center;line-height:1.7}
@@ -98,6 +122,110 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 </head>
 <body>
 
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div><div style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:4px;color:var(--accent);text-align:center">STFD</div>
+  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;text-align:center;margin-top:4px">Operations Dashboard</div></div>
+  <div class="login-box">
+    <h2>Sign In</h2>
+    <p>Enter the dashboard password to continue</p>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-error" id="loginError">Incorrect password. Please try again.</div>
+    <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- DATA ENTRY MODALS -->
+<!-- New Job Modal -->
+<div class="modal-overlay" id="newJobModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add New Job</h3>
+      <button class="btn-secondary" onclick="closeModal('newJobModal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Invoice Number *</label><input type="text" id="nj-invoice" placeholder="e.g. 2156"></div>
+      <div class="form-group"><label>Customer Name *</label><input type="text" id="nj-customer" placeholder="Customer full name"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Sales Rep *</label><select id="nj-rep"><option value="">-- Select Rep --</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option><option>Jery Edgett</option><option>Yvonne Chiang</option></select></div>
+      <div class="form-group"><label>Job Type</label><select id="nj-type"><option value="">-- Select Type --</option><option>Wood Privacy</option><option>Chain Link</option><option>Decorative Metal</option><option>Vinyl</option><option>Ranch/Field Fence</option><option>Custom Fence</option><option>Deck &amp; Covers</option><option>Repair &amp; Others</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Invoice Total *</label><input type="number" id="nj-total" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Commission Rate *</label><select id="nj-rate"><option value="0.08">8% — Rep sourced lead</option><option value="0.06">6% — Company lead</option><option value="0.04">4% — Legacy rate</option><option value="0.03">3% — Shared commercial</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Material Cost</label><input type="number" id="nj-material" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Field Labour Cost</label><input type="number" id="nj-labour" placeholder="0.00" step="0.01"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Start Date</label><input type="date" id="nj-date"></div>
+      <div class="form-group"><label>Status</label><select id="nj-status"><option>Scheduled</option><option>In Progress</option><option>Completed</option><option>Pending Payment</option></select></div>
+    </div>
+    <div class="form-group">
+      <label>Commercial Job?</label>
+      <select id="nj-commercial"><option value="false">No — Residential</option><option value="true">Yes — Commercial</option></select>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="nj-notes" rows="2" placeholder="Any additional notes..."></textarea></div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('newJobModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:8px 24px" onclick="saveNewJob()">Save Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Payment Modal -->
+<div class="modal-overlay" id="newPaymentModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Log Payment Received</h3>
+      <button class="btn-secondary" onclick="closeModal('newPaymentModal')">✕</button>
+    </div>
+    <div class="form-group"><label>Invoice Number *</label><input type="text" id="np-invoice" placeholder="e.g. 2156" oninput="lookupJob(this.value)"></div>
+    <div id="np-job-info" style="background:var(--s2);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--muted);display:none;margin-bottom:4px"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Payment Date *</label><input type="date" id="np-date"></div>
+      <div class="form-group"><label>Payment Amount *</label><input type="number" id="np-amount" placeholder="0.00" step="0.01"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Payment Method</label><select id="np-method"><option>Check</option><option>ACH</option><option>Credit Card</option><option>Cash</option><option>Wire</option></select></div>
+      <div class="form-group"><label>Notified By</label><input type="text" id="np-notified" value="Sunny"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="np-notes" rows="2" placeholder="Any notes about this payment..."></textarea></div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('newPaymentModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:8px 24px" onclick="savePayment()">Log Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly Overhead Modal -->
+<div class="modal-overlay" id="overheadModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Enter Weekly Overhead</h3>
+      <button class="btn-secondary" onclick="closeModal('overheadModal')">✕</button>
+    </div>
+    <div class="form-group"><label>Week Ending Date *</label><input type="date" id="oh-week"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Overhead Amount</label><input type="number" id="oh-amount" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Support Labour Amount</label><input type="number" id="oh-sp" placeholder="0.00" step="0.01"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Monthly OH Total (estimate)</label><input type="number" id="oh-month-total" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Monthly SP Total (estimate)</label><input type="number" id="oh-sp-total" placeholder="0.00" step="0.01"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('overheadModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:8px 24px" onclick="saveOverhead()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div id="loadScreen">
   <div><div class="logo">STFD</div><div class="sub" style="text-align:center;margin-top:2px">Operations Dashboard</div></div>
   <p>Select your Excel files to load the dashboard — 3 main files plus all 5 commission statements. Your files stay on your computer — nothing is uploaded anywhere.</p>
@@ -138,7 +266,11 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   <div class="hdr-right">
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
     <select id="weekSel" onchange="loadWeek(this.value)"></select>
-    <button class="reload-btn" onclick="reloadFiles()">⟳ Reload Files</button>
+    <div class="sb-status" id="sbStatus"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live</div>
+    <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newJobModal')">+ New Job</button>
+    <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newPaymentModal')">+ Payment</button>
+    <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('overheadModal')">+ Overhead</button>
+    <button class="reload-btn" onclick="reloadFiles()">⟳ Excel Files</button>
     <button class="publish-btn" id="publishBtn" onclick="publishToPhillip()">⬆ Publish to Phillip</button>
     <span id="publishStatus"></span>
   </div>
@@ -818,6 +950,231 @@ function openModal(i){
 }
 function closeModal(){$('jobModal').classList.remove('open')}
 $('jobModal').addEventListener('click',e=>{if(e.target===$('jobModal'))closeModal()})
+
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE + LOGIN
+// ═══════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://qdfwovnhlaaocgawukto.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PPhYAvIRNnzv7E86s8yw-g_ltVx0Gvk';
+const DASHBOARD_PASSWORD = 'stfd2026';
+let sb = null;
+let sbJobs = [];
+
+function initSupabase() {
+  try {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('Supabase connected');
+  } catch(e) {
+    console.error('Supabase init failed:', e);
+    $('sbStatus').className = 'sb-status offline';
+    $('sbStatus').innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--muted);display:inline-block"></span>Offline';
+  }
+}
+
+function doLogin() {
+  const pwd = $('loginPassword').value;
+  if (pwd === DASHBOARD_PASSWORD) {
+    $('loginScreen').style.display = 'none';
+    $('loadScreen').style.display = 'flex';
+    initSupabase();
+    loadSbJobs();
+  } else {
+    $('loginError').style.display = 'block';
+    $('loginPassword').value = '';
+    $('loginPassword').focus();
+  }
+}
+
+// Load jobs from Supabase for payment lookup
+async function loadSbJobs() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('jobs').select('*').order('created_at', { ascending: false });
+    if (!error && data) {
+      sbJobs = data;
+      // Merge with dashboard jobs tab
+      if (data.length > 0) mergeSbJobsIntoDashboard(data);
+    }
+  } catch(e) { console.error('loadSbJobs error:', e); }
+}
+
+function mergeSbJobsIntoDashboard(dbJobs) {
+  // Add DB jobs to DATA.jobs if not already present (by invoice number)
+  const existingInvoices = new Set(DATA.jobs.map(j => j.invoice));
+  const newJobs = dbJobs
+    .filter(j => !existingInvoices.has(j.invoice_number))
+    .map(j => ({
+      invoice: j.invoice_number,
+      customer: j.customer_name,
+      rep: j.sales_rep,
+      total: parseFloat(j.invoice_total) || 0,
+      mat: parseFloat(j.material_cost) || 0,
+      fl: parseFloat(j.field_labour_cost) || 0,
+      comm: parseFloat(j.invoice_total) * parseFloat(j.commission_rate) || 0,
+      outstanding: parseFloat(j.invoice_total) || 0,
+      status: j.status || 'Scheduled',
+      commRate: (parseFloat(j.commission_rate)*100)+'%',
+      startDate: j.start_date || '',
+      profit: (parseFloat(j.invoice_total)||0) - (parseFloat(j.material_cost)||0) - (parseFloat(j.field_labour_cost)||0) - ((parseFloat(j.invoice_total)||0)*(parseFloat(j.commission_rate)||0))
+    }));
+  if (newJobs.length > 0) {
+    DATA.jobs = [...newJobs, ...DATA.jobs];
+    renderJobs();
+  }
+}
+
+// Modal helpers
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { if(id) $(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+});
+
+// ── SAVE NEW JOB ──────────────────────────────────────────────────
+async function saveNewJob() {
+  const invoice = $('nj-invoice').value.trim();
+  const customer = $('nj-customer').value.trim();
+  const rep = $('nj-rep').value;
+  const total = parseFloat($('nj-total').value) || 0;
+  const rate = parseFloat($('nj-rate').value) || 0.06;
+
+  if (!invoice || !customer || !rep || total === 0) {
+    alert('Please fill in all required fields (Invoice #, Customer, Rep, Total)');
+    return;
+  }
+
+  const job = {
+    invoice_number: invoice,
+    customer_name: customer,
+    sales_rep: rep,
+    job_type: $('nj-type').value,
+    invoice_total: total,
+    material_cost: parseFloat($('nj-material').value) || 0,
+    field_labour_cost: parseFloat($('nj-labour').value) || 0,
+    commission_rate: rate,
+    start_date: $('nj-date').value || null,
+    status: $('nj-status').value,
+    is_commercial: $('nj-commercial').value === 'true',
+    notes: $('nj-notes').value
+  };
+
+  if (sb) {
+    const { error } = await sb.from('jobs').insert([job]);
+    if (error) { alert('Error saving job: ' + error.message); return; }
+  }
+
+  // Add to local DATA immediately
+  DATA.jobs.unshift({
+    invoice: job.invoice_number, customer: job.customer_name, rep: job.sales_rep,
+    total: job.invoice_total, mat: job.material_cost, fl: job.field_labour_cost,
+    comm: job.invoice_total * job.commission_rate, outstanding: job.invoice_total,
+    status: job.status, commRate: (job.commission_rate*100)+'%',
+    startDate: job.start_date || '', profit: job.invoice_total - job.material_cost - job.field_labour_cost - (job.invoice_total * job.commission_rate)
+  });
+  sbJobs.unshift(job);
+  renderJobs();
+  closeModal('newJobModal');
+
+  // Clear form
+  ['nj-invoice','nj-customer','nj-total','nj-material','nj-labour','nj-notes'].forEach(id => $(id).value = '');
+  $('nj-rep').value = ''; $('nj-date').value = ''; $('nj-status').value = 'Scheduled';
+
+  alert(`✓ Job ${invoice} saved successfully!`);
+}
+
+// ── SAVE PAYMENT ──────────────────────────────────────────────────
+async function lookupJob(invoiceNum) {
+  const job = sbJobs.find(j => j.invoice_number === invoiceNum.trim()) ||
+              DATA.jobs.find(j => j.invoice === invoiceNum.trim());
+  const info = $('np-job-info');
+  if (job) {
+    const total = job.invoice_total || job.total || 0;
+    const rep = job.sales_rep || job.rep || '';
+    const rate = job.commission_rate ? (job.commission_rate*100)+'%' : job.commRate || '';
+    info.style.display = 'block';
+    info.innerHTML = `<span style="color:var(--text);font-weight:600">${job.customer_name||job.customer}</span> &nbsp;|&nbsp; Rep: ${rep} &nbsp;|&nbsp; Total: $${Number(total).toLocaleString()} &nbsp;|&nbsp; Rate: ${rate}`;
+  } else {
+    info.style.display = invoiceNum.length > 2 ? 'block' : 'none';
+    info.innerHTML = '<span style="color:var(--red)">Job not found — check invoice number</span>';
+  }
+}
+
+async function savePayment() {
+  const invoiceNum = $('np-invoice').value.trim();
+  const amount = parseFloat($('np-amount').value) || 0;
+  const date = $('np-date').value;
+
+  if (!invoiceNum || amount === 0 || !date) {
+    alert('Please fill in Invoice #, Date and Amount');
+    return;
+  }
+
+  // Find job_id from Supabase jobs
+  const job = sbJobs.find(j => j.invoice_number === invoiceNum);
+
+  if (sb && job) {
+    const payment = {
+      job_id: job.job_id,
+      payment_date: date,
+      payment_amount: amount,
+      payment_method: $('np-method').value,
+      notified_by: $('np-notified').value || 'Sunny',
+      notes: $('np-notes').value
+    };
+    const { data: payData, error: payErr } = await sb.from('payments').insert([payment]).select();
+    if (payErr) { alert('Error saving payment: ' + payErr.message); return; }
+
+    // Auto-create commission entry
+    const commRate = parseFloat(job.commission_rate) || 0.06;
+    const totalComm = parseFloat(job.invoice_total) * commRate;
+    const commOnPayment = (amount / parseFloat(job.invoice_total)) * totalComm;
+    const weekEnding = new Date(date);
+    weekEnding.setDate(weekEnding.getDate() + (1 - weekEnding.getDay() + 7) % 7 + 1);
+
+    await sb.from('commission_entries').insert([{
+      payment_id: payData[0].payment_id,
+      job_id: job.job_id,
+      rep_name: job.sales_rep,
+      commission_rate: commRate,
+      commission_amount: Math.round(commOnPayment * 100) / 100,
+      week_ending: weekEnding.toISOString().split('T')[0],
+      is_pre_approved: false
+    }]);
+
+    closeModal('newPaymentModal');
+    ['np-invoice','np-amount','np-notes'].forEach(id => $(id).value = '');
+    $('np-date').value = ''; $('np-notified').value = 'Sunny';
+    $('np-job-info').style.display = 'none';
+    alert(`✓ Payment of $${amount.toLocaleString()} logged. Commission entry created automatically.`);
+  } else if (!job) {
+    alert('Job not found in database. Please add the job first or check the invoice number.');
+  } else {
+    alert('Not connected to database. Payment not saved.');
+  }
+}
+
+// ── SAVE OVERHEAD ─────────────────────────────────────────────────
+async function saveOverhead() {
+  const week = $('oh-week').value;
+  if (!week) { alert('Please select a week ending date'); return; }
+
+  const entry = {
+    week_ending: week,
+    overhead_amount: parseFloat($('oh-amount').value) || 0,
+    support_labour_amount: parseFloat($('oh-sp').value) || 0,
+    month_overhead_total: parseFloat($('oh-month-total').value) || 0,
+    month_sp_total: parseFloat($('oh-sp-total').value) || 0
+  };
+
+  if (sb) {
+    const { error } = await sb.from('weekly_overhead').upsert([entry], { onConflict: 'week_ending' });
+    if (error) { alert('Error saving overhead: ' + error.message); return; }
+  }
+
+  closeModal('overheadModal');
+  ['oh-week','oh-amount','oh-sp','oh-month-total','oh-sp-total'].forEach(id => $(id).value = '');
+  alert('✓ Weekly overhead saved!');
+}
 
 // ═══════════════════════════════════════════════════════════════
 // PUBLISH TO PHILLIP
