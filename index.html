@@ -228,7 +228,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="loadScreen">
   <div><div class="logo">STFD</div><div class="sub" style="text-align:center;margin-top:2px">Operations Dashboard</div></div>
-  <p>Select your Excel files to load the dashboard — 3 main files plus all 5 commission statements. Your files stay on your computer — nothing is uploaded anywhere.</p>
+  <p>Select your Excel files to load the dashboard — 3 main files, 2 analysis files, and all 5 commission statements (10 files total). Your files stay on your computer — nothing is uploaded anywhere.</p>
   <div class="file-list">
     <div class="file-item" id="fi-outlook"><span class="fi-dot"></span><span class="fi-name">04_Outlook_Analysis_2026.xlsx</span><span class="fi-status">Not loaded</span></div>
     <div class="file-item" id="fi-jobs"><span class="fi-dot"></span><span class="fi-name">01_Job_Costs_2026.xlsx</span><span class="fi-status">Not loaded</span></div>
@@ -875,7 +875,10 @@ function loadSchedWeek(startDate){
 }
 
 function loadCommission(key){
-  const s=DATA.commissions[key];if(!s)return;$('commWeekSel').value=key;
+  const s=DATA.commissions[key];if(!s)return;
+  // Keep week selector as-is — only update rep selector to match
+  if(s.weekSheet)$('commWeekSel').value=s.weekSheet;
+  if(s.repName)$('commRepSel').value=s.repName;
   $('comm-rep-title').textContent=`${s.repName} — ${s.dateLine}`;
   const payRows=s.payments.map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.payment)}</td><td class="num pos">${fmt(p.available)}</td></tr>`).join('');
   $('comm-payments-section').innerHTML=`<div class="cst">Payments Received</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Collected</th><th class="num">Commission</th></tr></thead><tbody>${payRows}</tbody></table>${s.weeklyDraw?`<div style="display:flex;justify-content:space-between;margin-top:10px;padding:8px 10px;background:var(--s2);border-radius:5px;font-size:12px"><span>Weekly draw available</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${fmt(s.weeklyDraw)}</span></div><div style="display:flex;justify-content:space-between;padding:4px 10px;font-size:11px"><span style="color:var(--muted)">Pay to PJ &amp; CJ</span><span style="font-family:'IBM Plex Mono',monospace">${fmt(s.payPJCJ)}</span></div><div style="display:flex;justify-content:space-between;padding:4px 10px;font-size:11px"><span style="color:var(--muted)">Pay to ${s.repName.split(' ')[0]}</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--green)">${fmt(s.payRep)}</span></div>`:''}`;
