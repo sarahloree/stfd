@@ -511,6 +511,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <span style="font-size:11px;color:var(--muted)">Screenshot this statement to send via WhatsApp</span>
       <div style="display:flex;gap:8px">
         <button class="btn-secondary" onclick="closeModal('commStatementModal')">Close</button>
+        <button class="btn-secondary" style="font-size:11px;padding:6px 14px" onclick="savePDF()">⬇ Save as PDF</button>
         <button class="btn-primary" style="width:auto;padding:8px 20px" onclick="window.print()">🖨 Print</button>
       </div>
     </div>
@@ -1222,15 +1223,32 @@ function openModal(id) { $(id).classList.add('open'); }
 
 // ── COMMISSION STATEMENT GENERATOR ───────────────────────────────
 function openGenerateStmt(){
-  // Pre-fill with current week selection
-  const today = new Date();
-  const wednesday = new Date(today);
-  wednesday.setDate(today.getDate() + (3 - today.getDay() + 7) % 7);
-  $('gen-week').value = wednesday.toISOString().split('T')[0];
-  $('gen-stmt-date').value = new Date().toISOString().split('T')[0];
-  // Pre-fill rep from current selection
+  // Auto-populate from currently selected week and rep
+  const currentWeek = $('commWeekSel').value;
   const currentRep = $('commRepSel').value;
+
+  // Convert sheet week (e.g. '4-29') to a full date
+  if(currentWeek && currentWeek.includes('-')){
+    const parts = currentWeek.split('-');
+    const month = parseInt(parts[0]);
+    const day = parseInt(parts[1]);
+    const year = month >= 11 ? 2025 : 2026;
+    const weekDate = new Date(year, month-1, day);
+    $('gen-week').value = weekDate.toISOString().split('T')[0];
+  } else {
+    // Default to next Wednesday
+    const today = new Date();
+    const wednesday = new Date(today);
+    wednesday.setDate(today.getDate() + (3 - today.getDay() + 7) % 7);
+    $('gen-week').value = wednesday.toISOString().split('T')[0];
+  }
+
+  // Statement date defaults to today
+  $('gen-stmt-date').value = new Date().toISOString().split('T')[0];
+
+  // Pre-fill rep from current selection
   if(currentRep) $('gen-rep').value = currentRep;
+
   openModal('generateStmtModal');
 }
 
@@ -1387,6 +1405,32 @@ async function generateStatement(){
   openModal('commStatementModal');
 }
 function closeModal(id) { if(id) $(id).classList.remove('open'); }
+
+function savePDF(){
+  const style = document.createElement('style');
+  style.id = 'print-style';
+  style.textContent = `
+    @media print {
+      body * { visibility: hidden !important; }
+      #commStatementPrint, #commStatementPrint * { visibility: visible !important; }
+      #commStatementPrint {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        padding: 20px !important;
+        background: white !important;
+      }
+      @page { margin: 0.5in; size: A4; }
+    }
+  `;
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(() => {
+    const s = document.getElementById('print-style');
+    if(s) s.remove();
+  }, 1000);
+}
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
 });
