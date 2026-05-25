@@ -557,52 +557,89 @@ function parseMonthly(wb){
 }
 
 function parseConversion(wb){
-  // Parse monthly conversion rates by rep from 'Conversion Analysis 2026' sheet
-  const sheetName = wb.SheetNames.find(s=>s.includes('2026')&&s.includes('Conversion'))||wb.SheetNames[0];
+  // Sheet structure: each month has a header row then rep rows immediately after
+  // Col 0: date or rep name
+  // Col 2: converted jobs, Col 3: quoted jobs, Col 4: rate
+  // Col 8: rep name (on header row), Col 9: rep converted, Col 10: rep quoted, Col 11: rep rate
+  const sheetName = wb.SheetNames.find(s=>s.includes('2026')&&s.includes('Conversion'))||'';
+  if(!sheetName) return {months:[], jobTypes:{}};
   const rows = sheetArr(wb, sheetName);
   const months=[]; let currentMonth=null;
+  const REP_NAMES=['Paul Vincent','Jeff Yates','Jery Edgett','Sherrell Ezzell','Taylor Bassett','Yvonne Chiang'];
+
   for(let i=0;i<rows.length;i++){
-    const r=rows[i]; if(!r)continue;
-    // Detect month rows — col 0 has a date, col 2 has number of converted jobs
-    const start=r[0]; const convJobs=parseFloat(r[2])||0; const quotedJobs=parseFloat(r[3])||0;
-    if(start&&String(start).match(/\d{4}-\d{2}-\d{2}/)&&convJobs>0){
-      const dateStr=String(start).split(' ')[0];
-      const isAnnual=dateStr.endsWith('01-01')&&dateStr.split('-')[1]==='01';
-      if(!isAnnual){
-        currentMonth={start:dateStr,converted:convJobs,quoted:quotedJobs,rate:parseFloat(r[4])||0,invConverted:parseFloat(r[5])||0,invQuoted:parseFloat(r[6])||0,reps:[]};
+    const r=rows[i]; if(!r||!r[0])continue;
+    const col0=String(r[0]).trim();
+
+    // Check if col0 is a date string (month row)
+    const isDate=col0.match(/^\d{4}-\d{2}-\d{2}/);
+    if(isDate){
+      const dateStr=col0.split(' ')[0];
+      const parts=dateStr.split('-');
+      const month=parseInt(parts[1]);
+      const day=parseInt(parts[2]);
+      // Skip annual summaries (Jan 1 to Dec 31)
+      const endCol=r[1]?String(r[1]).trim():'';
+      const isAnnual=day===1&&month===1&&endCol.includes('12-31');
+      if(!isAnnual&&day===1){
+        // This is a monthly row
+        currentMonth={
+          start:dateStr,
+          converted:parseFloat(r[2])||0,
+          quoted:parseFloat(r[3])||0,
+          rate:parseFloat(r[4])||0,
+          invConverted:parseFloat(r[5])||0,
+          invQuoted:parseFloat(r[6])||0,
+          reps:[]
+        };
+        // Rep data is on the same row starting at col 8
+        if(r[8]){
+          const repName=String(r[8]).trim();
+          if(REP_NAMES.includes(repName)){
+            currentMonth.reps.push({
+              name:repName,
+              converted:parseFloat(r[9])||0,
+              quoted:parseFloat(r[10])||0,
+              rate:parseFloat(r[11])||0,
+              invConverted:parseFloat(r[12])||0,
+              invQuoted:parseFloat(r[13])||0
+            });
+          }
+        }
         months.push(currentMonth);
       }
-    }
-    // Detect rep rows — col 8 has rep name
-    if(currentMonth&&r[8]&&String(r[8]).trim()&&!String(r[8]).includes('Sales rep')&&!String(r[8]).includes('NaN')){
-      const repName=String(r[8]).trim();
-      if(repName.length>2){
-        currentMonth.reps.push({
-          name:repName,
-          converted:parseFloat(r[9])||0,
-          quoted:parseFloat(r[10])||0,
-          rate:parseFloat(r[11])||0,
-          invConverted:parseFloat(r[12])||0,
-          invQuoted:parseFloat(r[13])||0
-        });
-      }
+    } else if(currentMonth && REP_NAMES.includes(col0)){
+      // Rep row following a month row
+      currentMonth.reps.push({
+        name:col0,
+        converted:parseFloat(r[1])||0,
+        quoted:parseFloat(r[2])||0,
+        rate:parseFloat(r[3])||0,
+        invConverted:parseFloat(r[4])||0,
+        invQuoted:parseFloat(r[5])||0
+      });
     }
   }
+
   // Parse job type analysis
   const jSheet=wb.SheetNames.find(s=>s.includes('Job Type')&&s.includes('2026'))||'';
   const jRows=jSheet?sheetArr(wb,jSheet):[];
   const jobTypes={}; let jMonth=null;
+  const JOB_TYPES=['Chain link','Wooden privacy','Decorative metal','Vinyl','Ranch/Field fence','Custom Fence','Deck & Covers','Repair & Others'];
   for(let i=0;i<jRows.length;i++){
-    const r=jRows[i];if(!r)continue;
-    const start=r[0];
-    if(start&&String(start).match(/\d{4}-\d{2}-\d{2}/)){
-      const dateStr=String(start).split(' ')[0];
-      const isAnnual=dateStr.endsWith('01-01')&&dateStr.split('-')[1]==='01';
-      if(!isAnnual){jMonth=dateStr;if(!jobTypes[jMonth])jobTypes[jMonth]={}}
+    const r=jRows[i];if(!r||!r[0])continue;
+    const col0=String(r[0]).trim();
+    if(col0.match(/^\d{4}-\d{2}-\d{2}/)){
+      const dateStr=col0.split(' ')[0];
+      const parts=dateStr.split('-');
+      if(parseInt(parts[2])===1&&parseInt(parts[1])!==1){
+        jMonth=dateStr;
+        if(!jobTypes[jMonth])jobTypes[jMonth]={};
+      }
     }
     if(jMonth&&r[1]&&String(r[1]).includes('Job count')){
-      ['Chain link','Wooden privacy','Decorative metal','Vinyl','Ranch/Field fence','Custom Fence','Deck & Covers','Repair & Others'].forEach((type,ti)=>{
-        const col=4+ti*2; const val=parseFloat(r[col])||0;
+      JOB_TYPES.forEach((type,ti)=>{
+        const val=parseFloat(r[4+ti*2])||0;
         if(val>0)jobTypes[jMonth][type]=(jobTypes[jMonth][type]||0)+val;
       });
     }
