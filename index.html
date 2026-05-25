@@ -1393,7 +1393,7 @@ async function generateStatement(){
     <tr><td style="padding:4px 8px;color:#64748b">Weekly Draw Available</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:#1B3A6B">$${Number(totalCommOnPayments).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
     ${deduction > 0 ? `<tr><td style="padding:4px 8px;color:#64748b">${repData.deductionLabel||'Deduction'}</td><td style="padding:4px 8px;text-align:right;color:#ef4444">-$${Number(deduction).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>` : ''}
     <tr style="border-top:2px solid #1B3A6B"><td style="padding:6px 8px;font-weight:700;font-size:13px">Pay to ${rep.split(' ')[0]}</td><td style="padding:6px 8px;text-align:right;font-weight:700;font-size:14px;color:#22543d">$${Number(netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
-    ${repData.bimonthly ? '<tr><td colspan="2" style="padding:4px 8px;font-size:10px;color:#64748b;font-style:italic">Note: Yvonne's commission accumulates — paid by wire on 15th of even months</td></tr>' : ''}
+    ${repData.bimonthly ? '<tr><td colspan="2" style="padding:4px 8px;font-size:10px;color:#64748b;font-style:italic">Note: Yvonne&#39;s commission accumulates &mdash; paid by wire on 15th of even months</td></tr>' : ''}
   `;
 
   closeModal('generateStmtModal');
