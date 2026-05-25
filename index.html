@@ -557,83 +557,106 @@ function parseMonthly(wb){
 }
 
 function parseConversion(wb){
-  // Sheet structure: each month has a header row then rep rows immediately after
-  // Col 0: date or rep name
-  // Col 2: converted jobs, Col 3: quoted jobs, Col 4: rate
-  // Col 8: rep name (on header row), Col 9: rep converted, Col 10: rep quoted, Col 11: rep rate
-  const sheetName = wb.SheetNames.find(s=>s.includes('2026')&&s.includes('Conversion'))||'';
-  if(!sheetName) return {months:[], jobTypes:{}};
-  const rows = sheetArr(wb, sheetName);
+  // Dates come through as Excel serial numbers when raw:true
+  // e.g. 2026-01-01 = 46023, 2026-04-30 = 46142
+  // Convert serial to YYYY-MM-DD string
+  function xlSerial(v){
+    if(typeof v==='number'&&v>40000&&v<60000){
+      const d=new Date(Math.round((v-25569)*86400*1000));
+      // Use UTC to avoid timezone shift
+      const yr=d.getUTCFullYear();
+      const mo=String(d.getUTCMonth()+1).padStart(2,'0');
+      const dy=String(d.getUTCDate()).padStart(2,'0');
+      return `${yr}-${mo}-${dy}`;
+    }
+    if(v instanceof Date){
+      const yr=v.getUTCFullYear();
+      const mo=String(v.getUTCMonth()+1).padStart(2,'0');
+      const dy=String(v.getUTCDate()).padStart(2,'0');
+      return `${yr}-${mo}-${dy}`;
+    }
+    // Try parsing string
+    const s=String(v||'').trim();
+    if(s.match(/^\d{4}-\d{2}-\d{2}/)) return s.split('T')[0].split(' ')[0];
+    return null;
+  }
+
+  const sheetName=wb.SheetNames.find(s=>s.includes('2026')&&s.toLowerCase().includes('conversion'))||'';
+  if(!sheetName) return {months:[],jobTypes:{}};
+  const rows=sheetArr(wb,sheetName);
   const months=[]; let currentMonth=null;
   const REP_NAMES=['Paul Vincent','Jeff Yates','Jery Edgett','Sherrell Ezzell','Taylor Bassett','Yvonne Chiang'];
 
   for(let i=0;i<rows.length;i++){
-    const r=rows[i]; if(!r||!r[0])continue;
-    const col0=String(r[0]).trim();
+    const r=rows[i]; if(!r)continue;
 
-    // Check if col0 is a date string (month row)
-    const isDate=col0.match(/^\d{4}-\d{2}-\d{2}/);
-    if(isDate){
-      const dateStr=col0.split(' ')[0];
+    // Try to parse col0 as a date
+    const dateStr=xlSerial(r[0]);
+    if(dateStr){
       const parts=dateStr.split('-');
-      const month=parseInt(parts[1]);
-      const day=parseInt(parts[2]);
-      // Skip annual summaries (Jan 1 to Dec 31)
-      const endCol=r[1]?String(r[1]).trim():'';
-      const isAnnual=day===1&&month===1&&endCol.includes('12-31');
-      if(!isAnnual&&day===1){
-        // This is a monthly row
-        currentMonth={
-          start:dateStr,
-          converted:parseFloat(r[2])||0,
-          quoted:parseFloat(r[3])||0,
-          rate:parseFloat(r[4])||0,
-          invConverted:parseFloat(r[5])||0,
-          invQuoted:parseFloat(r[6])||0,
-          reps:[]
-        };
-        // Rep data is on the same row starting at col 8
-        if(r[8]){
-          const repName=String(r[8]).trim();
-          if(REP_NAMES.includes(repName)){
-            currentMonth.reps.push({
-              name:repName,
-              converted:parseFloat(r[9])||0,
-              quoted:parseFloat(r[10])||0,
-              rate:parseFloat(r[11])||0,
-              invConverted:parseFloat(r[12])||0,
-              invQuoted:parseFloat(r[13])||0
-            });
+      const yr=parseInt(parts[0]);
+      const mo=parseInt(parts[1]);
+      const dy=parseInt(parts[2]);
+      // Only process 2026 rows, skip annual summary (Jan1 - Dec31)
+      if(yr===2026&&dy===1){
+        // Check end date — if Dec 31 it's the annual row, skip
+        const endStr=xlSerial(r[1])||'';
+        const isAnnual=endStr.endsWith('12-31');
+        if(!isAnnual){
+          currentMonth={
+            start:dateStr,
+            converted:parseFloat(r[2])||0,
+            quoted:parseFloat(r[3])||0,
+            rate:parseFloat(r[4])||0,
+            invConverted:parseFloat(r[5])||0,
+            invQuoted:parseFloat(r[6])||0,
+            reps:[]
+          };
+          // First rep is on same row at col 8
+          if(r[8]){
+            const repName=String(r[8]).trim();
+            if(REP_NAMES.includes(repName)){
+              currentMonth.reps.push({
+                name:repName,
+                converted:parseFloat(r[9])||0,
+                quoted:parseFloat(r[10])||0,
+                rate:parseFloat(r[11])||0,
+                invConverted:parseFloat(r[12])||0,
+                invQuoted:parseFloat(r[13])||0
+              });
+            }
           }
+          months.push(currentMonth);
         }
-        months.push(currentMonth);
       }
-    } else if(currentMonth && REP_NAMES.includes(col0)){
-      // Rep row following a month row
-      currentMonth.reps.push({
-        name:col0,
-        converted:parseFloat(r[1])||0,
-        quoted:parseFloat(r[2])||0,
-        rate:parseFloat(r[3])||0,
-        invConverted:parseFloat(r[4])||0,
-        invQuoted:parseFloat(r[5])||0
-      });
+    } else if(currentMonth&&r[0]){
+      // Check if this is a rep row (col0 = rep name, col1 = converted)
+      const col0=String(r[0]).trim();
+      if(REP_NAMES.includes(col0)){
+        currentMonth.reps.push({
+          name:col0,
+          converted:parseFloat(r[1])||0,
+          quoted:parseFloat(r[2])||0,
+          rate:parseFloat(r[3])||0,
+          invConverted:parseFloat(r[4])||0,
+          invQuoted:parseFloat(r[5])||0
+        });
+      }
     }
   }
 
-  // Parse job type analysis
+  // Job type analysis
   const jSheet=wb.SheetNames.find(s=>s.includes('Job Type')&&s.includes('2026'))||'';
   const jRows=jSheet?sheetArr(wb,jSheet):[];
   const jobTypes={}; let jMonth=null;
   const JOB_TYPES=['Chain link','Wooden privacy','Decorative metal','Vinyl','Ranch/Field fence','Custom Fence','Deck & Covers','Repair & Others'];
   for(let i=0;i<jRows.length;i++){
-    const r=jRows[i];if(!r||!r[0])continue;
-    const col0=String(r[0]).trim();
-    if(col0.match(/^\d{4}-\d{2}-\d{2}/)){
-      const dateStr=col0.split(' ')[0];
-      const parts=dateStr.split('-');
-      if(parseInt(parts[2])===1&&parseInt(parts[1])!==1){
-        jMonth=dateStr;
+    const r=jRows[i];if(!r)continue;
+    const ds=xlSerial(r[0]);
+    if(ds){
+      const parts=ds.split('-');
+      if(parseInt(parts[0])===2026&&parseInt(parts[2])===1&&parseInt(parts[1])!==1){
+        jMonth=ds;
         if(!jobTypes[jMonth])jobTypes[jMonth]={};
       }
     }
@@ -644,7 +667,7 @@ function parseConversion(wb){
       });
     }
   }
-  return {months, jobTypes};
+  return {months,jobTypes};
 }
 
 function parseMonthlyAvg(wb){
