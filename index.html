@@ -366,11 +366,14 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 </div>
 
 <div class="page" id="p-commissions">
-  <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
     <select id="commWeekSel" onchange="onCommWeekChange()"><option value="">-- Select Week --</option></select>
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Sales Rep</span>
     <select id="commRepSel" onchange="onCommRepChange()"><option value="">-- Select Rep --</option></select>
+    </div>
+    <button class="btn-primary" style="width:auto;padding:6px 16px;font-size:11px" onclick="openGenerateStmt()">📋 Generate Statement</button>
   </div>
   <div class="grid g2">
     <div class="card"><div class="ct" id="comm-rep-title">Commission Statement</div><div id="comm-payments-section"></div></div>
@@ -418,6 +421,134 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px" id="jobsKpiStrip"></div>
   <div class="card"><div class="ct">All Jobs — Click any row to see full details</div><div class="sx sy" style="max-height:500px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Sales Rep</th><th class="num">Total</th><th class="num">Material</th><th class="num">Field Labour</th><th class="num">Commission</th><th class="num">Outstanding</th><th class="num">Profit</th><th>Status</th></tr></thead><tbody id="jobsBody"></tbody></table></div></div>
 </div>
+</div>
+
+<!-- Commission Statement Modal -->
+<div class="modal-overlay" id="commStatementModal" style="z-index:700">
+  <div class="modal-content" style="width:680px;max-width:95%;padding:0">
+    <!-- Statement Header (printable) -->
+    <div id="commStatementPrint" style="background:#fff;color:#1a1a2e;font-family:Arial,sans-serif;padding:28px 32px">
+      <!-- Top bar -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:3px solid #1B3A6B">
+        <div>
+          <div style="font-size:22px;font-weight:700;color:#1B3A6B;letter-spacing:2px">STFD</div>
+          <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">South Texas Fence & Deck</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:700;color:#1a1a2e" id="stmt-rep-name">—</div>
+          <div style="font-size:11px;color:#64748b" id="stmt-week">Commission Statement</div>
+          <div style="font-size:11px;color:#64748b" id="stmt-date">—</div>
+        </div>
+      </div>
+
+      <!-- Section 1: Payments Received -->
+      <div style="margin-bottom:20px">
+        <div style="background:#1B3A6B;color:#fff;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0">Payments Received This Week</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead>
+            <tr style="background:#f0f4fa">
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Invoice Total</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm %</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Comm</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Payment Recv</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm on Pymt</th>
+            </tr>
+          </thead>
+          <tbody id="stmt-payments-body"></tbody>
+          <tfoot id="stmt-payments-foot"></tfoot>
+        </table>
+      </div>
+
+      <!-- Section 2: Pending Payment -->
+      <div style="margin-bottom:20px" id="stmt-pending-section">
+        <div style="background:#2D6A4F;color:#fff;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0">Completed Jobs — Pending Payment</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead>
+            <tr style="background:#f0f4fa">
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Invoice Total</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm Available</th>
+            </tr>
+          </thead>
+          <tbody id="stmt-pending-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Section 3: Scheduled Jobs -->
+      <div style="margin-bottom:20px" id="stmt-scheduled-section">
+        <div style="background:#1a365d;color:#fff;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0">Scheduled Jobs</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead>
+            <tr style="background:#f0f4fa">
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Invoice Total</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm Available</th>
+            </tr>
+          </thead>
+          <tbody id="stmt-scheduled-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div style="border-top:2px solid #1B3A6B;padding-top:12px;margin-top:8px">
+        <table style="width:100%;font-size:12px">
+          <tbody id="stmt-totals-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Footer -->
+      <div style="margin-top:16px;padding-top:10px;border-top:1px solid #ddd;font-size:9px;color:#94a3b8;text-align:center">
+        South Texas Fence & Deck · Commission Statement · Generated by STFD Dashboard
+      </div>
+    </div>
+
+    <!-- Action buttons (not printed) -->
+    <div style="background:var(--s2);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border)">
+      <span style="font-size:11px;color:var(--muted)">Screenshot this statement to send via WhatsApp</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-secondary" onclick="closeModal('commStatementModal')">Close</button>
+        <button class="btn-primary" style="width:auto;padding:8px 20px" onclick="window.print()">🖨 Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statement Generator Form -->
+<div class="modal-overlay" id="generateStmtModal">
+  <div class="modal-content" style="width:420px">
+    <div class="modal-header">
+      <h3>Generate Commission Statement</h3>
+      <button class="btn-secondary" onclick="closeModal('generateStmtModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Sales Rep *</label>
+      <select id="gen-rep">
+        <option value="">-- Select Rep --</option>
+        <option value="Paul Vincent">Paul Vincent</option>
+        <option value="Jeff Yates">Jeff Yates</option>
+        <option value="Sherrell Ezzell">Sherrell Ezzell</option>
+        <option value="Taylor Bassett">Taylor Bassett</option>
+        <option value="Jery Edgett">Jery Edgett</option>
+        <option value="Yvonne Chiang">Yvonne Chiang</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Week Ending Date *</label>
+      <input type="date" id="gen-week">
+    </div>
+    <div class="form-group">
+      <label>Statement Date (shown on statement)</label>
+      <input type="date" id="gen-stmt-date">
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('generateStmtModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:8px 24px" onclick="generateStatement()">Generate →</button>
+    </div>
+  </div>
 </div>
 
 <div id="jobModal"><div class="modal-box"><button class="modal-close" onclick="closeModal()">✕</button><div class="modal-title" id="modalTitle">Job Detail</div><div class="modal-grid" id="modalGrid"></div></div></div>
@@ -1088,6 +1219,186 @@ function mergeSbJobsIntoDashboard(dbJobs) {
 
 // Modal helpers
 function openModal(id) { $(id).classList.add('open'); }
+
+// ── COMMISSION STATEMENT GENERATOR ───────────────────────────────
+function openGenerateStmt(){
+  // Pre-fill with current week selection
+  const today = new Date();
+  const wednesday = new Date(today);
+  wednesday.setDate(today.getDate() + (3 - today.getDay() + 7) % 7);
+  $('gen-week').value = wednesday.toISOString().split('T')[0];
+  $('gen-stmt-date').value = new Date().toISOString().split('T')[0];
+  // Pre-fill rep from current selection
+  const currentRep = $('commRepSel').value;
+  if(currentRep) $('gen-rep').value = currentRep;
+  openModal('generateStmtModal');
+}
+
+async function generateStatement(){
+  const rep = $('gen-rep').value;
+  const weekEnding = $('gen-week').value;
+  const stmtDate = $('gen-stmt-date').value || weekEnding;
+
+  if(!rep || !weekEnding){
+    alert('Please select a rep and week ending date');
+    return;
+  }
+
+  // Format dates for display
+  const weekFmt = new Date(weekEnding+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const dateFmt = new Date(stmtDate+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  // Calculate week start (previous Tuesday)
+  const wEnd = new Date(weekEnding+'T12:00:00');
+  const wStart = new Date(wEnd);
+  wStart.setDate(wEnd.getDate() - 6);
+  const wStartStr = wStart.toISOString().split('T')[0];
+
+  $('stmt-rep-name').textContent = rep;
+  $('stmt-week').textContent = `Week: ${wStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${weekFmt}`;
+  $('stmt-date').textContent = `Statement Date: ${dateFmt}`;
+
+  // Get rep info for deductions
+  const repInfo = {
+    'Paul Vincent': { deduction: 100, deductionLabel: 'Repayment to PJ&CJ' },
+    'Jeff Yates': { deduction: 0 },
+    'Sherrell Ezzell': { deduction: 0 },
+    'Taylor Bassett': { deduction: 0 },
+    'Jery Edgett': { deduction: 0 },
+    'Yvonne Chiang': { deduction: 0, bimonthly: true }
+  };
+  const repData = repInfo[rep] || { deduction: 0 };
+
+  // Load data from Supabase or fall back to Excel data
+  let payments = [], allJobs = [];
+
+  if(sb){
+    try {
+      // Get payments for this rep in this week
+      const { data: payData } = await sb
+        .from('commission_entries')
+        .select('*, payments(*), jobs(*)')
+        .eq('rep_name', rep)
+        .gte('week_ending', wStartStr)
+        .lte('week_ending', weekEnding);
+
+      if(payData) payments = payData;
+
+      // Get all active jobs for this rep
+      const { data: jobData } = await sb
+        .from('jobs')
+        .select('*')
+        .eq('sales_rep', rep)
+        .neq('status', 'Completed');
+
+      if(jobData) allJobs = jobData;
+    } catch(e) {
+      console.error('Supabase error:', e);
+    }
+  }
+
+  // Fall back to Excel data if no Supabase data
+  if(payments.length === 0 && allJobs.length === 0){
+    // Use Excel-loaded data
+    allJobs = DATA.jobs
+      .filter(j => j.rep === rep)
+      .map(j => ({
+        invoice_number: j.invoice,
+        customer_name: j.customer,
+        invoice_total: j.total,
+        commission_rate: parseFloat(j.commRate) / 100 || 0.06,
+        status: j.status,
+        outstanding: j.outstanding
+      }));
+  }
+
+  // Build payments section from commission_entries
+  let totalCommOnPayments = 0;
+  let payRows = '';
+  payments.forEach(entry => {
+    const job = entry.jobs || {};
+    const payment = entry.payments || {};
+    const commPct = (entry.commission_rate * 100).toFixed(0) + '%';
+    const totalComm = (entry.jobs?.invoice_total || 0) * entry.commission_rate;
+    totalCommOnPayments += entry.commission_amount || 0;
+    payRows += `<tr>
+      <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${job.invoice_number||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd">${job.customer_name||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(job.invoice_total||0).toLocaleString()}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${commPct}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(totalComm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(payment.payment_amount||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#22543d;font-weight:600">$${Number(entry.commission_amount||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    </tr>`;
+  });
+
+  // If no payments from DB, show Excel data payments
+  if(payments.length === 0){
+    const excelJobs = DATA.jobs.filter(j=>j.rep===rep&&j.comm>0);
+    excelJobs.slice(0,5).forEach(j=>{
+      const rate = parseFloat(j.commRate)||6;
+      payRows += `<tr>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${j.invoice}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd">${j.customer}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(j.total).toLocaleString()}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${rate}%</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(j.comm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">—</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#22543d;font-weight:600">—</td>
+      </tr>`;
+    });
+  }
+
+  if(!payRows) payRows = '<tr><td colspan="7" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No payments recorded for this week</td></tr>';
+
+  $('stmt-payments-body').innerHTML = payRows;
+  $('stmt-payments-foot').innerHTML = totalCommOnPayments > 0
+    ? `<tr style="background:#f0f4fa;font-weight:700"><td colspan="6" style="padding:5px 8px;border:1px solid #ddd;text-align:right">Total Commission This Week</td><td style="padding:5px 8px;border:1px solid #ddd;text-align:right;color:#1B3A6B">$${Number(totalCommOnPayments).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`
+    : '';
+
+  // Pending payment jobs (completed but outstanding > 0)
+  const pendingJobs = allJobs.filter(j => j.status === 'Completed' && (j.outstanding || j.invoice_total) > 0);
+  let pendingRows = pendingJobs.map(j => {
+    const total = j.invoice_total || j.total || 0;
+    const rate = j.commission_rate || 0.06;
+    const commAvail = total * rate;
+    return `<tr>
+      <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${j.invoice_number||j.invoice}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd">${j.customer_name||j.customer}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(total).toLocaleString()}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#f5a623">$${Number(commAvail).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    </tr>`;
+  }).join('');
+  $('stmt-pending-body').innerHTML = pendingRows || '<tr><td colspan="4" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No completed jobs pending payment</td></tr>';
+
+  // Scheduled jobs
+  const scheduledJobs = allJobs.filter(j => j.status === 'Scheduled' || j.status === 'In Progress');
+  let schedRows = scheduledJobs.map(j => {
+    const total = j.invoice_total || j.total || 0;
+    const rate = j.commission_rate || 0.06;
+    const commAvail = total * rate;
+    return `<tr>
+      <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${j.invoice_number||j.invoice}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd">${j.customer_name||j.customer}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(total).toLocaleString()}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#60a5fa">$${Number(commAvail).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    </tr>`;
+  }).join('');
+  $('stmt-scheduled-body').innerHTML = schedRows || '<tr><td colspan="4" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No scheduled jobs</td></tr>';
+
+  // Totals
+  const deduction = repData.deduction || 0;
+  const netToRep = Math.max(0, totalCommOnPayments - deduction);
+  $('stmt-totals-body').innerHTML = `
+    <tr><td style="padding:4px 8px;color:#64748b">Weekly Draw Available</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:#1B3A6B">$${Number(totalCommOnPayments).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
+    ${deduction > 0 ? `<tr><td style="padding:4px 8px;color:#64748b">${repData.deductionLabel||'Deduction'}</td><td style="padding:4px 8px;text-align:right;color:#ef4444">-$${Number(deduction).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>` : ''}
+    <tr style="border-top:2px solid #1B3A6B"><td style="padding:6px 8px;font-weight:700;font-size:13px">Pay to ${rep.split(' ')[0]}</td><td style="padding:6px 8px;text-align:right;font-weight:700;font-size:14px;color:#22543d">$${Number(netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
+    ${repData.bimonthly ? '<tr><td colspan="2" style="padding:4px 8px;font-size:10px;color:#64748b;font-style:italic">Note: Yvonne's commission accumulates — paid by wire on 15th of even months</td></tr>' : ''}
+  `;
+
+  closeModal('generateStmtModal');
+  openModal('commStatementModal');
+}
 function closeModal(id) { if(id) $(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
