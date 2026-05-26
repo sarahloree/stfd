@@ -139,6 +139,51 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 </div>
 
 <!-- DATA ENTRY MODALS -->
+<!-- New Invoice Modal (for sales reps) -->
+<div class="modal-overlay" id="newInvoiceModal">
+  <div class="modal-content" style="width:500px">
+    <div class="modal-header">
+      <h3>📋 Create New Invoice</h3>
+      <button class="btn-secondary" onclick="closeModal('newInvoiceModal')">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Fill in the job details below. The commission will be calculated automatically.</p>
+    <div class="form-row">
+      <div class="form-group"><label>Invoice Number *</label><input type="text" id="ni-invoice" placeholder="e.g. 2160"></div>
+      <div class="form-group"><label>Invoice Date *</label><input type="date" id="ni-date"></div>
+    </div>
+    <div class="form-group"><label>Customer Name *</label><input type="text" id="ni-customer" placeholder="Full customer name"></div>
+    <div class="form-group"><label>Customer Address</label><input type="text" id="ni-address" placeholder="Job site address"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Sales Rep *</label><select id="ni-rep"><option value="">-- Select --</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option><option>Jery Edgett</option><option>Yvonne Chiang</option><option>Scott W</option><option>Tiffany Spoon</option><option>Alfred Davis</option></select></div>
+      <div class="form-group"><label>Job Type</label><select id="ni-type"><option value="">-- Select --</option><option>Wood Privacy</option><option>Chain Link</option><option>Decorative Metal</option><option>Vinyl</option><option>Ranch/Field Fence</option><option>Custom Fence</option><option>Deck &amp; Covers</option><option>Repair &amp; Others</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Invoice Total *</label><input type="number" id="ni-total" placeholder="0.00" step="0.01" oninput="calcInvoiceComm()"></div>
+      <div class="form-group"><label>Commission Rate *</label><select id="ni-rate" onchange="calcInvoiceComm()"><option value="0.08">8% — I sourced this lead</option><option value="0.06">6% — Company lead</option><option value="0.04">4% — Legacy rate</option><option value="0.03">3% — Shared commercial</option></select></div>
+    </div>
+    <!-- Commission preview -->
+    <div id="ni-comm-preview" style="background:var(--s2);border-radius:6px;padding:10px 14px;margin-bottom:12px;display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--muted)">Commission on this invoice</span>
+        <span id="ni-comm-amt" style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--green)">$0.00</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Material Cost</label><input type="number" id="ni-material" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Field Labour Cost</label><input type="number" id="ni-labour" placeholder="0.00" step="0.01"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Job Start Date</label><input type="date" id="ni-start"></div>
+      <div class="form-group"><label>Commercial Job?</label><select id="ni-commercial"><option value="false">No — Residential</option><option value="true">Yes — Commercial</option></select></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="ni-notes" rows="2" placeholder="Any additional details..."></textarea></div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('newInvoiceModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:8px 24px" onclick="saveNewInvoice()">Submit Invoice</button>
+    </div>
+  </div>
+</div>
+
 <!-- New Job Modal -->
 <div class="modal-overlay" id="newJobModal">
   <div class="modal-content">
@@ -151,7 +196,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <div class="form-group"><label>Customer Name *</label><input type="text" id="nj-customer" placeholder="Customer full name"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Sales Rep *</label><select id="nj-rep"><option value="">-- Select Rep --</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option><option>Jery Edgett</option><option>Yvonne Chiang</option></select></div>
+      <div class="form-group"><label>Sales Rep *</label><select id="nj-rep"><option value="">-- Select Rep --</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option><option>Jery Edgett</option><option>Yvonne Chiang</option><option>Scott W</option><option>Tiffany Spoon</option><option>Alfred Davis</option></select></div>
       <div class="form-group"><label>Job Type</label><select id="nj-type"><option value="">-- Select Type --</option><option>Wood Privacy</option><option>Chain Link</option><option>Decorative Metal</option><option>Vinyl</option><option>Ranch/Field Fence</option><option>Custom Fence</option><option>Deck &amp; Covers</option><option>Repair &amp; Others</option></select></div>
     </div>
     <div class="form-row">
@@ -267,6 +312,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
     <select id="weekSel" onchange="loadWeek(this.value)"></select>
     <div class="sb-status" id="sbStatus"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live</div>
+    <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newInvoiceModal')">📋 New Invoice</button>
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newJobModal')">+ New Job</button>
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newPaymentModal')">+ Payment</button>
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('overheadModal')">+ Overhead</button>
@@ -613,7 +659,17 @@ async function buildDashboard(){
   }
   buildWeekSel();buildCommSel();renderMonthly();renderJobs();
   renderConversion();
-  if(DATA.weeks.length){$('weekSel').value=DATA.weeks.length-1;loadWeek(DATA.weeks.length-1)}
+  if(DATA.weeks.length){
+    // Outlook file loaded — show Weekly Summary first
+    $('weekSel').value=DATA.weeks.length-1;
+    loadWeek(DATA.weeks.length-1);
+    showTab('weekly');
+  } else if(DATA.jobs.length){
+    // No Outlook file — default to Job Costs tab
+    showTab('jobs');
+  }
+  // Always merge Supabase jobs into dashboard
+  loadSbJobs();
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm'].forEach(id=>{const el=$(id);el.classList.remove('loaded');el.querySelector('.fi-status').textContent='Not loaded'});Object.keys(STATE).forEach(k=>STATE[k]=null)}
 
@@ -825,7 +881,22 @@ function parseJobs(wb){
   const rows=sheetArr(wb,sn);if(!rows.length)return[];
   const h=rows[0].map(c=>String(c||'').trim().toLowerCase());
   const col=ns=>{for(const n of ns){const i=h.findIndex(x=>x.includes(n));if(i>=0)return i}return -1};
-  const iI=col(['invoice number','invoice #']),iC=col(['customer name','customer']),iR=col(['sales rep']),iT=col(['invoice total']),iM=col(['material cost','material']),iF=col(['field labour','field labor']),iCm=col(['initial commission','commission']),iO=col(['outstanding amount','outstanding']),iS=col(['payment status','status']),iCr=col(['commission rate']),iD=col(['job start date','start date']);
+  const iI=col(['invoice number','invoice #']);
+  const iC=col(['customer name','customer']);
+  const iR=col(['sales rep']);
+  const iT=col(['invoice total']);
+  // Material: prefer 'actual material cost' over 'estimated'
+  const iM=col(['actual material cost']);
+  // Field Labour: prefer 'actual field labour' over 'estimated'
+  const iF=col(['actual field labour','actual field labor']);
+  // Commission: initial commission amount
+  const iCm=col(['initial commission']);
+  const iO=col(['outstanding amount','outstanding']);
+  // Status: construction status, not payment status
+  const iS=col(['construction status','job status','status']);
+  // Comm Rate: handles both 'comm rate' and 'commission rate'
+  const iCr=col(['comm rate','commission rate']);
+  const iD=col(['job start date','start date']);
   return rows.slice(1).map(r=>{
     const inv=String(r[iI]||'').trim();if(!inv||inv==='null')return null;
     const t=+r[iT]||0,m=+r[iM]||0,f=+r[iF]||0,c=+r[iCm]||0;
@@ -837,6 +908,9 @@ function parseSched(wb){
   const out={};
   wb.SheetNames.forEach(sn=>{
     if(!/\d/.test(sn))return;
+    // Only process sheets that look like week dates (e.g. '4-26', '5-3', '12-9')
+    // Skip rep sheets like 'Paul Vincent (2)', 'Sherrell Ezzell (2)'
+    if(!/^\d{1,2}-\d{1,2}$/.test(sn.trim()))return;
     try{
       const rows=sheetArr(wb,sn);if(!rows||rows.length<5)return;
       const dayLabels=(rows[1]||[]).slice(2,8).map(d=>d?String(d).trim():'');
@@ -1434,6 +1508,93 @@ function savePDF(){
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
 });
+
+// ── INVOICE FORM HELPERS ─────────────────────────────────────────
+function calcInvoiceComm(){
+  const total = parseFloat($('ni-total').value) || 0;
+  const rate = parseFloat($('ni-rate').value) || 0.06;
+  const comm = total * rate;
+  const preview = $('ni-comm-preview');
+  if(total > 0){
+    $('ni-comm-amt').textContent = '$' + comm.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+async function saveNewInvoice(){
+  const invoice = $('ni-invoice').value.trim();
+  const customer = $('ni-customer').value.trim();
+  const rep = $('ni-rep').value;
+  const total = parseFloat($('ni-total').value) || 0;
+  const rate = parseFloat($('ni-rate').value) || 0.06;
+  const invoiceDate = $('ni-date').value;
+
+  if(!invoice || !customer || !rep || total === 0 || !invoiceDate){
+    alert('Please fill in all required fields: Invoice #, Date, Customer, Rep, and Invoice Total');
+    return;
+  }
+
+  const job = {
+    invoice_number: invoice,
+    customer_name: customer,
+    sales_rep: rep,
+    job_type: $('ni-type').value || 'Custom Fence',
+    invoice_total: total,
+    material_cost: parseFloat($('ni-material').value) || 0,
+    field_labour_cost: parseFloat($('ni-labour').value) || 0,
+    commission_rate: rate,
+    start_date: $('ni-start').value || invoiceDate,
+    status: 'Scheduled',
+    is_commercial: $('ni-commercial').value === 'true',
+    notes: $('ni-notes').value
+  };
+
+  if(sb){
+    const { error } = await sb.from('jobs').insert([job]);
+    if(error){
+      if(error.code === '23505'){
+        alert('Invoice ' + invoice + ' already exists in the system.');
+      } else {
+        alert('Error saving invoice: ' + error.message);
+      }
+      return;
+    }
+    sbJobs.unshift({...job, job_id: 'new'});
+  }
+
+  // Add to local DATA
+  DATA.jobs.unshift({
+    invoice: job.invoice_number,
+    customer: job.customer_name,
+    rep: job.sales_rep,
+    total: job.invoice_total,
+    mat: job.material_cost,
+    fl: job.field_labour_cost,
+    comm: Math.round(job.invoice_total * job.commission_rate * 100) / 100,
+    outstanding: job.invoice_total,
+    status: job.status,
+    commRate: (job.commission_rate * 100) + '%',
+    startDate: job.start_date || '',
+    profit: job.invoice_total - job.material_cost - job.field_labour_cost - (job.invoice_total * job.commission_rate)
+  });
+  renderJobs();
+
+  closeModal('newInvoiceModal');
+
+  // Clear form
+  ['ni-invoice','ni-customer','ni-address','ni-total','ni-material','ni-labour','ni-notes'].forEach(id => {
+    const el = $(id); if(el) el.value = '';
+  });
+  $('ni-rep').value = '';
+  $('ni-date').value = '';
+  $('ni-start').value = '';
+  $('ni-comm-preview').style.display = 'none';
+
+  const comm = Math.round(total * rate * 100) / 100;
+  alert('✓ Invoice ' + invoice + ' submitted!\n\nCustomer: ' + customer + '\nTotal: $' + total.toLocaleString() + '\nCommission: $' + comm.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + ' (' + (rate*100) + '%)');
+}
 
 // ── SAVE NEW JOB ──────────────────────────────────────────────────
 async function saveNewJob() {
