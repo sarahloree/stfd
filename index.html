@@ -573,7 +573,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     </div>
     <div class="form-group">
       <label>Sales Rep *</label>
-      <select id="gen-rep">
+      <select id="gen-rep" onchange="loadAvailableWeeks(this.value)">
         <option value="">-- Select Rep --</option>
         <option value="Paul Vincent">Paul Vincent</option>
         <option value="Jeff Yates">Jeff Yates</option>
@@ -581,11 +581,16 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <option value="Taylor Bassett">Taylor Bassett</option>
         <option value="Jery Edgett">Jery Edgett</option>
         <option value="Yvonne Chiang">Yvonne Chiang</option>
+        <option value="Scott W">Scott W</option>
+        <option value="Tiffany Spoon">Tiffany Spoon</option>
+        <option value="Alfred Davis">Alfred Davis</option>
       </select>
     </div>
     <div class="form-group">
       <label>Week Ending Date *</label>
-      <input type="date" id="gen-week">
+      <select id="gen-week"><option value="">-- Select a rep first --</option></select>
+      <input type="date" id="gen-week-manual" style="margin-top:6px" placeholder="Or enter date manually">
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">Select from dropdown or enter date manually above</div>
     </div>
     <div class="form-group">
       <label>Statement Date (shown on statement)</label>
@@ -1296,6 +1301,38 @@ function mergeSbJobsIntoDashboard(dbJobs) {
 function openModal(id) { $(id).classList.add('open'); }
 
 // ── COMMISSION STATEMENT GENERATOR ───────────────────────────────
+async function loadAvailableWeeks(rep){
+  const sel = $('gen-week');
+  sel.innerHTML = '<option value="">Loading...</option>';
+  if(!rep || !sb){ sel.innerHTML = '<option value="">-- Select rep first --</option>'; return; }
+  try {
+    const { data } = await sb
+      .from('historical_commission_entries')
+      .select('week_ending')
+      .eq('rep_name', rep)
+      .order('week_ending', { ascending: false });
+    
+    if(data && data.length > 0){
+      const weeks = [...new Set(data.map(d => d.week_ending))].sort().reverse();
+      sel.innerHTML = '<option value="">-- Select week --</option>';
+      weeks.forEach(w => {
+        const o = document.createElement('option');
+        o.value = w;
+        const d = new Date(w + 'T12:00:00');
+        o.textContent = d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+        sel.appendChild(o);
+      });
+      // Auto-select most recent week
+      if(weeks.length) sel.value = weeks[0];
+    } else {
+      sel.innerHTML = '<option value="">No payment data found for this rep</option>';
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">Error loading weeks</option>';
+    console.error(e);
+  }
+}
+
 function openGenerateStmt(){
   // Auto-populate from currently selected week and rep
   const currentWeek = $('commWeekSel').value;
@@ -1328,7 +1365,8 @@ function openGenerateStmt(){
 
 async function generateStatement(){
   const rep = $('gen-rep').value;
-  const weekEnding = $('gen-week').value;
+  // Use dropdown value or manual date input
+  const weekEnding = $('gen-week').value || $('gen-week-manual').value;
   const stmtDate = $('gen-stmt-date').value || weekEnding;
 
   if(!rep || !weekEnding){
@@ -1366,14 +1404,30 @@ async function generateStatement(){
 
   if(sb){
     try {
-      // Get payments from historical_commission_entries for this rep and week
+      // Get payments from historical_commission_entries for this rep
+      // Query by week_ending exact match first, then fallback to date range
       const { data: histData } = await sb
         .from('historical_commission_entries')
         .select('*')
         .eq('rep_name', rep)
         .eq('week_ending', weekEnding);
 
-      if(histData && histData.length > 0) payments = histData;
+      if(histData && histData.length > 0){
+        payments = histData;
+      } else {
+        // Fallback: query by date range (payments within 7 days of week ending)
+        const wEndDate = new Date(weekEnding+'T12:00:00');
+        const wStartDate = new Date(wEndDate);
+        wStartDate.setDate(wEndDate.getDate() - 6);
+        const wStartStr2 = wStartDate.toISOString().split('T')[0];
+        const { data: rangeData } = await sb
+          .from('historical_commission_entries')
+          .select('*')
+          .eq('rep_name', rep)
+          .gte('week_ending', wStartStr2)
+          .lte('week_ending', weekEnding);
+        if(rangeData && rangeData.length > 0) payments = rangeData;
+      }
 
       // Get all jobs for this rep from Supabase
       const { data: jobData } = await sb
