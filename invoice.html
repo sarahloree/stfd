@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>STFD — Submit Invoice</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0f1f3d;
+    --navy-mid: #1a3058;
+    --amber: #f5a623;
+    --amber-dark: #d4891a;
+    --green: #22c55e;
+    --red: #ef4444;
+    --white: #ffffff;
+    --off-white: #f8f9fc;
+    --gray: #94a3b8;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+  }
+
+  html { height: 100%; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    min-height: 100%;
+    padding-bottom: 40px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--navy);
+    padding: 20px 24px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  }
+
+  .logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--amber);
+    letter-spacing: 3px;
+  }
+
+  .header-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,.5);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    margin: 20px 16px;
+    border-radius: 16px;
+    padding: 24px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.04);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--navy);
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--amber);
+    display: inline-block;
+  }
+
+  /* ── FORM ELEMENTS ── */
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field label span.req {
+    color: var(--amber);
+    margin-left: 2px;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: var(--off-white);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(15,31,61,.08);
+    background: var(--white);
+  }
+
+  .field input.error,
+  .field select.error {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(239,68,68,.08);
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* Commission preview */
+  .comm-preview {
+    background: linear-gradient(135deg, #0f1f3d, #1a3058);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 4px 0 16px;
+    display: none;
+  }
+
+  .comm-preview.visible { display: block; }
+
+  .comm-preview-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,.5);
+    margin-bottom: 4px;
+  }
+
+  .comm-preview-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--amber);
+  }
+
+  .comm-preview-detail {
+    font-size: 12px;
+    color: rgba(255,255,255,.5);
+    margin-top: 4px;
+  }
+
+  /* Rate selector */
+  .rate-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .rate-option {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all .15s;
+    text-align: center;
+    position: relative;
+  }
+
+  .rate-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .rate-option.selected {
+    border-color: var(--navy);
+    background: var(--navy);
+    color: var(--white);
+  }
+
+  .rate-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--amber);
+    display: block;
+  }
+
+  .rate-option.selected .rate-pct { color: var(--amber); }
+
+  .rate-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .rate-option.selected .rate-desc { color: rgba(255,255,255,.6); }
+
+  /* Submit button */
+  .btn-submit {
+    width: 100%;
+    background: var(--amber);
+    color: var(--navy);
+    border: none;
+    border-radius: 12px;
+    padding: 17px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .1s, box-shadow .1s, background .15s;
+    letter-spacing: .3px;
+    margin-top: 8px;
+  }
+
+  .btn-submit:active {
+    transform: scale(.98);
+  }
+
+  .btn-submit:disabled {
+    background: var(--border);
+    color: var(--gray);
+    cursor: not-allowed;
+  }
+
+  .btn-submit.loading {
+    background: var(--amber-dark);
+    cursor: wait;
+  }
+
+  /* Success screen */
+  #successScreen {
+    display: none;
+    text-align: center;
+    padding: 48px 24px;
+  }
+
+  .success-icon {
+    width: 72px;
+    height: 72px;
+    background: #dcfce7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 32px;
+  }
+
+  .success-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+
+  .success-detail {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .success-comm {
+    background: var(--navy);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+  }
+
+  .success-comm-label {
+    font-size: 11px;
+    color: rgba(255,255,255,.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .success-comm-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    color: var(--amber);
+    font-weight: 500;
+  }
+
+  .btn-another {
+    background: none;
+    border: 1.5px solid var(--navy);
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--navy);
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  /* Error message */
+  .error-msg {
+    font-size: 12px;
+    color: var(--red);
+    margin-top: 4px;
+    display: none;
+  }
+
+  .global-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--red);
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* Helper text */
+  .field-hint {
+    font-size: 11px;
+    color: var(--gray);
+    margin-top: 5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">STFD</div>
+    <div class="header-sub">Invoice Submission</div>
+  </div>
+</div>
+
+<!-- FORM -->
+<div id="formView">
+  <div class="card">
+    <div class="card-title">Job Details</div>
+
+    <div class="global-error" id="globalError"></div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Invoice # <span class="req">*</span></label>
+        <input type="text" id="inv" placeholder="e.g. 2175" inputmode="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Date <span class="req">*</span></label>
+        <input type="date" id="inv-date">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Your Name <span class="req">*</span></label>
+      <select id="rep">
+        <option value="">-- Select your name --</option>
+        <option value="Paul Vincent">Paul Vincent</option>
+        <option value="Jeff Yates">Jeff Yates</option>
+        <option value="Sherrell Ezzell">Sherrell Ezzell</option>
+        <option value="Taylor Bassett">Taylor Bassett</option>
+        <option value="Jery Edgett">Jery Edgett</option>
+        <option value="Scott W">Scott W</option>
+        <option value="Tiffany Spoon">Tiffany Spoon</option>
+        <option value="Alfred Davis">Alfred Davis</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Customer Name <span class="req">*</span></label>
+      <input type="text" id="customer" placeholder="Full customer name" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Job Address</label>
+      <input type="text" id="address" placeholder="Job site address" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Job Type</label>
+      <select id="job-type">
+        <option value="Custom Fence">Custom Fence</option>
+        <option value="Wood Privacy">Wood Privacy</option>
+        <option value="Chain Link">Chain Link</option>
+        <option value="Decorative Metal">Decorative Metal</option>
+        <option value="Vinyl">Vinyl</option>
+        <option value="Ranch/Field Fence">Ranch/Field Fence</option>
+        <option value="Deck & Covers">Deck &amp; Covers</option>
+        <option value="Repair & Others">Repair &amp; Others</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Invoice Amount</div>
+
+    <div class="field">
+      <label>Invoice Total <span class="req">*</span></label>
+      <input type="number" id="total" placeholder="0.00" inputmode="decimal" step="0.01" min="0" oninput="updatePreview()">
+    </div>
+
+    <div class="field">
+      <label>Commission Rate <span class="req">*</span></label>
+      <div class="rate-options">
+        <label class="rate-option selected" onclick="setRate(0.08, this)">
+          <input type="radio" name="rate" value="0.08" checked>
+          <span class="rate-pct">8%</span>
+          <div class="rate-desc">I found this lead</div>
+        </label>
+        <label class="rate-option" onclick="setRate(0.06, this)">
+          <input type="radio" name="rate" value="0.06">
+          <span class="rate-pct">6%</span>
+          <div class="rate-desc">Company lead</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="comm-preview" id="commPreview">
+      <div class="comm-preview-label">Your commission on this invoice</div>
+      <div class="comm-preview-amount" id="commAmt">$0.00</div>
+      <div class="comm-preview-detail" id="commDetail"></div>
+    </div>
+
+    <div class="field">
+      <label>Commercial Job?</label>
+      <select id="is-commercial">
+        <option value="false">No — Residential</option>
+        <option value="true">Yes — Commercial</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="notes" rows="2" placeholder="Any additional details about this job..."></textarea>
+    </div>
+
+    <div class="global-error" id="globalError2"></div>
+
+    <button class="btn-submit" id="submitBtn" onclick="submitInvoice()">
+      Submit Invoice →
+    </button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div id="successScreen" class="card" style="margin:20px 16px">
+  <div class="success-icon">✓</div>
+  <div class="success-title">Invoice Submitted!</div>
+  <div class="success-detail" id="successDetail"></div>
+  <div class="success-comm">
+    <div class="success-comm-label">Your commission</div>
+    <div class="success-comm-amount" id="successComm">$0.00</div>
+  </div>
+  <div class="success-detail" style="font-size:12px;color:var(--muted)">
+    Your invoice has been added to the system. Yvonne will be able to see it immediately.
+  </div>
+  <button class="btn-another" onclick="resetForm()">Submit Another Invoice</button>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://qdfwovnhlaaocgawukto.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PPhYAvIRNnzv7E86s8yw-g_ltVx0Gvk';
+
+let selectedRate = 0.08;
+let sb = null;
+
+// Init Supabase
+async function initSB() {
+  const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+  sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+initSB();
+
+// Set today's date
+document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+
+// Rate selector
+function setRate(rate, el) {
+  selectedRate = rate;
+  document.querySelectorAll('.rate-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  updatePreview();
+}
+
+// Commission preview
+function updatePreview() {
+  const total = parseFloat(document.getElementById('total').value) || 0;
+  const preview = document.getElementById('commPreview');
+  if (total > 0) {
+    const comm = total * selectedRate;
+    document.getElementById('commAmt').textContent = '$' + comm.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('commDetail').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits:2}) + ' × ' + (selectedRate*100) + '%';
+    preview.classList.add('visible');
+  } else {
+    preview.classList.remove('visible');
+  }
+}
+
+// Submit
+async function submitInvoice() {
+  const inv = document.getElementById('inv').value.trim();
+  const invDate = document.getElementById('inv-date').value;
+  const rep = document.getElementById('rep').value;
+  const customer = document.getElementById('customer').value.trim();
+  const total = parseFloat(document.getElementById('total').value) || 0;
+
+  // Validate
+  const errors = [];
+  if (!inv) errors.push('Invoice number is required');
+  if (!invDate) errors.push('Date is required');
+  if (!rep) errors.push('Please select your name');
+  if (!customer) errors.push('Customer name is required');
+  if (total <= 0) errors.push('Invoice total must be greater than $0');
+
+  const errEl = document.getElementById('globalError2');
+  if (errors.length > 0) {
+    errEl.textContent = errors.join(' · ');
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Submitting...';
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  const job = {
+    invoice_number: inv,
+    customer_name: customer,
+    sales_rep: rep,
+    job_type: document.getElementById('job-type').value,
+    invoice_total: total,
+    material_cost: 0,
+    field_labour_cost: 0,
+    commission_rate: selectedRate,
+    start_date: invDate,
+    status: 'Scheduled',
+    is_commercial: document.getElementById('is-commercial').value === 'true',
+    notes: document.getElementById('notes').value || ''
+  };
+
+  try {
+    if (sb) {
+      const { error } = await sb.from('jobs').insert([job]);
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error('Invoice ' + inv + ' already exists. Please check the invoice number.');
+        }
+        throw new Error(error.message);
+      }
+    }
+
+    // Show success
+    const comm = total * selectedRate;
+    document.getElementById('successDetail').textContent =
+      'Invoice ' + inv + ' for ' + customer + ' — $' + total.toLocaleString('en-US', {minimumFractionDigits:2});
+    document.getElementById('successComm').textContent =
+      '$' + comm.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
+    window.scrollTo(0, 0);
+
+  } catch(e) {
+    errEl.textContent = e.message || 'Something went wrong. Please try again.';
+    errEl.style.display = 'block';
+    btn.textContent = 'Submit Invoice →';
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+// Reset
+function resetForm() {
+  document.getElementById('formView').style.display = 'block';
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('inv').value = '';
+  document.getElementById('customer').value = '';
+  document.getElementById('address').value = '';
+  document.getElementById('total').value = '';
+  document.getElementById('notes').value = '';
+  document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('rep').value = '';
+  selectedRate = 0.08;
+  document.querySelectorAll('.rate-option').forEach((o,i) => {
+    if(i===0) o.classList.add('selected'); else o.classList.remove('selected');
+  });
+  document.getElementById('commPreview').classList.remove('visible');
+  document.getElementById('globalError2').style.display = 'none';
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Submit Invoice →';
+  btn.classList.remove('loading');
+  btn.disabled = false;
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
