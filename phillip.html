@@ -294,7 +294,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   <button class="btn-load" id="btnLoad" onclick="buildDashboard()">Open Dashboard →</button>
 </div>
 
-<div id="dashboard" style="display:none">
+<div id="dashboard" style="display:block">
 <header class="hdr">
   <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations</div></div></div>
   <nav class="tabs">
@@ -1562,17 +1562,36 @@ function initSupabase() {
 
 // Auto-initialize for Phillip's read-only view
 window.addEventListener('DOMContentLoaded', async () => {
-  // Show dashboard immediately
-  document.getElementById('loadScreen').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'block';
-  // Initialize Supabase and load data
-  initSupabase();
-  await loadSbJobs();
-  await renderPipeline();
-  await renderAging();
-  // Show loading state
-  document.getElementById('sbStatus').innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live';
+  // Hide load screen, show dashboard
+  const ls = document.getElementById('loadScreen');
+  const db = document.getElementById('dashboard');
+  if(ls) ls.style.display = 'none';
+  if(db) db.style.display = 'block';
+
+  // Show pipeline tab first with loading indicator
   showTab('pipeline');
+  document.getElementById('pipelineBody').innerHTML = 
+    '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Loading live data...</td></tr>';
+  document.getElementById('agingBody').innerHTML = 
+    '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Loading live data...</td></tr>';
+
+  // Initialize Supabase
+  initSupabase();
+
+  // Load all data
+  try {
+    await loadSbJobs();
+    await renderPipeline();
+    await renderAging();
+    renderMonthly();
+    renderJobs();
+  } catch(e) {
+    console.error('Data load error:', e);
+  }
+
+  // Update status indicator
+  const sbEl = document.getElementById('sbStatus');
+  if(sbEl) sbEl.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live';
 });
 
 function doLogin() {
