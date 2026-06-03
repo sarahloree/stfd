@@ -1580,11 +1580,26 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Load all data
   try {
+    // Fetch published data.json for Excel-based tabs (Weekly, Schedule, Monthly, Jobs)
+    const DATA_URL = 'https://raw.githubusercontent.com/sarahloree/stfd/main/data.json?cb=' + Date.now();
+    const res = await fetch(DATA_URL);
+    if(res.ok){
+      const json = await res.json();
+      Object.assign(DATA, json);
+      buildWeekSel();
+      renderMonthly();
+      renderJobs();
+      renderConversion();
+      if(DATA.weeks.length){
+        $('weekSel').value = DATA.weeks.length-1;
+        loadWeek(DATA.weeks.length-1);
+      }
+    }
+    // Load Supabase data for Pipeline and Aging Report
+    initSupabase();
     await loadSbJobs();
     await renderPipeline();
     await renderAging();
-    renderMonthly();
-    renderJobs();
   } catch(e) {
     console.error('Data load error:', e);
   }
