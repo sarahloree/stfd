@@ -132,7 +132,6 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 </head>
 <body>
 
-<!-- No login for Phillip - auto loads from Supabase -->
 <div id="loginScreen" style="display:none"></div>
 
 <!-- DATA ENTRY MODALS -->
@@ -311,7 +310,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
     <select id="weekSel" onchange="loadWeek(this.value)"></select>
     <div class="sb-status" id="sbStatus"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live</div>
-    <div style="font-size:10px;color:var(--muted);background:var(--s2);padding:4px 10px;border-radius:4px;border:1px solid var(--border)">👁 Read Only</div>
+    <div style="font-size:10px;color:var(--muted);background:var(--s2);padding:4px 10px;border-radius:4px;border:1px solid var(--border)">👁 View Only</div>
     <button class="publish-btn" id="publishBtn" onclick="publishToPhillip()">⬆ Publish to Phillip</button>
     <span id="publishStatus"></span>
   </div>
@@ -1560,53 +1559,38 @@ function initSupabase() {
   }
 }
 
-// Auto-initialize for Phillip's read-only view
 window.addEventListener('DOMContentLoaded', async () => {
-  // Hide load screen, show dashboard
-  const ls = document.getElementById('loadScreen');
-  const db = document.getElementById('dashboard');
-  if(ls) ls.style.display = 'none';
-  if(db) db.style.display = 'block';
-
-  // Show pipeline tab first with loading indicator
-  showTab('pipeline');
-  document.getElementById('pipelineBody').innerHTML = 
-    '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Loading live data...</td></tr>';
-  document.getElementById('agingBody').innerHTML = 
-    '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Loading live data...</td></tr>';
-
   // Initialize Supabase
   initSupabase();
-
-  // Load all data
+  // Show dashboard immediately
+  showTab('weekly');
+  // Load from data.json (published by Yvonne)
   try {
-    // Fetch published data.json for Excel-based tabs (Weekly, Schedule, Monthly, Jobs)
     const DATA_URL = 'https://raw.githubusercontent.com/sarahloree/stfd/main/data.json?cb=' + Date.now();
     const res = await fetch(DATA_URL);
     if(res.ok){
       const json = await res.json();
-      Object.assign(DATA, json);
+      if(json.weeks) DATA.weeks = json.weeks;
+      if(json.income) DATA.income = json.income;
+      if(json.monthly) DATA.monthly = json.monthly;
+      if(json.jobs) DATA.jobs = json.jobs;
+      if(json.schedules) DATA.schedules = json.schedules;
+      if(json.monthlyAvg) DATA.monthlyAvg = json.monthlyAvg;
+      if(json.conversion) DATA.conversion = json.conversion;
       buildWeekSel();
       renderMonthly();
       renderJobs();
       renderConversion();
-      if(DATA.weeks.length){
-        $('weekSel').value = DATA.weeks.length-1;
-        loadWeek(DATA.weeks.length-1);
-      }
+      if(DATA.weeks.length){$('weekSel').value=DATA.weeks.length-1;loadWeek(DATA.weeks.length-1);}
     }
-    // Load Supabase data for Pipeline and Aging Report
-    initSupabase();
+  } catch(e){ console.log('data.json not available:', e.message); }
+  // Load Supabase data
+  try {
     await loadSbJobs();
     await renderPipeline();
     await renderAging();
-  } catch(e) {
-    console.error('Data load error:', e);
-  }
-
-  // Update status indicator
-  const sbEl = document.getElementById('sbStatus');
-  if(sbEl) sbEl.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live';
+  } catch(e){ console.log('Supabase error:', e.message); }
+  $('sbStatus').innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live';
 });
 
 function doLogin() {
@@ -2178,6 +2162,10 @@ async function publishToPhillip() {
       income: DATA.income,
       monthly: DATA.monthly,
       jobs: DATA.jobs,
+      schedules: DATA.schedules,
+      commissions: {},
+      monthlyAvg: DATA.monthlyAvg || {},
+      conversion: DATA.conversion || {months:[], jobTypes:{}},
       publishedAt: new Date().toISOString(),
       publishedBy: 'Yvonne'
     };

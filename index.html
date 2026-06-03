@@ -2146,6 +2146,10 @@ async function publishToPhillip() {
       income: DATA.income,
       monthly: DATA.monthly,
       jobs: DATA.jobs,
+      schedules: DATA.schedules,
+      commissions: {},
+      monthlyAvg: DATA.monthlyAvg || {},
+      conversion: DATA.conversion || {months:[], jobTypes:{}},
       publishedAt: new Date().toISOString(),
       publishedBy: 'Yvonne'
     };
