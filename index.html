@@ -913,6 +913,8 @@ function parseSched(wb){
   const out={};
   wb.SheetNames.forEach(sn=>{
     if(!/\d/.test(sn))return;
+    // Only read sheets in M-D format (e.g. '4-26', '5-3') — skip rep sheets like 'Paul Vincent (2)'
+    if(!/^\d{1,2}-\d{1,2}$/.test(sn.trim()))return;
     // Only process sheets that look like week dates (e.g. '4-26', '5-3', '12-9')
     // Skip rep sheets like 'Paul Vincent (2)', 'Sherrell Ezzell (2)'
     if(!/^\d{1,2}-\d{1,2}$/.test(sn.trim()))return;
