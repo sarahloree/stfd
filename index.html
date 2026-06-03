@@ -466,7 +466,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   </div>
 
   <!-- Pipeline KPI Row -->
-  <div class="grid g5" id="pipeline-kpis" style="margin-bottom:12px"></div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="pipeline-kpis"></div>
 
   <!-- Pipeline Table -->
   <div class="card" style="padding:0">
@@ -1264,12 +1264,12 @@ function renderKPIs(){
     const s = j.pipeline_status || 'Invoiced';
     if(counts[s] !== undefined) counts[s]++;
   });
+  const kpiColors = {'Estimate':'#f59e0b','Contracted':'#8b5cf6','Invoiced':'#60a5fa','In Progress':'#f5a623','Completed':'#22c55e'};
   $('pipeline-kpis').innerHTML = PIPELINE_STATUSES.map(s => `
-    <div class="card" style="padding:10px 14px;cursor:pointer;border-top:2px solid currentColor" 
-      class="pipe-${s.toLowerCase().replace(' ','')}"
-      onclick="filterPipeline('${s}',null)">
+    <div class="card" style="padding:10px 14px;cursor:pointer;border-top:2px solid ${kpiColors[s]};flex:1;min-width:100px"
+      onclick="filterPipeline('${s}',document.querySelector('.pipeline-filter[data-status=\'${s}\']'))">
       <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">${s}</div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:4px">${counts[s]}</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:4px;color:${kpiColors[s]}">${counts[s]}</div>
     </div>`).join('');
 }
 
