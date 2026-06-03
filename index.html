@@ -25,6 +25,16 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .btn-secondary{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:6px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s}
 .btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
 .btn-danger{background:var(--red);color:#fff;border:none;padding:6px 14px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.pipeline-filter{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:20px;font-family:inherit;font-size:11px;cursor:pointer;transition:all .15s}
+.pipeline-filter:hover,.pipeline-filter.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.pipe-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.pipe-estimate{background:rgba(245,158,11,.15);color:#f59e0b}
+.pipe-contracted{background:rgba(139,92,246,.15);color:#8b5cf6}
+.pipe-invoiced{background:rgba(59,130,246,.15);color:#60a5fa}
+.pipe-inprogress{background:rgba(245,166,35,.15);color:#f5a623}
+.pipe-completed{background:rgba(34,197,94,.15);color:#22c55e}
+.aging-bar{height:6px;border-radius:3px;background:var(--s2);overflow:hidden;margin-top:4px}
+.aging-bar-fill{height:100%;border-radius:3px;transition:width .3s}
 .login-error{color:var(--red);font-size:12px;text-align:center;display:none}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
@@ -307,6 +317,8 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="tab" onclick="showTab('monthly')" id="t-monthly">Monthly Summary</div>
     <div class="tab" onclick="showTab('jobs')" id="t-jobs">Job Costs</div>
     <div class="tab" onclick="showTab('conversion')" id="t-conversion">Conversion Analysis</div>
+    <div class="tab" onclick="showTab('pipeline')" id="t-pipeline">Pipeline</div>
+    <div class="tab" onclick="showTab('aging')" id="t-aging">Aging Report</div>
   </nav>
   <div class="hdr-right">
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
@@ -433,6 +445,113 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="card"><div class="ct">Monthly Trends</div><div class="ch" style="height:220px"><canvas id="monthlyChart"></canvas></div></div>
   </div>
   <div class="card"><div class="ct">YTD Summary</div><div class="grid g4" id="ytdGrid" style="gap:8px;margin-top:4px"></div></div>
+</div>
+
+<div class="page" id="p-pipeline">
+  <!-- Pipeline Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="pipeline-filter active" onclick="filterPipeline('all',this)">All</button>
+      <button class="pipeline-filter" onclick="filterPipeline('Estimate',this)" style="border-color:#f59e0b;color:#f59e0b">Estimates</button>
+      <button class="pipeline-filter" onclick="filterPipeline('Contracted',this)" style="border-color:#8b5cf6;color:#8b5cf6">Contracted</button>
+      <button class="pipeline-filter" onclick="filterPipeline('Invoiced',this)" style="border-color:#3b82f6;color:#3b82f6">Invoiced</button>
+      <button class="pipeline-filter" onclick="filterPipeline('In Progress',this)" style="border-color:#f5a623;color:#f5a623">In Progress</button>
+      <button class="pipeline-filter" onclick="filterPipeline('Completed',this)" style="border-color:#22c55e;color:#22c55e">Completed</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="text" id="pipelineSearch" placeholder="🔍 Search by name, invoice, rep..." 
+        style="background:var(--s2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-family:inherit;font-size:12px;width:260px;outline:none"
+        oninput="searchPipeline(this.value)">
+    </div>
+  </div>
+
+  <!-- Pipeline KPI Row -->
+  <div class="grid g5" id="pipeline-kpis" style="margin-bottom:12px"></div>
+
+  <!-- Pipeline Table -->
+  <div class="card" style="padding:0">
+    <div class="sx">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Invoice/Est #</th>
+            <th>Customer</th>
+            <th>Sales Rep</th>
+            <th>Job Type</th>
+            <th class="num">Total</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pipelineBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Aging Report Page -->
+<div class="page" id="p-aging">
+  <div class="grid g2" style="margin-bottom:12px">
+    <div class="card" style="border-top:3px solid var(--red)">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Total Outstanding Balance</div>
+      <div id="aging-total" style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--red)">$0.00</div>
+      <div id="aging-count" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">Outstanding by Age</div>
+      <div id="aging-buckets" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Customer Aging Report</span>
+      <span style="font-size:11px;color:var(--muted)" id="aging-as-of"></span>
+    </div>
+    <div class="sx">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Invoice #</th>
+            <th>Sales Rep</th>
+            <th class="num">Invoice Total</th>
+            <th class="num">Paid</th>
+            <th class="num">Outstanding</th>
+            <th>Days Outstanding</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="agingBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal-overlay" id="pipelineStatusModal">
+  <div class="modal-content" style="width:380px">
+    <div class="modal-header">
+      <h3>Update Job Status</h3>
+      <button class="btn-secondary" onclick="closeModal('pipelineStatusModal')">✕</button>
+    </div>
+    <div id="ps-job-info" style="background:var(--s2);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px"></div>
+    <div class="form-group">
+      <label>Pipeline Status</label>
+      <select id="ps-status">
+        <option value="Estimate">📋 Estimate</option>
+        <option value="Contracted">✍️ Contracted</option>
+        <option value="Invoiced">🧾 Invoiced</option>
+        <option value="In Progress">🔨 In Progress</option>
+        <option value="Completed">✅ Completed</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('pipelineStatusModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:8px 24px" onclick="savePipelineStatus()">Save</button>
+    </div>
+  </div>
 </div>
 
 <div class="page" id="p-conversion">
@@ -664,6 +783,8 @@ async function buildDashboard(){
   }
   buildWeekSel();buildCommSel();renderMonthly();renderJobs();
   renderConversion();
+  renderPipeline();
+  renderAging();
   if(DATA.weeks.length){
     // Outlook file loaded — show Weekly Summary first
     $('weekSel').value=DATA.weeks.length-1;
@@ -1098,6 +1219,215 @@ function loadCommission(key){
   const pendRows=s.pending.map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num by">${fmt(p.available)}</td></tr>`).join('');
   const othRows=[...(s.scheduled||[]),...(s.unscheduled||[])].map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num bb">${fmt(p.available)}</td></tr>`).join('');
   $('comm-other-section').innerHTML=(pendRows?`<div class="cst">Completed — Pending Payment</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${pendRows}</tbody></table><br>`:'')+( othRows?`<div class="cst">Scheduled / Unscheduled Jobs</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${othRows}</tbody></table>`:'')
+}
+
+// ── PIPELINE FUNCTIONS ────────────────────────────────────────────
+let pipelineData = [];
+let currentPipelineFilter = 'all';
+
+const PIPELINE_STATUSES = ['Estimate','Contracted','Invoiced','In Progress','Completed'];
+const STATUS_COLORS = {
+  'Estimate':'pipe-estimate','Contracted':'pipe-contracted',
+  'Invoiced':'pipe-invoiced','In Progress':'pipe-inprogress','Completed':'pipe-completed'
+};
+
+async function renderPipeline(){
+  // Load from Supabase first
+  if(sb){
+    try {
+      const { data } = await sb.from('jobs').select('*').order('created_at',{ascending:false});
+      if(data && data.length > 0) pipelineData = data;
+    } catch(e){}
+  }
+  // Fall back to Excel data
+  if(!pipelineData.length){
+    pipelineData = DATA.jobs.map(j => ({
+      invoice_number: j.invoice,
+      customer_name: j.customer,
+      sales_rep: j.rep,
+      job_type: j.jobType || '—',
+      invoice_total: j.total,
+      pipeline_status: j.status === 'Completed' ? 'Completed' : j.status === 'In Progress' ? 'In Progress' : 'Invoiced',
+      start_date: j.startDate,
+      outstanding: j.outstanding,
+      job_id: j.invoice
+    }));
+  }
+  displayPipeline(pipelineData);
+  renderKPIs();
+}
+
+function renderKPIs(){
+  const counts = {};
+  PIPELINE_STATUSES.forEach(s => counts[s] = 0);
+  pipelineData.forEach(j => {
+    const s = j.pipeline_status || 'Invoiced';
+    if(counts[s] !== undefined) counts[s]++;
+  });
+  $('pipeline-kpis').innerHTML = PIPELINE_STATUSES.map(s => `
+    <div class="card" style="padding:10px 14px;cursor:pointer;border-top:2px solid currentColor" 
+      class="pipe-${s.toLowerCase().replace(' ','')}"
+      onclick="filterPipeline('${s}',null)">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">${s}</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:4px">${counts[s]}</div>
+    </div>`).join('');
+}
+
+function displayPipeline(data){
+  if(!data || !data.length){
+    $('pipelineBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No jobs found</td></tr>';
+    return;
+  }
+  $('pipelineBody').innerHTML = data.map(j => {
+    const status = j.pipeline_status || 'Invoiced';
+    const badgeClass = STATUS_COLORS[status] || 'pipe-invoiced';
+    const total = parseFloat(j.invoice_total || j.total || 0);
+    const date = j.start_date || j.startDate || j.estimate_date || '';
+    const dateStr = date ? new Date(date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    return `<tr>
+      <td><span class="pipe-badge ${badgeClass}">${status}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice_number||j.invoice||'—'}</td>
+      <td>${j.customer_name||j.customer||'—'}</td>
+      <td>${j.sales_rep||j.rep||'—'}</td>
+      <td>${j.job_type||'—'}</td>
+      <td class="num">${fmt(total)}</td>
+      <td>${dateStr}</td>
+      <td>
+        <button class="btn-secondary" style="font-size:10px;padding:3px 8px" 
+          onclick="openStatusModal('${j.job_id||j.invoice_number||j.invoice}','${j.customer_name||j.customer||''}','${status}')">
+          Update
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterPipeline(status, btn){
+  currentPipelineFilter = status;
+  document.querySelectorAll('.pipeline-filter').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const filtered = status === 'all' ? pipelineData : pipelineData.filter(j => (j.pipeline_status||'Invoiced') === status);
+  displayPipeline(filtered);
+}
+
+function searchPipeline(q){
+  q = q.toLowerCase();
+  const filtered = pipelineData.filter(j =>
+    !q ||
+    (j.customer_name||j.customer||'').toLowerCase().includes(q) ||
+    (j.invoice_number||j.invoice||'').toLowerCase().includes(q) ||
+    (j.sales_rep||j.rep||'').toLowerCase().includes(q) ||
+    (j.customer_phone||'').includes(q)
+  );
+  displayPipeline(currentPipelineFilter === 'all' ? filtered : filtered.filter(j => (j.pipeline_status||'Invoiced') === currentPipelineFilter));
+}
+
+let currentStatusJobId = null;
+function openStatusModal(jobId, customer, currentStatus){
+  currentStatusJobId = jobId;
+  $('ps-job-info').innerHTML = `<strong>${customer}</strong> — Invoice: ${jobId}`;
+  $('ps-status').value = currentStatus;
+  openModal('pipelineStatusModal');
+}
+
+async function savePipelineStatus(){
+  const newStatus = $('ps-status').value;
+  if(!currentStatusJobId || !newStatus) return;
+  if(sb){
+    const { error } = await sb.from('jobs')
+      .update({ pipeline_status: newStatus, status: newStatus === 'Completed' ? 'Completed' : newStatus === 'In Progress' ? 'In Progress' : 'Scheduled' })
+      .eq('invoice_number', currentStatusJobId);
+    if(error){ alert('Error: ' + error.message); return; }
+  }
+  // Update local data
+  const job = pipelineData.find(j => (j.invoice_number||j.invoice) === currentStatusJobId);
+  if(job) job.pipeline_status = newStatus;
+  closeModal('pipelineStatusModal');
+  displayPipeline(currentPipelineFilter === 'all' ? pipelineData : pipelineData.filter(j => (j.pipeline_status||'Invoiced') === currentPipelineFilter));
+  renderKPIs();
+  alert('✓ Status updated to ' + newStatus);
+}
+
+// ── AGING REPORT ──────────────────────────────────────────────────
+async function renderAging(){
+  let jobs = [];
+  if(sb){
+    try {
+      const { data } = await sb.from('jobs').select('*').neq('pipeline_status','Estimate').order('created_at',{ascending:false});
+      if(data) jobs = data;
+    } catch(e){}
+  }
+  if(!jobs.length){
+    jobs = DATA.jobs.map(j => ({
+      invoice_number: j.invoice,
+      customer_name: j.customer,
+      sales_rep: j.rep,
+      invoice_total: j.total,
+      outstanding: j.outstanding || j.total,
+      start_date: j.startDate,
+      pipeline_status: j.status === 'Completed' ? 'Completed' : 'Invoiced'
+    }));
+  }
+
+  // Only show jobs with outstanding balance
+  const outstanding = jobs.filter(j => {
+    const outAmt = parseFloat(j.outstanding || 0);
+    return outAmt > 0 && j.pipeline_status !== 'Estimate' && j.pipeline_status !== 'Contracted';
+  });
+
+  const today = new Date();
+  const totalOut = outstanding.reduce((s, j) => s + parseFloat(j.outstanding||0), 0);
+
+  $('aging-total').textContent = fmt(totalOut);
+  $('aging-count').textContent = outstanding.length + ' invoice' + (outstanding.length !== 1 ? 's' : '') + ' outstanding';
+  $('aging-as-of').textContent = 'As of ' + today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  // Age buckets
+  const buckets = {'Current (0-30 days)':0,'31-60 days':0,'61-90 days':0,'90+ days':0};
+  outstanding.forEach(j => {
+    const date = j.start_date || j.estimate_date;
+    if(!date){ buckets['Current (0-30 days)'] += parseFloat(j.outstanding||0); return; }
+    const days = Math.floor((today - new Date(date+'T12:00:00')) / 86400000);
+    if(days <= 30) buckets['Current (0-30 days)'] += parseFloat(j.outstanding||0);
+    else if(days <= 60) buckets['31-60 days'] += parseFloat(j.outstanding||0);
+    else if(days <= 90) buckets['61-90 days'] += parseFloat(j.outstanding||0);
+    else buckets['90+ days'] += parseFloat(j.outstanding||0);
+  });
+
+  const bucketColors = {'Current (0-30 days)':'#22c55e','31-60 days':'#f5a623','61-90 days':'#ef4444','90+ days':'#991b1b'};
+  $('aging-buckets').innerHTML = Object.entries(buckets).map(([label, amt]) => {
+    const pct = totalOut > 0 ? (amt/totalOut*100).toFixed(0) : 0;
+    return `<div>
+      <div style="display:flex;justify-content:space-between;font-size:12px">
+        <span style="color:var(--muted)">${label}</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:${bucketColors[label]}">${fmt(amt)}</span>
+      </div>
+      <div class="aging-bar"><div class="aging-bar-fill" style="width:${pct}%;background:${bucketColors[label]}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Aging table — sort by outstanding amount desc
+  const sorted = [...outstanding].sort((a,b) => parseFloat(b.outstanding||0) - parseFloat(a.outstanding||0));
+  $('agingBody').innerHTML = sorted.map(j => {
+    const total = parseFloat(j.invoice_total||0);
+    const out = parseFloat(j.outstanding||0);
+    const paid = total - out;
+    const date = j.start_date || j.estimate_date;
+    const days = date ? Math.floor((today - new Date(date+'T12:00:00')) / 86400000) : null;
+    const daysColor = days === null ? 'var(--muted)' : days > 90 ? '#ef4444' : days > 60 ? '#f97316' : days > 30 ? '#f5a623' : '#22c55e';
+    const status = j.pipeline_status || 'Invoiced';
+    const badgeClass = STATUS_COLORS[status] || 'pipe-invoiced';
+    return `<tr>
+      <td>${j.customer_name||j.customer||'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice_number||j.invoice||'—'}</td>
+      <td>${j.sales_rep||j.rep||'—'}</td>
+      <td class="num">${fmt(total)}</td>
+      <td class="num pos">${fmt(paid)}</td>
+      <td class="num neg" style="font-weight:600">${fmt(out)}</td>
+      <td style="color:${daysColor};font-weight:600">${days !== null ? days + ' days' : '—'}</td>
+      <td><span class="pipe-badge ${badgeClass}">${status}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 function renderConversion(){
