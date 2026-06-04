@@ -1394,8 +1394,10 @@ async function renderAging(){
     const total = parseFloat(j.invoice_total||0);
     const out = parseFloat(j.outstanding||0);
     const paid = total - out;
-    const date = j.start_date || j.estimate_date;
-    const days = date ? Math.floor((today - new Date(date+'T12:00:00')) / 86400000) : null;
+    // Use created_at for days outstanding — start_date is used by Yvonne
+    // for overhead/labour sorting and may be set to future dates intentionally
+    const dateForAging = j.created_at || j.estimate_date;
+    const days = dateForAging ? Math.floor((today - new Date(dateForAging)) / 86400000) : null;
     const daysColor = days === null ? 'var(--muted)' : days > 90 ? '#ef4444' : days > 60 ? '#f97316' : days > 30 ? '#f5a623' : '#22c55e';
     const status = j.pipeline_status || 'Invoiced';
     const badgeClass = STATUS_COLORS[status] || 'pipe-invoiced';
