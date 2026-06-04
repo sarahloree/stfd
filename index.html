@@ -34,6 +34,15 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .pipe-inprogress{background:rgba(245,166,35,.15);color:#f5a623}
 .pipe-completed{background:rgba(34,197,94,.15);color:#22c55e}
 .aging-bar{height:6px;border-radius:3px;background:var(--s2);overflow:hidden;margin-top:4px}
+.search-result-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+.search-result-item:hover{background:var(--s2)}
+.search-result-item:last-child{border-bottom:none}
+.sr-invoice{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);margin-right:8px}
+.sr-customer{font-size:13px;font-weight:500;color:var(--text)}
+.sr-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.sr-badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:6px}
+.search-no-results{padding:16px;text-align:center;color:var(--muted);font-size:13px}
+#globalSearch:focus{border-color:var(--accent);background:var(--s1)}
 .aging-bar-fill{height:100%;border-radius:3px;transition:width .3s}
 .login-error{color:var(--red);font-size:12px;text-align:center;display:none}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;align-items:center;justify-content:center}
@@ -324,6 +333,12 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
     <select id="weekSel" onchange="loadWeek(this.value)"></select>
     <div class="sb-status" id="sbStatus"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live</div>
+    <div style="position:relative">
+      <input type="text" id="globalSearch" placeholder="🔍 Search clients, invoices..." 
+        style="background:var(--s2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-family:inherit;font-size:12px;width:220px;outline:none"
+        oninput="globalSearchFn(this.value)" onfocus="showSearchResults()" onblur="setTimeout(()=>hideSearchResults(),200)">
+      <div id="searchResults" style="display:none;position:absolute;top:32px;left:0;width:480px;background:var(--s1);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:999;max-height:400px;overflow-y:auto"></div>
+    </div>
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newInvoiceModal')">📋 New Invoice</button>
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newJobModal')">+ New Job</button>
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newPaymentModal')">+ Payment</button>
@@ -1220,6 +1235,114 @@ function loadCommission(key){
   const othRows=[...(s.scheduled||[]),...(s.unscheduled||[])].map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num bb">${fmt(p.available)}</td></tr>`).join('');
   $('comm-other-section').innerHTML=(pendRows?`<div class="cst">Completed — Pending Payment</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${pendRows}</tbody></table><br>`:'')+( othRows?`<div class="cst">Scheduled / Unscheduled Jobs</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${othRows}</tbody></table>`:'')
 }
+
+// ── GLOBAL CLIENT SEARCH ─────────────────────────────────────────
+function globalSearchFn(q){
+  const res = document.getElementById('searchResults');
+  if(!q || q.length < 2){ res.style.display='none'; return; }
+  q = q.toLowerCase();
+
+  // Search across Supabase jobs + Excel jobs
+  const allJobs = [
+    ...sbJobs.map(j => ({
+      invoice: j.invoice_number,
+      customer: j.customer_name,
+      rep: j.sales_rep,
+      total: j.invoice_total,
+      status: j.pipeline_status || j.status || '—',
+      phone: j.customer_phone || '',
+      source: 'db'
+    })),
+    ...DATA.jobs.map(j => ({
+      invoice: j.invoice,
+      customer: j.customer,
+      rep: j.rep,
+      total: j.total,
+      status: j.status || '—',
+      phone: '',
+      source: 'excel'
+    }))
+  ];
+
+  // Deduplicate by invoice number (prefer DB version)
+  const seen = new Set();
+  const deduped = allJobs.filter(j => {
+    if(seen.has(j.invoice)) return false;
+    seen.add(j.invoice); return true;
+  });
+
+  // Filter by query
+  const matches = deduped.filter(j =>
+    (j.customer||'').toLowerCase().includes(q) ||
+    (j.invoice||'').toLowerCase().includes(q) ||
+    (j.rep||'').toLowerCase().includes(q) ||
+    (j.phone||'').includes(q)
+  ).slice(0, 15);
+
+  if(!matches.length){
+    res.innerHTML = '<div class="search-no-results">No results found for "' + q + '"</div>';
+    res.style.display = 'block';
+    return;
+  }
+
+  const statusColors = {
+    'Completed':'#22c55e','In Progress':'#f5a623',
+    'Invoiced':'#60a5fa','Contracted':'#8b5cf6',
+    'Estimate':'#f59e0b','Scheduled':'#60a5fa'
+  };
+
+  res.innerHTML = matches.map(j => {
+    const color = statusColors[j.status] || '#64748b';
+    return `<div class="search-result-item" onclick="openJobFromSearch('${(j.invoice||'').replace(/'/g,"\'")}')">
+      <div>
+        <span class="sr-invoice">${j.invoice||'—'}</span>
+        <span class="sr-customer">${j.customer||'—'}</span>
+        <span class="sr-badge" style="background:${color}22;color:${color}">${j.status}</span>
+      </div>
+      <div class="sr-meta">
+        Rep: ${j.rep||'—'} &nbsp;·&nbsp; Total: ${fmt(j.total||0)}
+        ${j.phone ? ' &nbsp;·&nbsp; ' + j.phone : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  res.style.display = 'block';
+}
+
+function showSearchResults(){
+  const q = document.getElementById('globalSearch').value;
+  if(q && q.length >= 2) globalSearchFn(q);
+}
+
+function hideSearchResults(){
+  document.getElementById('searchResults').style.display = 'none';
+}
+
+function openJobFromSearch(invoice){
+  // Navigate to Job Costs tab and highlight the job
+  hideSearchResults();
+  document.getElementById('globalSearch').value = '';
+  showTab('jobs');
+  // Find and highlight the row
+  setTimeout(() => {
+    const rows = document.querySelectorAll('#jobsBody tr');
+    for(const row of rows){
+      if(row.textContent.includes(invoice)){
+        row.style.background = 'rgba(245,166,35,.15)';
+        row.scrollIntoView({behavior:'smooth', block:'center'});
+        setTimeout(() => row.style.background = '', 3000);
+        break;
+      }
+    }
+  }, 300);
+}
+
+// Close search on click outside
+document.addEventListener('click', e => {
+  if(!e.target.closest('#globalSearch') && !e.target.closest('#searchResults')){
+    hideSearchResults();
+  }
+});
 
 // ── PIPELINE FUNCTIONS ────────────────────────────────────────────
 let pipelineData = [];
