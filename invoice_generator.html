@@ -45,6 +45,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--te
 .li-amt{font-family:'DM Mono',monospace;font-weight:500;color:var(--navy)}
 .btn-add{background:none;border:1.5px dashed var(--border);border-radius:8px;padding:8px;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;width:100%;margin-bottom:8px;transition:all .15s}
 .btn-add:hover{border-color:var(--blue);color:var(--blue)}
+.jt-check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .1s}
+.jt-check:hover{background:var(--light-blue)}
+.jt-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--blue);cursor:pointer}
+.rt-toolbar{display:flex;gap:4px;padding:6px 8px;background:var(--off-white);border:1.5px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0}
+.rt-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:inherit;font-size:12px;cursor:pointer;color:var(--text);transition:all .1s;min-width:28px}
+.rt-btn:hover,.rt-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.rt-editor{background:var(--off-white);border:1.5px solid var(--border);border-radius:0 0 8px 8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);min-height:60px;outline:none;width:100%;line-height:1.6}
+.rt-editor:focus{background:#fff;border-color:var(--navy)}
+.rt-editor:empty:before{content:attr(data-placeholder);color:var(--gray)}
 .btn-del{background:none;border:none;color:var(--gray);cursor:pointer;font-size:18px;line-height:1;padding:0 2px}
 .btn-del:hover{color:var(--red)}
 
@@ -175,18 +184,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--te
           <option value="0.03">3% — Shared commercial</option>
         </select>
       </div>
-      <div class="field"><label>Job Type</label>
-        <select id="inv-jobtype">
-          <option value="Custom Fence">Custom Fence</option>
-          <option value="Wood Privacy">Wood Privacy</option>
-          <option value="Chain Link">Chain Link</option>
-          <option value="Decorative Metal">Decorative Metal</option>
-          <option value="Vinyl">Vinyl</option>
-          <option value="Ranch/Field Fence">Ranch/Field Fence</option>
-          <option value="Deck &amp; Covers">Deck &amp; Covers</option>
-          <option value="Repair &amp; Others">Repair &amp; Others</option>
-          <option value="Gate Automation">Gate Automation</option>
-        </select>
+      <div class="field">
+        <label>Job Type <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray)">(select all that apply)</span></label>
+        <div style="background:var(--off-white);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 16px">
+          <label class="jt-check"><input type="checkbox" value="Wood Privacy"> Wood Privacy</label>
+          <label class="jt-check"><input type="checkbox" value="Chain Link"> Chain Link</label>
+          <label class="jt-check"><input type="checkbox" value="Decorative Metal"> Decorative Metal</label>
+          <label class="jt-check"><input type="checkbox" value="Vinyl"> Vinyl</label>
+          <label class="jt-check"><input type="checkbox" value="Ranch/Field Fence"> Ranch/Field Fence</label>
+          <label class="jt-check"><input type="checkbox" value="Custom Fence"> Custom Fence</label>
+          <label class="jt-check"><input type="checkbox" value="Deck &amp; Covers"> Deck &amp; Covers</label>
+          <label class="jt-check"><input type="checkbox" value="Repair &amp; Others"> Repair &amp; Others</label>
+          <label class="jt-check"><input type="checkbox" value="Gate Automation"> Gate Automation</label>
+        </div>
       </div>
     </div>
   </div>
@@ -305,11 +315,21 @@ function addLine(desc='', qty=1, price=0){
   const tr = document.createElement('tr');
   tr.id = 'line-' + id;
   tr.innerHTML = `
-    <td><input type="text" placeholder="Description of work or materials" value="${desc}" oninput="calcTotals()" id="desc-${id}"></td>
-    <td><input type="number" value="${qty||''}" min="0" step="0.01" style="text-align:right;width:70px" oninput="calcTotals()" id="qty-${id}"></td>
-    <td><input type="number" value="${price||''}" min="0" step="0.01" placeholder="0.00" style="text-align:right;width:100px" oninput="calcTotals()" id="price-${id}"></td>
-    <td class="li-amt" id="amt-${id}">$0.00</td>
-    <td><button class="btn-del" onclick="delLine(${id})">×</button></td>
+    <td style="vertical-align:top;padding:6px 8px">
+      <div class="rt-toolbar">
+        <button class="rt-btn" onmousedown="event.preventDefault();document.execCommand('bold')" title="Bold"><b>B</b></button>
+        <button class="rt-btn" onmousedown="event.preventDefault();document.execCommand('italic')" title="Italic"><i>I</i></button>
+        <button class="rt-btn" onmousedown="event.preventDefault();document.execCommand('underline')" title="Underline"><u>U</u></button>
+        <button class="rt-btn" onmousedown="event.preventDefault();document.execCommand('insertUnorderedList')" title="Bullet list">• List</button>
+      </div>
+      <div class="rt-editor" contenteditable="true" id="desc-${id}" 
+        data-placeholder="Description of work or materials (supports bold, italic, underline)"
+        oninput="calcTotals()">${desc||''}</div>
+    </td>
+    <td style="vertical-align:top"><input type="number" value="${qty||''}" min="0" step="0.01" style="text-align:right;width:70px;margin-top:36px" oninput="calcTotals()" id="qty-${id}"></td>
+    <td style="vertical-align:top"><input type="number" value="${price||''}" min="0" step="0.01" placeholder="0.00" style="text-align:right;width:100px;margin-top:36px" oninput="calcTotals()" id="price-${id}"></td>
+    <td class="li-amt" style="vertical-align:top;padding-top:42px" id="amt-${id}">$0.00</td>
+    <td style="vertical-align:top;padding-top:38px"><button class="btn-del" onclick="delLine(${id})">×</button></td>
   `;
   tbody.appendChild(tr);
   calcTotals();
@@ -344,7 +364,9 @@ function getLines(){
   const items = [];
   document.querySelectorAll('#lineBody tr').forEach(tr => {
     const id = tr.id.replace('line-','');
-    const desc = document.getElementById('desc-'+id)?.value||'';
+    const descEl = document.getElementById('desc-'+id);
+    // Use innerHTML for rich text, strip if empty placeholder
+    const desc = descEl ? (descEl.innerHTML||'').replace(/<br\s*\/?>/gi,'').trim() : '';
     const qty = parseFloat(document.getElementById('qty-'+id)?.value)||0;
     const price = parseFloat(document.getElementById('price-'+id)?.value)||0;
     if(desc||price>0) items.push({desc,qty,price,amount:qty*price});
@@ -366,6 +388,7 @@ function previewInvoice(){
   const dueDate = fmtDate(document.getElementById('inv-due').value);
   const terms = document.getElementById('inv-terms').value;
   const rep = document.getElementById('inv-rep').value;
+  const jobTypes = Array.from(document.querySelectorAll('.jt-check input:checked')).map(c=>c.value).join(', ');
   const custName = document.getElementById('cust-name').value||'';
   const custAddr = document.getElementById('cust-addr').value||'';
   const custCity = document.getElementById('cust-city').value||'';
@@ -486,6 +509,7 @@ async function saveInvoice(){
   const invNum = document.getElementById('inv-num').value.trim();
   const custName = document.getElementById('cust-name').value.trim();
   const rep = document.getElementById('inv-rep').value;
+  const jobTypes = Array.from(document.querySelectorAll('.jt-check input:checked')).map(c=>c.value).join(', ');
   const {sub,tax,total} = calcTotals();
   const rate = parseFloat(document.getElementById('inv-rate').value)||0.06;
 
@@ -503,7 +527,7 @@ async function saveInvoice(){
     customer_name: custName,
     customer_address: [document.getElementById('cust-addr').value, document.getElementById('cust-city').value, document.getElementById('cust-state').value, document.getElementById('cust-zip').value].filter(Boolean).join(', '),
     sales_rep: rep||'Unassigned',
-    job_type: document.getElementById('inv-jobtype').value||'Custom Fence',
+    job_type: Array.from(document.querySelectorAll('.jt-check input:checked')).map(c=>c.value).join(', ')||'Custom Fence',
     invoice_total: Math.round(total*100)/100,
     material_cost: 0, field_labour_cost: 0,
     commission_rate: rate,
