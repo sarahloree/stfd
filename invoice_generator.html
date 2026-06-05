@@ -45,9 +45,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--te
 .li-amt{font-family:'DM Mono',monospace;font-weight:500;color:var(--navy)}
 .btn-add{background:none;border:1.5px dashed var(--border);border-radius:8px;padding:8px;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;width:100%;margin-bottom:8px;transition:all .15s}
 .btn-add:hover{border-color:var(--blue);color:var(--blue)}
-.jt-check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .1s}
-.jt-check:hover{background:var(--light-blue)}
-.jt-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--blue);cursor:pointer}
+.jt-check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);cursor:pointer;padding:6px 10px;border-radius:6px;border:1.5px solid var(--border);transition:all .1s;background:#fff;user-select:none}
+.jt-check:hover{border-color:var(--blue);background:#f0f7ff}
+.jt-check input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+.jt-check:has(input:checked){border-color:var(--blue);background:#e8f4ff;color:var(--navy);font-weight:500}
 .rt-toolbar{display:flex;gap:4px;padding:6px 8px;background:var(--off-white);border:1.5px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0}
 .rt-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:inherit;font-size:12px;cursor:pointer;color:var(--text);transition:all .1s;min-width:28px}
 .rt-btn:hover,.rt-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -187,15 +188,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--te
       <div class="field">
         <label>Job Type <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray)">(select all that apply)</span></label>
         <div style="background:var(--off-white);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 16px">
-          <label class="jt-check"><input type="checkbox" value="Wood Privacy"> Wood Privacy</label>
-          <label class="jt-check"><input type="checkbox" value="Chain Link"> Chain Link</label>
-          <label class="jt-check"><input type="checkbox" value="Decorative Metal"> Decorative Metal</label>
-          <label class="jt-check"><input type="checkbox" value="Vinyl"> Vinyl</label>
-          <label class="jt-check"><input type="checkbox" value="Ranch/Field Fence"> Ranch/Field Fence</label>
-          <label class="jt-check"><input type="checkbox" value="Custom Fence"> Custom Fence</label>
-          <label class="jt-check"><input type="checkbox" value="Deck &amp; Covers"> Deck &amp; Covers</label>
-          <label class="jt-check"><input type="checkbox" value="Repair &amp; Others"> Repair &amp; Others</label>
-          <label class="jt-check"><input type="checkbox" value="Gate Automation"> Gate Automation</label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt1" value="Wood Privacy"><span> Wood Privacy</span></label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt2" value="Chain Link"><span> Chain Link</span></label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt3" value="Decorative Metal"><span> Decorative Metal</span></label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt4" value="Vinyl"><span> Vinyl</span></label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt5" value="Ranch/Field Fence"><span> Ranch/Field Fence</span></label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt6" value="Custom Fence"><span> Custom Fence</span></label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt7" value="Deck &amp; Covers"><span> Deck &amp; Covers</span></label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt8" value="Repair &amp; Others"><span> Repair &amp; Others</span></label>
+          <label class="jt-check"><input type="checkbox" name="jobtype" id="jt9" value="Gate Automation"><span> Gate Automation</span></label>
         </div>
       </div>
     </div>
