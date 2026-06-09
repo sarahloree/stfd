@@ -699,8 +699,6 @@ async function buildDashboard(){
   }
   buildWeekSel();buildCommSel();renderMonthly();renderJobs();
   renderConversion();
-  renderPipeline();
-  renderAging();
   if(DATA.weeks.length){
     $('weekSel').value=DATA.weeks.length-1;
     loadWeek(DATA.weeks.length-1);
@@ -711,8 +709,8 @@ async function buildDashboard(){
   // Load Supabase data and re-render
   await loadSbJobs();
   renderJobs();
-  try { renderPipeline(); } catch(e) {}
-  try { renderAging(); } catch(e) {}
+  if(typeof renderPipeline === 'function') renderPipeline();
+  if(typeof renderAging === 'function') renderAging();
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm','fi-comm-paul','fi-comm-jeff','fi-comm-sherrell','fi-comm-taylor','fi-comm-jery','fi-conversion','fi-monthly'].forEach(id=>{const el=$(id);if(el){el.classList.remove('loaded');const st=el.querySelector('.fi-status');if(st)st.textContent='Not loaded';}});Object.keys(STATE).forEach(k=>STATE[k]=null)}
 
@@ -939,14 +937,7 @@ async function syncToSupabase(jobs, payments){
         if(isNaN(n)) return 0.06;
         return n > 1 ? n/100 : n;
       })(),
-      start_date: (()=>{
-        const d = j.startDate;
-        if(!d) return null;
-        const s = String(d).trim();
-        // Only accept YYYY-MM-DD format, reject day names like Mon/Wed/Sun
-        if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-        return null;
-      })(),
+      // start_date excluded — Yvonne uses non-standard values in this field
       status: j.status||'Scheduled',
       outstanding: parseFloat(j.outstanding)||0,
       is_commercial: false,
