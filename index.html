@@ -9,11 +9,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-:root{--bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;--border:#2a2f45;--accent:#f5a623;--green:#22c55e;--red:#ef4444;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee;--orange:#fb923c;--text:#e2e8f0;--muted:#64748b;--dim:#3a4060}
+:root{--bg:#f1f5f9;--s1:#ffffff;--s2:#f8fafc;--s3:#e2e8f0;--border:#cbd5e1;--accent:#c8922a;--green:#16a34a;--red:#dc2626;--blue:#2563eb;--purple:#7c3aed;--cyan:#0891b2;--orange:#ea580c;--text:#1e293b;--muted:#64748b;--dim:#94a3b8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;min-height:100vh}
-#loginScreen{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
-.login-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:32px 40px;width:360px;display:flex;flex-direction:column;gap:16px}
+#loginScreen{position:fixed;inset:0;background:#1e293b;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.login-box{background:#ffffff;border:1px solid var(--border);border-radius:12px;padding:32px 40px;width:360px;display:flex;flex-direction:column;gap:16px}
 .login-box h2{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);text-align:center;letter-spacing:2px}
 .login-box p{font-size:12px;color:var(--muted);text-align:center}
 .form-group{display:flex;flex-direction:column;gap:6px}
@@ -53,7 +53,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .file-item.loaded .fi-status{color:var(--green)}
 .btn-load{padding:12px 32px;background:var(--accent);color:#000;border:none;border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:none}
 .btn-load.visible{display:block}/*always show after login*/
-.hdr{background:var(--s1);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:stretch;position:sticky;top:0;z-index:200}
+.hdr{background:#1e293b;border-bottom:1px solid #334155;padding:0 20px;display:flex;align-items:stretch;position:sticky;top:0;z-index:200}
 .logo{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;letter-spacing:3px;color:var(--accent)}
 .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
 .hdr-brand{display:flex;align-items:center;padding:12px 20px 12px 0;border-right:1px solid var(--border);margin-right:4px}
@@ -1234,7 +1234,20 @@ function showTab(id){
   if(page)page.classList.add('active');
 }
 
-function buildWeekSel(){const s=$('weekSel');s.innerHTML='';DATA.weeks.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`Wk ${w.week} — ${w.start}`;s.appendChild(o)})}
+function buildWeekSel(){
+  const s=$('weekSel');s.innerHTML='';
+  DATA.weeks.forEach((w,i)=>{
+    const o=document.createElement('option');
+    o.value=i;
+    // Handle both Excel-parsed and Supabase-loaded week data
+    const label = w.start || w.startDate || w.label || '';
+    const dateStr = label ? new Date(label+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    const end = w.end || w.endDate || '';
+    const endStr = end ? ' — '+new Date(end+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    o.textContent = `Wk ${w.week||i+1}${dateStr?' — '+dateStr:''}${endStr}`;
+    s.appendChild(o);
+  });
+}
 
 function buildCommSel(){
   // Populate REP selector from jobs data so it works with just Job Costs file
