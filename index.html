@@ -630,7 +630,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <script>
 const STATE={outlook:null,jobs:null,schedule:null,commissions:null,conversion:null,monthly:null}; // commissions becomes array when files loaded
-let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{},conversion:{months:[],jobTypes:{}},monthlyAvg:{},excelPayments:[]};
+let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{},conversion:{months:[],jobTypes:{}},monthlyAvg:{},excelPayments:[],conversionRows:[]};
 let charts={};
 const IC=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'];
 const $=id=>document.getElementById(id);
@@ -1487,17 +1487,25 @@ async function loadAllSupabaseData() {
     // Load weekly summary
     const {data:weekly} = await sb.from('weekly_summary').select('*').order('week_number');
     if(weekly && weekly.length && DATA.weeks.length === 0){
-      DATA.weeks = weekly.map(w => ({
-        week: w.week_number,
-        startDate: w.start_date,
-        endDate: w.end_date,
-        invoiceTotal: parseFloat(w.invoice_total)||0,
-        material: parseFloat(w.material_cost)||0,
-        fieldLabour: parseFloat(w.field_labour)||0,
-        commission: parseFloat(w.commission)||0,
-        netProfit: parseFloat(w.net_profit)||0,
-        overhead: parseFloat(w.overhead)||0,
-      }));
+      DATA.weeks = weekly.map(w => {
+        const inv = parseFloat(w.invoice_total)||0;
+        const mat = parseFloat(w.material_cost)||0;
+        const fl = parseFloat(w.field_labour)||0;
+        const comm = parseFloat(w.commission)||0;
+        const oh = parseFloat(w.overhead)||0;
+        const np = parseFloat(w.net_profit)||0;
+        return {
+          week: w.week_number,
+          startDate: w.start_date,
+          endDate: w.end_date,
+          inv, mat, fl, comm,
+          oh, sp: 0,
+          ohPct: inv > 0 ? oh/inv : 0,
+          spPct: 0,
+          wp: np, mp: np,
+          label: w.start_date ? new Date(w.start_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'Wk '+w.week_number
+        };
+      });
       buildWeekSel();
       if(DATA.weeks.length){
         $('weekSel').value = DATA.weeks.length-1;
@@ -1522,12 +1530,18 @@ async function loadAllSupabaseData() {
     // Load conversion analysis
     const {data:conv} = await sb.from('conversion_analysis').select('*').order('start_date');
     if(conv && conv.length){
-      DATA.conversion = {
-        months: conv.map(c => c.start_date ? new Date(c.start_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}) : ''),
-        conversionRates: conv.map(c => parseFloat(c.conversion_rate)||0),
-        jobTypes: {}
-      };
-      renderConversion();
+      // Store raw conversion data for renderConversion
+      DATA.conversionRows = conv.map(c => ({
+        startDate: c.start_date,
+        endDate: c.end_date,
+        converted: parseInt(c.jobs_converted)||0,
+        quoted: parseInt(c.jobs_quoted)||0,
+        rate: parseFloat(c.conversion_rate)||0,
+        totalConverted: parseFloat(c.invoice_total_converted)||0,
+        totalQuoted: parseFloat(c.invoice_total_quoted)||0,
+      }));
+      // Only call renderConversion if it can handle this data safely
+      try { renderConversion(); } catch(e) { console.log('Conversion render skipped:', e.message); }
     }
   } catch(e) { console.error('loadAllSupabaseData error:', e); }
 }
