@@ -674,7 +674,14 @@ function readWB(file){return new Promise(res=>{const r=new FileReader();r.onload
 async function buildDashboard(){
   $('loadScreen').style.display='none';$('dashboard').style.display='block';
   if(STATE.outlook){const wb=await readWB(STATE.outlook);DATA.weeks=parseWeekly(wb);DATA.income=parseIncome(wb);DATA.monthly=parseMonthly(wb)}
-  if(STATE.jobs){const wb=await readWB(STATE.jobs);DATA.jobs=parseJobs(wb);DATA.excelPayments=parsePaymentsFromJobs(wb);console.log('After load: jobs=',DATA.jobs.length,'excelPayments=',DATA.excelPayments.length);}
+  if(STATE.jobs){
+    const wb=await readWB(STATE.jobs);
+    DATA.jobs=parseJobs(wb);
+    DATA.excelPayments=parsePaymentsFromJobs(wb);
+    console.log('After load: jobs=',DATA.jobs.length,'excelPayments=',DATA.excelPayments.length);
+    // Auto-sync to Supabase — no manual SQL needed
+    if(sb) await syncToSupabase(DATA.jobs, DATA.excelPayments);
+  }
   if(STATE.schedule){const wb=await readWB(STATE.schedule);DATA.schedules=parseSched(wb)}
   if(STATE.conversion){const wb=await readWB(STATE.conversion);DATA.conversion=parseConversion(wb)}
   if(STATE.monthly){const wb=await readWB(STATE.monthly);DATA.monthlyAvg=parseMonthlyAvg(wb)}
@@ -689,17 +696,20 @@ async function buildDashboard(){
   }
   buildWeekSel();buildCommSel();renderMonthly();renderJobs();
   renderConversion();
+  renderPipeline();
+  renderAging();
   if(DATA.weeks.length){
-    // Outlook file loaded — show Weekly Summary first
     $('weekSel').value=DATA.weeks.length-1;
     loadWeek(DATA.weeks.length-1);
     showTab('weekly');
   } else if(DATA.jobs.length){
-    // No Outlook file — default to Job Costs tab
     showTab('jobs');
   }
-  // Always merge Supabase jobs into dashboard
-  loadSbJobs();
+  // Load Supabase data and re-render
+  await loadSbJobs();
+  renderJobs();
+  renderPipeline();
+  renderAging();
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm','fi-comm-paul','fi-comm-jeff','fi-comm-sherrell','fi-comm-taylor','fi-comm-jery','fi-conversion','fi-monthly'].forEach(id=>{const el=$(id);if(el){el.classList.remove('loaded');const st=el.querySelector('.fi-status');if(st)st.textContent='Not loaded';}});Object.keys(STATE).forEach(k=>STATE[k]=null)}
 
@@ -904,6 +914,65 @@ function parseMonthlyAvg(wb){
     data[m].max=parseFloat(r[9+1])||0;
   });
   return data;
+}
+
+async function syncToSupabase(jobs, payments){
+  if(!sb || !jobs.length) return;
+  try {
+    // ── UPSERT JOBS ──────────────────────────────────────────────
+    const jobRows = jobs.map(j => ({
+      invoice_number: String(j.invoice||'').trim(),
+      customer_name: String(j.customer||'').trim().substring(0,200),
+      sales_rep: String(j.rep||'').trim(),
+      job_type: j.jobType || 'Custom Fence',
+      invoice_total: parseFloat(j.total)||0,
+      material_cost: parseFloat(j.mat)||0,
+      field_labour_cost: parseFloat(j.fl)||0,
+      commission_rate: j.commRate ? parseFloat(j.commRate)/100 : 0.06,
+      start_date: j.startDate||null,
+      status: j.status||'Scheduled',
+      outstanding: parseFloat(j.outstanding)||0,
+      is_commercial: false,
+      notes: ''
+    })).filter(j => j.invoice_number && j.invoice_number.match(/[0-9]/));
+
+    // Batch upsert in chunks of 50
+    for(let i=0; i<jobRows.length; i+=50){
+      const batch = jobRows.slice(i, i+50);
+      const {error} = await sb.from('jobs').upsert(batch, {onConflict:'invoice_number'});
+      if(error) console.error('Job upsert error:', error.message);
+    }
+    console.log('✓ Synced', jobRows.length, 'jobs to Supabase');
+
+    // ── UPSERT PAYMENTS ──────────────────────────────────────────
+    if(payments && payments.length){
+      // Clear and re-insert all payment records from this file
+      await sb.from('historical_commission_entries').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      const payRows = payments.map(p => ({
+        invoice_number: String(p.invoice_number||'').trim(),
+        customer_name: String(p.customer_name||'').trim().substring(0,200),
+        rep_name: String(p.rep_name||'').trim(),
+        week_ending: p.week_ending||null,
+        invoice_total: parseFloat(p.invoice_total)||0,
+        commission_rate: parseFloat(p.commission_rate)||0.06,
+        total_commission: parseFloat(p.total_commission)||0,
+        payment_received: parseFloat(p.payment_received)||0,
+        commission_on_payment: parseFloat(p.commission_on_payment)||0,
+        pre_paid: parseFloat(p.pre_paid)||0,
+        available: parseFloat(p.available)||0
+      })).filter(p => p.invoice_number && p.payment_received > 0);
+
+      for(let i=0; i<payRows.length; i+=50){
+        const batch = payRows.slice(i, i+50);
+        const {error} = await sb.from('historical_commission_entries').insert(batch);
+        if(error) console.error('Payment insert error:', error.message);
+      }
+      console.log('✓ Synced', payRows.length, 'payments to Supabase');
+    }
+  } catch(e){
+    console.error('Supabase sync error:', e);
+  }
 }
 
 function parsePaymentsFromJobs(wb){
