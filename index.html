@@ -711,8 +711,8 @@ async function buildDashboard(){
   // Load Supabase data and re-render
   await loadSbJobs();
   renderJobs();
-  renderPipeline();
-  renderAging();
+  try { renderPipeline(); } catch(e) {}
+  try { renderAging(); } catch(e) {}
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm','fi-comm-paul','fi-comm-jeff','fi-comm-sherrell','fi-comm-taylor','fi-comm-jery','fi-conversion','fi-monthly'].forEach(id=>{const el=$(id);if(el){el.classList.remove('loaded');const st=el.querySelector('.fi-status');if(st)st.textContent='Not loaded';}});Object.keys(STATE).forEach(k=>STATE[k]=null)}
 
@@ -931,8 +931,22 @@ async function syncToSupabase(jobs, payments){
       invoice_total: parseFloat(j.total)||0,
       material_cost: parseFloat(j.mat)||0,
       field_labour_cost: parseFloat(j.fl)||0,
-      commission_rate: j.commRate ? parseFloat(j.commRate)/100 : 0.06,
-      start_date: j.startDate||null,
+      commission_rate: (()=>{
+        const r = j.commRate;
+        if(!r) return 0.06;
+        const s = String(r).replace('%','').trim();
+        const n = parseFloat(s);
+        if(isNaN(n)) return 0.06;
+        return n > 1 ? n/100 : n;
+      })(),
+      start_date: (()=>{
+        const d = j.startDate;
+        if(!d) return null;
+        const s = String(d).trim();
+        // Only accept YYYY-MM-DD format, reject day names like Mon/Wed/Sun
+        if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+        return null;
+      })(),
       status: j.status||'Scheduled',
       outstanding: parseFloat(j.outstanding)||0,
       is_commercial: false,
