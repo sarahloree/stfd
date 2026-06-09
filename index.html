@@ -1430,6 +1430,7 @@ async function doLogin() {
     // Initialize Supabase and load all persisted data
     initSupabase();
     await loadSbJobs();
+    await loadAllSupabaseData();
 
     // Populate UI from Supabase data
     buildCommSel();
@@ -1437,8 +1438,9 @@ async function doLogin() {
     if(typeof renderPipeline==='function') renderPipeline();
     if(typeof renderAging==='function') renderAging();
 
-    // Show Jobs tab by default (always has data from Supabase)
-    showTab('jobs');
+    // Show appropriate default tab
+    if(DATA.weeks.length) showTab('weekly');
+    else showTab('jobs');
 
     // Show the Excel upload button in the header for optional refresh
     const reloadBtn = document.getElementById('reloadBtn');
@@ -1458,7 +1460,6 @@ async function loadSbJobs() {
     const { data, error } = await sb.from('jobs').select('*').order('created_at', { ascending: false });
     if (!error && data) {
       sbJobs = data;
-      // Always populate DATA.jobs from Supabase if Excel not loaded
       if(data.length > 0 && DATA.jobs.length === 0){
         DATA.jobs = data.map(j => ({
           invoice: j.invoice_number,
@@ -1475,9 +1476,60 @@ async function loadSbJobs() {
           profit: (parseFloat(j.invoice_total)||0)-(parseFloat(j.material_cost)||0)-(parseFloat(j.field_labour_cost)||0)-((parseFloat(j.invoice_total)||0)*(parseFloat(j.commission_rate)||0.06))
         }));
       }
-      if (data.length > 0) mergeSbJobsIntoDashboard(data);
+      if(data.length > 0) mergeSbJobsIntoDashboard(data);
     }
   } catch(e) { console.error('loadSbJobs error:', e); }
+}
+
+async function loadAllSupabaseData() {
+  if(!sb) return;
+  try {
+    // Load weekly summary
+    const {data:weekly} = await sb.from('weekly_summary').select('*').order('week_number');
+    if(weekly && weekly.length && DATA.weeks.length === 0){
+      DATA.weeks = weekly.map(w => ({
+        week: w.week_number,
+        startDate: w.start_date,
+        endDate: w.end_date,
+        invoiceTotal: parseFloat(w.invoice_total)||0,
+        material: parseFloat(w.material_cost)||0,
+        fieldLabour: parseFloat(w.field_labour)||0,
+        commission: parseFloat(w.commission)||0,
+        netProfit: parseFloat(w.net_profit)||0,
+        overhead: parseFloat(w.overhead)||0,
+      }));
+      buildWeekSel();
+      if(DATA.weeks.length){
+        $('weekSel').value = DATA.weeks.length-1;
+        loadWeek(DATA.weeks.length-1);
+      }
+    }
+    // Load monthly sales
+    const {data:monthly} = await sb.from('monthly_sales').select('*').order('month_number');
+    if(monthly && monthly.length && DATA.monthly.length === 0){
+      DATA.monthly = monthly.map(m => ({
+        month: m.month_name,
+        y2022: parseFloat(m.sales_2022)||0,
+        y2023: parseFloat(m.sales_2023)||0,
+        y2024: parseFloat(m.sales_2024)||0,
+        y2025: parseFloat(m.sales_2025)||0,
+        y2026: parseFloat(m.sales_2026)||0,
+        min: parseFloat(m.avg_min)||0,
+        max: parseFloat(m.avg_max)||0,
+      }));
+      renderMonthly();
+    }
+    // Load conversion analysis
+    const {data:conv} = await sb.from('conversion_analysis').select('*').order('start_date');
+    if(conv && conv.length){
+      DATA.conversion = {
+        months: conv.map(c => c.start_date ? new Date(c.start_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}) : ''),
+        conversionRates: conv.map(c => parseFloat(c.conversion_rate)||0),
+        jobTypes: {}
+      };
+      renderConversion();
+    }
+  } catch(e) { console.error('loadAllSupabaseData error:', e); }
 }
 
 function mergeSbJobsIntoDashboard(dbJobs) {
