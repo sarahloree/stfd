@@ -316,7 +316,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newJobModal')">+ New Job</button>
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newPaymentModal')">+ Payment</button>
     <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('overheadModal')">+ Overhead</button>
-    <button class="reload-btn" onclick="reloadFiles()">⟳ Excel Files</button>
+    <button class="reload-btn" id="reloadBtn" onclick="reloadFiles()" title="Upload Excel files to refresh data">⟳ Upload Excel</button>
     <button class="publish-btn" id="publishBtn" onclick="publishToPhillip()">⬆ Publish to Phillip</button>
     <span id="publishStatus"></span>
   </div>
@@ -674,16 +674,13 @@ function readWB(file){return new Promise(res=>{const r=new FileReader();r.onload
 async function buildDashboard(){
   $('loadScreen').style.display='none';
   $('dashboard').style.display='block';
-  console.log('dashboard element:', $('dashboard'));
-  console.log('p-jobs element:', $('p-jobs'));
+
+  // Parse all uploaded files
   if(STATE.outlook){const wb=await readWB(STATE.outlook);DATA.weeks=parseWeekly(wb);DATA.income=parseIncome(wb);DATA.monthly=parseMonthly(wb)}
   if(STATE.jobs){
     const wb=await readWB(STATE.jobs);
     DATA.jobs=parseJobs(wb);
     DATA.excelPayments=parsePaymentsFromJobs(wb);
-    console.log('After load: jobs=',DATA.jobs.length,'excelPayments=',DATA.excelPayments.length);
-    // Auto-sync to Supabase — no manual SQL needed
-    if(sb) await syncToSupabase(DATA.jobs, DATA.excelPayments);
   }
   if(STATE.schedule){const wb=await readWB(STATE.schedule);DATA.schedules=parseSched(wb)}
   if(STATE.conversion){const wb=await readWB(STATE.conversion);DATA.conversion=parseConversion(wb)}
@@ -692,25 +689,34 @@ async function buildDashboard(){
     DATA.commissions={};
     for(const cf of STATE.commissions){
       const wb=await readWB(cf);
-      const parsed=parseComm(wb);
-      // Merge all files — keys are repName|week so no collision between reps
-      Object.assign(DATA.commissions, parsed);
+      Object.assign(DATA.commissions,parseComm(wb));
     }
   }
-  buildWeekSel();buildCommSel();renderMonthly();renderJobs();
+
+  // Render all tabs with Excel data
+  buildWeekSel();
+  buildCommSel();
+  renderMonthly();
+  renderJobs();
   renderConversion();
+
+  // Show the right default tab
   if(DATA.weeks.length){
     $('weekSel').value=DATA.weeks.length-1;
     loadWeek(DATA.weeks.length-1);
     showTab('weekly');
-  } else if(DATA.jobs.length){
+  } else {
     showTab('jobs');
   }
-  // Load Supabase data and re-render
+
+  // Load from Supabase and re-render live data
   await loadSbJobs();
   renderJobs();
-  if(typeof renderPipeline === 'function') renderPipeline();
-  if(typeof renderAging === 'function') renderAging();
+  if(typeof renderPipeline==='function') renderPipeline();
+  if(typeof renderAging==='function') renderAging();
+
+  // Auto-sync Excel data to Supabase in background (no await = non-blocking)
+  if(sb && DATA.jobs.length) syncToSupabase(DATA.jobs, DATA.excelPayments);
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm','fi-comm-paul','fi-comm-jeff','fi-comm-sherrell','fi-comm-taylor','fi-comm-jery','fi-conversion','fi-monthly'].forEach(id=>{const el=$(id);if(el){el.classList.remove('loaded');const st=el.querySelector('.fi-status');if(st)st.textContent='Not loaded';}});Object.keys(STATE).forEach(k=>STATE[k]=null)}
 
@@ -1142,6 +1148,14 @@ function showTab(id){
 function buildWeekSel(){const s=$('weekSel');s.innerHTML='';DATA.weeks.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`Wk ${w.week} — ${w.start}`;s.appendChild(o)})}
 
 function buildCommSel(){
+  // Populate REP selector from jobs data so it works with just Job Costs file
+  const rSel2=$('commRepSel');
+  if(rSel2&&rSel2.options.length<=1){
+    const reps=new Set(['Paul Vincent','Jeff Yates','Sherrell Ezzell','Taylor Bassett','Jery Edgett','Yvonne Chiang']);
+    DATA.jobs.forEach(j=>{if(j.rep)reps.add(j.rep);});
+    sbJobs.forEach(j=>{if(j.sales_rep)reps.add(j.sales_rep);});
+    [...reps].sort().forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;rSel2.appendChild(o);});
+  }
   // Populate WEEK selector with unique weeks only — no rep names
   const weeks=[...new Set(Object.values(DATA.commissions).map(c=>c.weekSheet).filter(Boolean))]
     .sort((a,b)=>{
@@ -1406,14 +1420,32 @@ function initSupabase() {
   }
 }
 
-function doLogin() {
+async function doLogin() {
   const pwd = $('loginPassword').value;
   if (pwd === DASHBOARD_PASSWORD) {
     $('loginScreen').style.display = 'none';
-    $('loadScreen').style.display = 'flex';
-    $('btnLoad').classList.add('visible');
+
+    // Show the dashboard immediately — no file upload required
+    $('loadScreen').style.display = 'none';
+    $('dashboard').style.display = 'block';
+
+    // Initialize Supabase and load all persisted data
     initSupabase();
-    loadSbJobs();
+    await loadSbJobs();
+
+    // Populate UI from Supabase data
+    buildCommSel();
+    renderJobs();
+    if(typeof renderPipeline==='function') renderPipeline();
+    if(typeof renderAging==='function') renderAging();
+
+    // Show Jobs tab by default (always has data from Supabase)
+    showTab('jobs');
+
+    // Show the Excel upload button in the header for optional refresh
+    const reloadBtn = document.getElementById('reloadBtn');
+    if(reloadBtn) reloadBtn.style.display = 'inline-block';
+
   } else {
     $('loginError').style.display = 'block';
     $('loginPassword').value = '';
@@ -1428,7 +1460,23 @@ async function loadSbJobs() {
     const { data, error } = await sb.from('jobs').select('*').order('created_at', { ascending: false });
     if (!error && data) {
       sbJobs = data;
-      // Merge with dashboard jobs tab
+      // Always populate DATA.jobs from Supabase if Excel not loaded
+      if(data.length > 0 && DATA.jobs.length === 0){
+        DATA.jobs = data.map(j => ({
+          invoice: j.invoice_number,
+          customer: j.customer_name,
+          rep: j.sales_rep,
+          total: parseFloat(j.invoice_total)||0,
+          mat: parseFloat(j.material_cost)||0,
+          fl: parseFloat(j.field_labour_cost)||0,
+          comm: (parseFloat(j.invoice_total)||0)*(parseFloat(j.commission_rate)||0.06),
+          commRate: ((parseFloat(j.commission_rate)||0.06)*100)+'%',
+          outstanding: parseFloat(j.outstanding)||0,
+          status: j.pipeline_status||j.status||'Scheduled',
+          startDate: j.start_date||'',
+          profit: (parseFloat(j.invoice_total)||0)-(parseFloat(j.material_cost)||0)-(parseFloat(j.field_labour_cost)||0)-((parseFloat(j.invoice_total)||0)*(parseFloat(j.commission_rate)||0.06))
+        }));
+      }
       if (data.length > 0) mergeSbJobsIntoDashboard(data);
     }
   } catch(e) { console.error('loadSbJobs error:', e); }
