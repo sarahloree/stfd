@@ -614,8 +614,6 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="form-group">
       <label>Week Ending Date *</label>
       <select id="gen-week"><option value="">-- Select a rep first --</option></select>
-      <input type="date" id="gen-week-manual" style="margin-top:6px" placeholder="Or enter date manually">
-      <div style="font-size:10px;color:var(--muted);margin-top:4px">Select from dropdown or enter date manually above</div>
     </div>
     <div class="form-group">
       <label>Statement Date (shown on statement)</label>
@@ -1543,40 +1541,23 @@ async function loadAvailableWeeks(rep){
   }
 }
 
-function openGenerateStmt(){
-  // Auto-populate from currently selected week and rep
-  const currentWeek = $('commWeekSel').value;
-  const currentRep = $('commRepSel').value;
-
-  // Convert sheet week (e.g. '4-29') to a full date
-  if(currentWeek && currentWeek.includes('-')){
-    const parts = currentWeek.split('-');
-    const month = parseInt(parts[0]);
-    const day = parseInt(parts[1]);
-    const year = month >= 11 ? 2025 : 2026;
-    const weekDate = new Date(year, month-1, day);
-    $('gen-week').value = weekDate.toISOString().split('T')[0];
-  } else {
-    // Default to next Wednesday
-    const today = new Date();
-    const wednesday = new Date(today);
-    wednesday.setDate(today.getDate() + (3 - today.getDay() + 7) % 7);
-    $('gen-week').value = wednesday.toISOString().split('T')[0];
-  }
-
-  // Statement date defaults to today
+async function openGenerateStmt(){
   $('gen-stmt-date').value = new Date().toISOString().split('T')[0];
 
-  // Pre-fill rep from current selection
-  if(currentRep) $('gen-rep').value = currentRep;
+  // Auto-select rep from commissions tab or default to Paul Vincent
+  const currentRep = $('commRepSel').value || 'Paul Vincent';
+  const genRep = $('gen-rep');
+  if(genRep) genRep.value = currentRep;
 
   openModal('generateStmtModal');
+
+  // Immediately load weeks from Supabase for selected rep
+  await loadAvailableWeeks(currentRep);
 }
 
 async function generateStatement(){
   const rep = $('gen-rep').value;
-  // Use dropdown value or manual date input
-  const weekEnding = $('gen-week').value || $('gen-week-manual').value;
+  const weekEnding = $('gen-week').value;
   const stmtDate = $('gen-stmt-date').value || weekEnding;
 
   if(!rep || !weekEnding){
