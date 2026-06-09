@@ -52,7 +52,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .fi-status{font-size:10px;color:var(--muted)}
 .file-item.loaded .fi-status{color:var(--green)}
 .btn-load{padding:12px 32px;background:var(--accent);color:#000;border:none;border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:none}
-.btn-load.visible{display:block}
+.btn-load.visible{display:block}/*always show after login*/
 .hdr{background:var(--s1);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:stretch;position:sticky;top:0;z-index:200}
 .logo{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;letter-spacing:3px;color:var(--accent)}
 .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
@@ -273,7 +273,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="loadScreen">
   <div><div class="logo">STFD</div><div class="sub" style="text-align:center;margin-top:2px">Operations Dashboard</div></div>
-  <p>Select your Excel files to load the dashboard — 3 main files, 2 analysis files, and all 5 commission statements (10 files total). Your files stay on your computer — nothing is uploaded anywhere.</p>
+  <p>Select your Excel files then click Open Dashboard. For commission statements only, just upload the Job Costs file. All 10 files gives you the full dashboard experience. Your files stay on your computer — nothing is uploaded anywhere.</p>
   <div class="file-list">
     <div class="file-item" id="fi-outlook"><span class="fi-dot"></span><span class="fi-name">04_Outlook_Analysis_2026.xlsx</span><span class="fi-status">Not loaded</span></div>
     <div class="file-item" id="fi-jobs"><span class="fi-dot"></span><span class="fi-name">01_Job_Costs_2026.xlsx</span><span class="fi-status">Not loaded</span></div>
@@ -674,7 +674,7 @@ function readWB(file){return new Promise(res=>{const r=new FileReader();r.onload
 async function buildDashboard(){
   $('loadScreen').style.display='none';$('dashboard').style.display='block';
   if(STATE.outlook){const wb=await readWB(STATE.outlook);DATA.weeks=parseWeekly(wb);DATA.income=parseIncome(wb);DATA.monthly=parseMonthly(wb)}
-  if(STATE.jobs){const wb=await readWB(STATE.jobs);DATA.jobs=parseJobs(wb);DATA.excelPayments=parsePaymentsFromJobs(wb);}
+  if(STATE.jobs){const wb=await readWB(STATE.jobs);DATA.jobs=parseJobs(wb);DATA.excelPayments=parsePaymentsFromJobs(wb);console.log('After load: jobs=',DATA.jobs.length,'excelPayments=',DATA.excelPayments.length);}
   if(STATE.schedule){const wb=await readWB(STATE.schedule);DATA.schedules=parseSched(wb)}
   if(STATE.conversion){const wb=await readWB(STATE.conversion);DATA.conversion=parseConversion(wb)}
   if(STATE.monthly){const wb=await readWB(STATE.monthly);DATA.monthlyAvg=parseMonthlyAvg(wb)}
@@ -952,6 +952,8 @@ function parsePaymentsFromJobs(wb){
       }
     });
   });
+  console.log('parsePaymentsFromJobs: found', payments.length, 'payments');
+  if(payments.length > 0) console.log('Sample payment:', JSON.stringify(payments[0]));
   return payments;
 }
 
@@ -1324,6 +1326,7 @@ function doLogin() {
   if (pwd === DASHBOARD_PASSWORD) {
     $('loginScreen').style.display = 'none';
     $('loadScreen').style.display = 'flex';
+    $('btnLoad').classList.add('visible');
     initSupabase();
     loadSbJobs();
   } else {
@@ -1391,6 +1394,7 @@ async function loadAvailableWeeks(rep){
       if(data)data.forEach(d=>weekSet.add(d.week_ending));
     }catch(e){}
   }
+  console.log('loadAvailableWeeks: excelPayments=',DATA.excelPayments.length,'weekSet=',weekSet.size,'for rep=',rep);
   if(weekSet.size>0){
     const weeks=[...weekSet].sort().reverse();
     sel.innerHTML='<option value="">-- Select week --</option>';
