@@ -2213,6 +2213,150 @@ async function publishToPhillip() {
     status.style.color = 'var(--red)';
   }
 }
+// ── PIPELINE ──────────────────────────────────────────────────────
+let pipelineData = [];
+let currentPipelineFilter = 'all';
+const PIPELINE_STATUSES = ['Estimate','Contracted','Invoiced','In Progress','Completed'];
+const STATUS_COLORS = {'Estimate':'pipe-estimate','Contracted':'pipe-contracted','Invoiced':'pipe-invoiced','In Progress':'pipe-inprogress','Completed':'pipe-completed'};
+const KPI_COLORS = {'Estimate':'#f59e0b','Contracted':'#8b5cf6','Invoiced':'#60a5fa','In Progress':'#f5a623','Completed':'#22c55e'};
+
+async function renderPipeline(){
+  if(sb){
+    try{
+      const{data}=await sb.from('jobs').select('*').order('created_at',{ascending:false});
+      if(data&&data.length) pipelineData=data;
+    }catch(e){}
+  }
+  if(!pipelineData.length){
+    pipelineData=DATA.jobs.map(j=>({invoice_number:j.invoice,customer_name:j.customer,sales_rep:j.rep,job_type:j.jobType||'—',invoice_total:j.total,pipeline_status:j.status==='Completed'?'Completed':j.status==='In Progress'?'In Progress':'Invoiced',start_date:j.startDate,outstanding:j.outstanding}));
+  }
+  displayPipeline(pipelineData);
+  // KPIs
+  const counts={};PIPELINE_STATUSES.forEach(s=>counts[s]=0);
+  pipelineData.forEach(j=>{const s=j.pipeline_status||'Invoiced';if(counts[s]!==undefined)counts[s]++;});
+  const kpiEl=$('pipeline-kpis');
+  if(kpiEl) kpiEl.innerHTML=PIPELINE_STATUSES.map(s=>`<div class="card" style="padding:10px 14px;flex:1;min-width:100px;border-top:2px solid ${KPI_COLORS[s]};cursor:pointer" onclick="filterPipeline('${s}',null)"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">${s}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:${KPI_COLORS[s]}">${counts[s]}</div></div>`).join('');
+}
+
+function displayPipeline(data){
+  const tbody=$('pipelineBody');if(!tbody)return;
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No jobs found</td></tr>';return;}
+  tbody.innerHTML=data.map(j=>{
+    const s=j.pipeline_status||'Invoiced';
+    const bc=STATUS_COLORS[s]||'pipe-invoiced';
+    const total=parseFloat(j.invoice_total||j.total||0);
+    const date=j.start_date||j.startDate||'';
+    const dateStr=date?new Date(date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    return `<tr>
+      <td><span class="pipe-badge ${bc}">${s}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice_number||j.invoice||'—'}</td>
+      <td>${j.customer_name||j.customer||'—'}</td>
+      <td>${j.sales_rep||j.rep||'—'}</td>
+      <td>${j.job_type||'—'}</td>
+      <td class="num">$${Number(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td>${dateStr}</td>
+      <td><button class="btn-secondary" style="font-size:10px;padding:3px 8px" onclick="openStatusModal('${(j.invoice_number||j.invoice||'').replace(/'/g,"\'")}','${(j.customer_name||j.customer||'').replace(/'/g,"\'")}','${s}')">Update</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterPipeline(status,btn){
+  currentPipelineFilter=status;
+  document.querySelectorAll('.pipeline-filter').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const filtered=status==='all'?pipelineData:pipelineData.filter(j=>(j.pipeline_status||'Invoiced')===status);
+  displayPipeline(filtered);
+}
+
+function searchPipeline(q){
+  q=q.toLowerCase();
+  const filtered=pipelineData.filter(j=>!q||(j.customer_name||j.customer||'').toLowerCase().includes(q)||(j.invoice_number||j.invoice||'').toLowerCase().includes(q)||(j.sales_rep||j.rep||'').toLowerCase().includes(q));
+  displayPipeline(currentPipelineFilter==='all'?filtered:filtered.filter(j=>(j.pipeline_status||'Invoiced')===currentPipelineFilter));
+}
+
+let currentStatusJobId=null;
+function openStatusModal(jobId,customer,currentStatus){
+  currentStatusJobId=jobId;
+  const el=$('ps-job-info');if(el)el.innerHTML=`<strong>${customer}</strong> — ${jobId}`;
+  const sel=$('ps-status');if(sel)sel.value=currentStatus;
+  openModal('pipelineStatusModal');
+}
+
+async function savePipelineStatus(){
+  const newStatus=$('ps-status').value;
+  if(!currentStatusJobId||!newStatus)return;
+  if(sb){
+    const{error}=await sb.from('jobs').update({pipeline_status:newStatus,status:newStatus==='Completed'?'Completed':newStatus==='In Progress'?'In Progress':'Scheduled'}).eq('invoice_number',currentStatusJobId);
+    if(error){alert('Error: '+error.message);return;}
+  }
+  const job=pipelineData.find(j=>(j.invoice_number||j.invoice)===currentStatusJobId);
+  if(job)job.pipeline_status=newStatus;
+  closeModal('pipelineStatusModal');
+  displayPipeline(currentPipelineFilter==='all'?pipelineData:pipelineData.filter(j=>(j.pipeline_status||'Invoiced')===currentPipelineFilter));
+  renderPipeline();
+}
+
+// ── AGING REPORT ──────────────────────────────────────────────────
+async function renderAging(){
+  let jobs=[];
+  if(sb){
+    try{
+      const{data}=await sb.from('jobs').select('*').neq('pipeline_status','Estimate');
+      if(data)jobs=data;
+    }catch(e){}
+  }
+  if(!jobs.length) jobs=DATA.jobs.map(j=>({invoice_number:j.invoice,customer_name:j.customer,sales_rep:j.rep,invoice_total:j.total,outstanding:j.outstanding||j.total,start_date:j.startDate,pipeline_status:j.status}));
+
+  const outstanding=jobs.filter(j=>parseFloat(j.outstanding||0)>0&&j.pipeline_status!=='Estimate'&&j.pipeline_status!=='Contracted');
+  const today=new Date();
+  const totalOut=outstanding.reduce((s,j)=>s+parseFloat(j.outstanding||0),0);
+
+  const agTotal=$('aging-total');if(agTotal)agTotal.textContent='$'+totalOut.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const agCount=$('aging-count');if(agCount)agCount.textContent=outstanding.length+' invoice'+(outstanding.length!==1?'s':'')+' outstanding';
+  const agOf=$('aging-as-of');if(agOf)agOf.textContent='As of '+today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  const buckets={'Current (0-30 days)':0,'31-60 days':0,'61-90 days':0,'90+ days':0};
+  outstanding.forEach(j=>{
+    const date=j.created_at||j.start_date;
+    if(!date){buckets['Current (0-30 days)']+=parseFloat(j.outstanding||0);return;}
+    const days=Math.floor((today-new Date(date))/86400000);
+    if(days<=30)buckets['Current (0-30 days)']+=parseFloat(j.outstanding||0);
+    else if(days<=60)buckets['31-60 days']+=parseFloat(j.outstanding||0);
+    else if(days<=90)buckets['61-90 days']+=parseFloat(j.outstanding||0);
+    else buckets['90+ days']+=parseFloat(j.outstanding||0);
+  });
+
+  const bcColors={'Current (0-30 days)':'#22c55e','31-60 days':'#f5a623','61-90 days':'#ef4444','90+ days':'#991b1b'};
+  const agBuckets=$('aging-buckets');
+  if(agBuckets) agBuckets.innerHTML=Object.entries(buckets).map(([label,amt])=>{
+    const pct=totalOut>0?(amt/totalOut*100).toFixed(0):0;
+    return `<div><div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">${label}</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:${bcColors[label]}">$${amt.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="aging-bar"><div class="aging-bar-fill" style="width:${pct}%;background:${bcColors[label]}"></div></div></div>`;
+  }).join('');
+
+  const sorted=[...outstanding].sort((a,b)=>parseFloat(b.outstanding||0)-parseFloat(a.outstanding||0));
+  const agBody=$('agingBody');
+  if(agBody) agBody.innerHTML=sorted.map(j=>{
+    const total=parseFloat(j.invoice_total||0);
+    const out=parseFloat(j.outstanding||0);
+    const paid=total-out;
+    const date=j.created_at||j.start_date;
+    const days=date?Math.floor((today-new Date(date))/86400000):null;
+    const daysColor=days===null?'var(--muted)':days>90?'#ef4444':days>60?'#f97316':days>30?'#f5a623':'#22c55e';
+    const s=j.pipeline_status||'Invoiced';
+    const bc=STATUS_COLORS[s]||'pipe-invoiced';
+    return `<tr>
+      <td>${j.customer_name||j.customer||'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice_number||j.invoice||'—'}</td>
+      <td>${j.sales_rep||j.rep||'—'}</td>
+      <td class="num">$${Number(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="num pos">$${Number(paid).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="num neg" style="font-weight:600">$${Number(out).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="color:${daysColor};font-weight:600">${days!==null?days+' days':'—'}</td>
+      <td><span class="pipe-badge ${bc}">${s}</span></td>
+    </tr>`;
+  }).join('');
+}
+
 </script>
 </body>
 </html>
