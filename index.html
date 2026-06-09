@@ -672,7 +672,10 @@ function markLoaded(id,name){const el=$(id);el.classList.add('loaded');el.queryS
 function readWB(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>{res(XLSX.read(e.target.result,{type:'array',cellDates:true}))};r.readAsArrayBuffer(file)})}
 
 async function buildDashboard(){
-  $('loadScreen').style.display='none';$('dashboard').style.display='block';
+  $('loadScreen').style.display='none';
+  $('dashboard').style.display='block';
+  console.log('dashboard element:', $('dashboard'));
+  console.log('p-jobs element:', $('p-jobs'));
   if(STATE.outlook){const wb=await readWB(STATE.outlook);DATA.weeks=parseWeekly(wb);DATA.income=parseIncome(wb);DATA.monthly=parseMonthly(wb)}
   if(STATE.jobs){
     const wb=await readWB(STATE.jobs);
@@ -1121,7 +1124,15 @@ function parseComm(wb){
   });return out
 }
 
-function showTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('t-'+id).classList.add('active');$('p-'+id).classList.add('active')}
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const tab=$('t-'+id);
+  const page=$('p-'+id);
+  console.log('showTab('+id+') tab=',tab,'page=',page);
+  if(tab)tab.classList.add('active');
+  if(page)page.classList.add('active');
+}
 
 function buildWeekSel(){const s=$('weekSel');s.innerHTML='';DATA.weeks.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`Wk ${w.week} — ${w.start}`;s.appendChild(o)})}
 
