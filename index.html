@@ -466,6 +466,53 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   </div>
 </div>
 
+
+<!-- Pipeline Page -->
+<div class="page" id="p-pipeline">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="pipeline-filter active" onclick="filterPipeline('all',this)">All</button>
+      <button class="pipeline-filter" onclick="filterPipeline('Estimate',this)" style="border-color:#f59e0b;color:#f59e0b">Estimates</button>
+      <button class="pipeline-filter" onclick="filterPipeline('Contracted',this)" style="border-color:#8b5cf6;color:#8b5cf6">Contracted</button>
+      <button class="pipeline-filter" onclick="filterPipeline('Invoiced',this)" style="border-color:#3b82f6;color:#3b82f6">Invoiced</button>
+      <button class="pipeline-filter" onclick="filterPipeline('In Progress',this)" style="border-color:#f5a623;color:#f5a623">In Progress</button>
+      <button class="pipeline-filter" onclick="filterPipeline('Completed',this)" style="border-color:#22c55e;color:#22c55e">Completed</button>
+    </div>
+    <input type="text" id="pipelineSearch" placeholder="🔍 Search..." 
+      style="background:var(--s2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:12px;width:220px;outline:none"
+      oninput="searchPipeline(this.value)">
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="pipeline-kpis"></div>
+  <div class="card" style="padding:0"><div class="sx"><table>
+    <thead><tr><th>Status</th><th>Invoice #</th><th>Customer</th><th>Sales Rep</th><th>Job Type</th><th class="num">Total</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody id="pipelineBody"></tbody>
+  </table></div></div>
+</div>
+
+<!-- Aging Report Page -->
+<div class="page" id="p-aging">
+  <div class="grid g2" style="margin-bottom:12px">
+    <div class="card" style="border-top:3px solid var(--red)">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Total Outstanding Balance</div>
+      <div id="aging-total" style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--red)">$0.00</div>
+      <div id="aging-count" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">Outstanding by Age</div>
+      <div id="aging-buckets" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+  <div class="card" style="padding:0">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Customer Aging Report</span>
+      <span style="font-size:11px;color:var(--muted)" id="aging-as-of"></span>
+    </div>
+    <div class="sx"><table>
+      <thead><tr><th>Customer</th><th>Invoice #</th><th>Sales Rep</th><th class="num">Invoice Total</th><th class="num">Paid</th><th class="num">Outstanding</th><th>Days</th><th>Status</th></tr></thead>
+      <tbody id="agingBody"></tbody>
+    </table></div>
+  </div>
+</div>
 <div class="page" id="p-jobs">
   <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px" id="jobsKpiStrip"></div>
   <div class="card"><div class="ct">All Jobs — Click any row to see full details</div><div class="sx sy" style="max-height:500px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Sales Rep</th><th class="num">Total</th><th class="num">Material</th><th class="num">Field Labour</th><th class="num">Commission</th><th class="num">Outstanding</th><th class="num">Profit</th><th>Status</th></tr></thead><tbody id="jobsBody"></tbody></table></div></div>
@@ -497,12 +544,15 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
           <thead>
             <tr style="background:#f0f4fa">
               <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice</th>
-              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer Name</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Payment Date</th>
               <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Invoice Total</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm %</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Comm</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Payment Recv</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm on Pymt</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Rate</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Commission</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Payment Received</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission on Payment</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Pre-paid</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Available</th>
             </tr>
           </thead>
           <tbody id="stmt-payments-body"></tbody>
@@ -519,12 +569,15 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <table style="width:100%;border-collapse:collapse;font-size:11px">
           <thead>
             <tr style="background:#f0f4fa">
-              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice</th>
-              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice #</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer Name</th>
               <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Invoice Total</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Comm</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Amt</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm Available</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Commission</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Rate</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Amount</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Commission</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Pre-paid</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Available upon Collection</th>
             </tr>
           </thead>
           <tbody id="stmt-pending-body"></tbody>
@@ -537,12 +590,15 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <table style="width:100%;border-collapse:collapse;font-size:11px">
           <thead>
             <tr style="background:#f0f4fa">
-              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice</th>
-              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice #</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer Name</th>
               <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Invoice Total</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Comm</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Amt</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm Available</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Commission</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Rate</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Amount</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Commission</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Pre-paid</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Available upon Collection</th>
             </tr>
           </thead>
           <tbody id="stmt-scheduled-body"></tbody>
@@ -555,12 +611,15 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <table style="width:100%;border-collapse:collapse;font-size:11px">
           <thead>
             <tr style="background:#f0f4fa">
-              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice</th>
-              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice #</th>
+              <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Customer Name</th>
               <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Invoice Total</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Comm</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Amt</th>
-              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Comm Available</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Total Commission</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Rate</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Amount</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Outstanding Commission</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Pre-paid</th>
+              <th style="padding:5px 8px;text-align:right;border:1px solid #ddd">Commission Available upon Collection</th>
             </tr>
           </thead>
           <tbody id="stmt-unscheduled-body"></tbody>
@@ -1736,17 +1795,21 @@ async function generateStatement(){
     // Find customer name from jobs list for each payment
     payments.forEach(entry => {
       const job = allJobs.find(j => (j.invoice_number||j.invoice) === entry.invoice_number) || {};
-      const customerName = job.customer_name || job.customer || entry.invoice_number;
+      const customerName = entry.customer_name || job.customer_name || job.customer || '—';
       const commPct = (entry.commission_rate * 100).toFixed(0) + '%';
       totalCommOnPayments += parseFloat(entry.commission_on_payment) || 0;
+            const payDateStr = entry.week_ending ? new Date(entry.week_ending+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
       payRows += `<tr>
         <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${entry.invoice_number||'—'}</td>
         <td style="padding:4px 8px;border:1px solid #ddd">${customerName}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.invoice_total||0).toLocaleString()}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${commPct}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${payDateStr}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.invoice_total||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${(parseFloat(entry.commission_rate||0)*100).toFixed(0)}%</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.total_commission||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.payment_received||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#22543d;font-weight:600">$${Number(entry.commission_on_payment||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.pre_paid||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#1B3A6B;font-weight:600">$${Number(entry.available||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       </tr>`;
     });
   }
@@ -1762,43 +1825,49 @@ async function generateStatement(){
   function jobDetailRow(j, color){
     const total = parseFloat(j.invoice_total||j.total||0);
     const rate = parseFloat(j.commission_rate||0.06);
+    const ratePct = (rate*100).toFixed(0)+'%';
     const totalComm = Math.round(total * rate * 100)/100;
     const outstanding = parseFloat(j.outstanding||total);
-    const commAvail = Math.round((outstanding/total)*totalComm*100)/100||totalComm;
+    const outstandingComm = total>0 ? Math.round((outstanding/total)*totalComm*100)/100 : totalComm;
     const prePaid = parseFloat(j.pre_paid||0);
-    const commNet = Math.round((commAvail - prePaid)*100)/100;
+    const commAvail = Math.round((outstandingComm - prePaid)*100)/100;
     return `<tr>
       <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${j.invoice_number||j.invoice||'—'}</td>
       <td style="padding:4px 8px;border:1px solid #ddd">${j.customer_name||j.customer||'—'}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(totalComm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${ratePct}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(outstanding).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:${color};font-weight:600">$${Number(commNet).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(outstandingComm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(prePaid).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:${color};font-weight:600">$${Number(commAvail).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
     </tr>`;
   }
-
-  // Section 2: Completed Jobs Pending Payment
-  const pendingJobs = allJobs.filter(j => {
-    const s = (j.status||'').toLowerCase();
-    return s === 'completed' && parseFloat(j.outstanding||j.invoice_total||0) > 0;
-  });
   $('stmt-pending-body').innerHTML = pendingJobs.length
     ? pendingJobs.map(j => jobDetailRow(j,'#f5a623')).join('')
     : '<tr><td colspan="6" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No completed jobs pending payment</td></tr>';
 
   // Section 3: Scheduled Jobs
-  const scheduledJobs = allJobs.filter(j => {
-    const s = (j.status||'').toLowerCase();
-    return s === 'scheduled' || s === 'in progress';
+  // Construction not complete, start date in the past
+  const scheduledJobs = eligibleJobs.filter(j => {
+    const s = (j.status||j.pipeline_status||'').toLowerCase();
+    if(s === 'completed') return false;
+    const sd = j.start_date||j.startDate||'';
+    if(!sd) return false;
+    return new Date(sd+'T12:00:00') <= today;
   });
   $('stmt-scheduled-body').innerHTML = scheduledJobs.length
     ? scheduledJobs.map(j => jobDetailRow(j,'#60a5fa')).join('')
     : '<tr><td colspan="6" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No scheduled jobs</td></tr>';
 
   // Section 4: Unscheduled Jobs
-  const unscheduledJobs = allJobs.filter(j => {
-    const s = (j.status||'').toLowerCase();
-    return s === 'unscheduled' || s === '' || s === 'pending';
+  // Construction not complete, start date in the future (or no date)
+  const unscheduledJobs = eligibleJobs.filter(j => {
+    const s = (j.status||j.pipeline_status||'').toLowerCase();
+    if(s === 'completed') return false;
+    const sd = j.start_date||j.startDate||'';
+    if(!sd) return true;
+    return new Date(sd+'T12:00:00') > today;
   });
   $('stmt-unscheduled-body').innerHTML = unscheduledJobs.length
     ? unscheduledJobs.map(j => jobDetailRow(j,'#94a3b8')).join('')
