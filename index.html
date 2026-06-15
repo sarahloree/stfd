@@ -9,64 +9,64 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-:root{--bg:#f1f5f9;--s1:#ffffff;--s2:#f8fafc;--s3:#e2e8f0;--border:#cbd5e1;--accent:#c8922a;--green:#16a34a;--red:#dc2626;--blue:#2563eb;--purple:#7c3aed;--cyan:#0891b2;--orange:#ea580c;--text:#1e293b;--muted:#64748b;--dim:#94a3b8}
+:root{--bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;--border:#2a2f45;--accent:#c8922a;--green:#22c55e;--red:#ef4444;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee;--orange:#fb923c;--text:#ffffff;--muted:#94a3b8;--dim:#4a5070}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:15px;min-height:100vh}
 #loginScreen{position:fixed;inset:0;background:#1e293b;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
 .login-box{background:#ffffff;border:1px solid var(--border);border-radius:12px;padding:32px 40px;width:360px;display:flex;flex-direction:column;gap:16px}
-.login-box h2{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);text-align:center;letter-spacing:2px}
-.login-box p{font-size:12px;color:var(--muted);text-align:center}
+.login-box h2{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);text-align:center;letter-spacing:2px}
+.login-box p{font-size:15px;color:var(--muted);text-align:center}
 .form-group{display:flex;flex-direction:column;gap:6px}
 .form-group label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
-.form-group input,.form-group select,.form-group textarea{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-family:inherit;font-size:13px;outline:none;width:100%}
+.form-group input,.form-group select,.form-group textarea{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-family:inherit;font-size:15px;outline:none;width:100%}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
-.btn-primary{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;width:100%;transition:opacity .15s}
+.btn-primary{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:6px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;width:100%;transition:opacity .15s}
 .btn-primary:hover{opacity:.85}
-.btn-secondary{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:6px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s}
+.btn-secondary{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:6px;font-family:inherit;font-size:15px;cursor:pointer;transition:all .15s}
 .btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
-.btn-danger{background:var(--red);color:#fff;border:none;padding:6px 14px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
-.login-error{color:var(--red);font-size:12px;text-align:center;display:none}
+.btn-danger{background:var(--red);color:#fff;border:none;padding:6px 14px;border-radius:5px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.login-error{color:var(--red);font-size:15px;text-align:center;display:none}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal-content{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:28px;width:520px;max-width:90%;max-height:85vh;overflow-y:auto}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.modal-header h3{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--accent)}
+.modal-header h3{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
 .sb-status{font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px}
 .sb-status.offline{color:var(--muted)}
 #loadScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
 #loadScreen h1{font-family:'IBM Plex Mono',monospace;font-size:26px;letter-spacing:4px;color:var(--accent)}
-#loadScreen p{color:var(--muted);font-size:13px;max-width:460px;text-align:center;line-height:1.7}
+#loadScreen p{color:var(--muted);font-size:15px;max-width:460px;text-align:center;line-height:1.7}
 .file-drop-zone{border:2px dashed var(--border);border-radius:12px;padding:28px 44px;text-align:center;cursor:pointer;transition:all .2s;background:var(--s1);display:flex;flex-direction:column;align-items:center;gap:10px}
 .file-drop-zone:hover{border-color:var(--accent);background:var(--s2)}
 .file-drop-zone .icon{font-size:32px}
-.file-drop-zone h3{font-size:14px;font-weight:600}
-.file-drop-zone p{font-size:11px;color:var(--muted)}
+.file-drop-zone h3{font-size:15px;font-weight:600}
+.file-drop-zone p{font-size:15px;color:var(--muted)}
 .file-list{display:flex;flex-direction:column;gap:6px;min-width:340px}
-.file-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--s2);border:1px solid var(--border);border-radius:6px;font-size:12px}
+.file-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--s2);border:1px solid var(--border);border-radius:6px;font-size:15px}
 .fi-dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex-shrink:0}
 .file-item.loaded .fi-dot{background:var(--green)}
 .fi-name{flex:1;color:var(--muted)}
 .file-item.loaded .fi-name{color:var(--text)}
 .fi-status{font-size:10px;color:var(--muted)}
 .file-item.loaded .fi-status{color:var(--green)}
-.btn-load{padding:12px 32px;background:var(--accent);color:#000;border:none;border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:none}
+.btn-load{padding:12px 32px;background:var(--accent);color:#000;border:none;border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:none}
 .btn-load.visible{display:block}/*always show after login*/
 .hdr{background:#1e293b;border-bottom:1px solid #334155;padding:0 20px;display:flex;align-items:stretch;position:sticky;top:0;z-index:200}
 .logo{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;letter-spacing:3px;color:var(--accent)}
 .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
 .hdr-brand{display:flex;align-items:center;padding:12px 20px 12px 0;border-right:1px solid var(--border);margin-right:4px}
 .tabs{display:flex;align-items:stretch;flex:1}
-.tab{display:flex;align-items:center;padding:0 15px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+.tab{display:flex;align-items:center;padding:0 15px;font-size:15px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
 .tab:hover{color:var(--text);background:rgba(255,255,255,.02)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .hdr-right{display:flex;align-items:center;gap:8px;padding:0 0 0 16px;border-left:1px solid var(--border);margin-left:auto}
-select{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:5px;font-family:inherit;font-size:12px;cursor:pointer;outline:none}
+select{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:5px;font-family:inherit;font-size:15px;cursor:pointer;outline:none}
 select:focus{border-color:var(--accent)}
-.reload-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-family:inherit}
+.reload-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:5px;font-size:15px;cursor:pointer;font-family:inherit}
 .reload-btn:hover{border-color:var(--accent);color:var(--accent)}
-.publish-btn{background:var(--green);color:#000;border:none;padding:5px 14px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.publish-btn{background:var(--green);color:#000;border:none;padding:5px 14px;border-radius:5px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
 .publish-btn:hover{opacity:.85}
 .publish-btn.publishing{opacity:.6;cursor:not-allowed}
 #publishStatus{font-size:10px;color:var(--muted)}
@@ -84,25 +84,25 @@ select:focus{border-color:var(--accent)}
 .ks{font-size:9px;color:var(--muted);margin-top:3px}
 table{width:100%;border-collapse:collapse}
 th{background:var(--s2);padding:6px 10px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;font-family:'IBM Plex Mono',monospace;position:sticky;top:0;z-index:10}
-td{padding:6px 10px;border-bottom:1px solid rgba(42,47,69,.5);font-size:12px;vertical-align:top}
+td{padding:6px 10px;border-bottom:1px solid rgba(42,47,69,.5);font-size:15px;vertical-align:top}
 tr:hover td{background:rgba(255,255,255,.015)}
 .num{text-align:right;font-family:'IBM Plex Mono',monospace}
 .pos{color:var(--green)}.neg{color:var(--red)}
 .badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;white-space:nowrap}
 .bg{background:rgba(34,197,94,.12);color:var(--green)}.by{background:rgba(245,166,35,.12);color:var(--accent)}.br{background:rgba(239,68,68,.12);color:var(--red)}.bb{background:rgba(96,165,250,.12);color:var(--blue)}.bp{background:rgba(167,139,250,.12);color:var(--purple)}.bx{background:rgba(100,116,139,.1);color:var(--muted)}
 .pw{margin-bottom:10px}
-.ph{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.ph{display:flex;justify-content:space-between;font-size:15px;margin-bottom:4px}
 .pt{height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
 .pf{height:100%;border-radius:3px;transition:width .5s}
 .pft{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px}
 .ch{position:relative}
 .ir{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(42,47,69,.3)}
 .idot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.in{flex:1;font-size:11px}.ip{font-size:10px;color:var(--muted);min-width:32px;text-align:right}
-.ia{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;min-width:70px;text-align:right}
+.in{flex:1;font-size:15px}.ip{font-size:10px;color:var(--muted);min-width:32px;text-align:right}
+.ia{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;min-width:70px;text-align:right}
 .sr{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(42,47,69,.3)}
 .sr:last-child{border-bottom:none}
-.sl{font-size:11px;color:var(--muted)}.sv{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600}
+.sl{font-size:15px;color:var(--muted)}.sv{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600}
 hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .sx{overflow-x:auto}.sy{overflow-y:auto;max-height:420px}
 .sched-crew{font-size:10px;color:var(--cyan);margin-top:1px}
@@ -112,11 +112,11 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .modal-box{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:24px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto}
 .modal-close{float:right;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
 .modal-close:hover{color:var(--text)}
-.modal-title{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px}
+.modal-title{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);margin-bottom:16px}
 .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .modal-item{background:var(--s2);border-radius:6px;padding:10px 12px}
 .modal-item .ml{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px}
-.modal-item .mv{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600}
+.modal-item .mv{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600}
 .cst{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;padding:3px 8px;background:var(--s2);border-radius:4px;font-family:'IBM Plex Mono',monospace}
 </style>
 </head>
@@ -147,7 +147,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <h3>📋 Create New Invoice</h3>
       <button class="btn-secondary" onclick="closeModal('newInvoiceModal')">✕</button>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Fill in the job details below. The commission will be calculated automatically.</p>
+    <p style="font-size:15px;color:var(--muted);margin-bottom:16px">Fill in the job details below. The commission will be calculated automatically.</p>
     <div class="form-row">
       <div class="form-group"><label>Invoice Number *</label><input type="text" id="ni-invoice" placeholder="e.g. 2160"></div>
       <div class="form-group"><label>Invoice Date *</label><input type="date" id="ni-date"></div>
@@ -165,7 +165,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <!-- Commission preview -->
     <div id="ni-comm-preview" style="background:var(--s2);border-radius:6px;padding:10px 14px;margin-bottom:12px;display:none">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:12px;color:var(--muted)">Commission on this invoice</span>
+        <span style="font-size:15px;color:var(--muted)">Commission on this invoice</span>
         <span id="ni-comm-amt" style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--green)">$0.00</span>
       </div>
     </div>
@@ -232,7 +232,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <button class="btn-secondary" onclick="closeModal('newPaymentModal')">✕</button>
     </div>
     <div class="form-group"><label>Invoice Number *</label><input type="text" id="np-invoice" placeholder="e.g. 2156" oninput="lookupJob(this.value)"></div>
-    <div id="np-job-info" style="background:var(--s2);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--muted);display:none;margin-bottom:4px"></div>
+    <div id="np-job-info" style="background:var(--s2);border-radius:6px;padding:10px 12px;font-size:15px;color:var(--muted);display:none;margin-bottom:4px"></div>
     <div class="form-row">
       <div class="form-group"><label>Payment Date *</label><input type="date" id="np-date"></div>
       <div class="form-group"><label>Payment Amount *</label><input type="number" id="np-amount" placeholder="0.00" step="0.01"></div>
@@ -315,10 +315,10 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
     <select id="weekSel" onchange="loadWeek(this.value)"></select>
     <div class="sb-status" id="sbStatus"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live</div>
-    <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newInvoiceModal')">📋 New Invoice</button>
-    <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newJobModal')">+ New Job</button>
-    <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('newPaymentModal')">+ Payment</button>
-    <button class="btn-secondary" style="font-size:11px;padding:5px 12px" onclick="openModal('overheadModal')">+ Overhead</button>
+    <button class="btn-secondary" style="font-size:15px;padding:5px 12px" onclick="openModal('newInvoiceModal')">📋 New Invoice</button>
+    <button class="btn-secondary" style="font-size:15px;padding:5px 12px" onclick="openModal('newJobModal')">+ New Job</button>
+    <button class="btn-secondary" style="font-size:15px;padding:5px 12px" onclick="openModal('newPaymentModal')">+ Payment</button>
+    <button class="btn-secondary" style="font-size:15px;padding:5px 12px" onclick="openModal('overheadModal')">+ Overhead</button>
     <button class="reload-btn" id="reloadBtn" onclick="reloadFiles()" title="Upload Excel files to refresh data">⟳ Upload Excel</button>
     <button class="publish-btn" id="publishBtn" onclick="publishToPhillip()">⬆ Publish to Phillip</button>
     <span id="publishStatus"></span>
@@ -362,12 +362,12 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       </svg>
       <hr>
       <div class="grid g3" style="gap:6px">
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Cumul. OH</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red)" id="g-oh-cum">—</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">% Paid</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red)" id="g-oh-pct">—</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Outstanding</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)" id="g-oh-out">—</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Cumul. SP</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--purple)" id="g-sp-cum">—</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">% Paid</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--purple)" id="g-sp-pct">—</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Outstanding</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)" id="g-sp-out">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Cumul. OH</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--red)" id="g-oh-cum">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">% Paid</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--red)" id="g-oh-pct">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Outstanding</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--accent)" id="g-oh-out">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Cumul. SP</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--purple)" id="g-sp-cum">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">% Paid</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--purple)" id="g-sp-pct">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Outstanding</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--accent)" id="g-sp-out">—</div></div>
       </div>
     </div>
     <div class="card">
@@ -395,15 +395,15 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="card">
       <div class="ct">Invoice Target</div>
       <div style="display:flex;align-items:center;gap:14px">
-        <div style="position:relative;width:88px;height:88px;flex-shrink:0"><canvas id="invTargetChart" width="88" height="88"></canvas><div id="invTargetPct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);text-align:center">—</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Target $90,000</div><div id="invTargetAmt" style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600">—</div><div id="invTargetDiff" style="font-size:10px;color:var(--muted);margin-top:2px">—</div></div>
+        <div style="position:relative;width:88px;height:88px;flex-shrink:0"><canvas id="invTargetChart" width="88" height="88"></canvas><div id="invTargetPct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);text-align:center">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Target $90,000</div><div id="invTargetAmt" style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600">—</div><div id="invTargetDiff" style="font-size:10px;color:var(--muted);margin-top:2px">—</div></div>
       </div>
     </div>
     <div class="card">
       <div class="ct">Profit Target</div>
       <div style="display:flex;align-items:center;gap:14px">
-        <div style="position:relative;width:88px;height:88px;flex-shrink:0"><canvas id="profTargetChart" width="88" height="88"></canvas><div id="profTargetPct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);text-align:center">—</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Monthly Target $41,667</div><div id="profTargetAmt" style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600">—</div><div id="profTargetDiff" style="font-size:10px;color:var(--muted);margin-top:2px">—</div></div>
+        <div style="position:relative;width:88px;height:88px;flex-shrink:0"><canvas id="profTargetChart" width="88" height="88"></canvas><div id="profTargetPct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--green);text-align:center">—</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Monthly Target $41,667</div><div id="profTargetAmt" style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600">—</div><div id="profTargetDiff" style="font-size:10px;color:var(--muted);margin-top:2px">—</div></div>
       </div>
     </div>
   </div>
@@ -422,7 +422,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Sales Rep</span>
     <select id="commRepSel" onchange="onCommRepChange()"><option value="">-- Select Rep --</option></select>
     </div>
-    <button class="btn-primary" style="width:auto;padding:6px 16px;font-size:11px" onclick="openGenerateStmt()">📋 Generate Statement</button>
+    <button class="btn-primary" style="width:auto;padding:6px 16px;font-size:15px" onclick="openGenerateStmt()">📋 Generate Statement</button>
   </div>
   <div class="grid g2">
     <div class="card"><div class="ct" id="comm-rep-title">Commission Statement</div><div id="comm-payments-section"></div></div>
@@ -479,7 +479,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <button class="pipeline-filter" onclick="filterPipeline('Completed',this)" style="border-color:#22c55e;color:#22c55e">Completed</button>
     </div>
     <input type="text" id="pipelineSearch" placeholder="🔍 Search..." 
-      style="background:var(--s2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:12px;width:220px;outline:none"
+      style="background:var(--s2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:15px;width:220px;outline:none"
       oninput="searchPipeline(this.value)">
   </div>
   <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="pipeline-kpis"></div>
@@ -495,7 +495,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="card" style="border-top:3px solid var(--red)">
       <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Total Outstanding Balance</div>
       <div id="aging-total" style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--red)">$0.00</div>
-      <div id="aging-count" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+      <div id="aging-count" style="font-size:15px;color:var(--muted);margin-top:4px"></div>
     </div>
     <div class="card">
       <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">Outstanding by Age</div>
@@ -505,7 +505,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   <div class="card" style="padding:0">
     <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Customer Aging Report</span>
-      <span style="font-size:11px;color:var(--muted)" id="aging-as-of"></span>
+      <span style="font-size:15px;color:var(--muted)" id="aging-as-of"></span>
     </div>
     <div class="sx"><table>
       <thead><tr><th>Customer</th><th>Invoice #</th><th>Sales Rep</th><th class="num">Invoice Total</th><th class="num">Paid</th><th class="num">Outstanding</th><th>Days</th><th>Status</th></tr></thead>
@@ -531,16 +531,16 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
           <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">South Texas Fence & Deck</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:14px;font-weight:700;color:#1a1a2e" id="stmt-rep-name">—</div>
-          <div style="font-size:11px;color:#64748b" id="stmt-week">Commission Statement</div>
-          <div style="font-size:11px;color:#64748b" id="stmt-date">—</div>
+          <div style="font-size:15px;font-weight:700;color:#1a1a2e" id="stmt-rep-name">—</div>
+          <div style="font-size:15px;color:#64748b" id="stmt-week">Commission Statement</div>
+          <div style="font-size:15px;color:#64748b" id="stmt-date">—</div>
         </div>
       </div>
 
       <!-- Section 1: Payments Received -->
       <div style="margin-bottom:20px">
         <div style="background:#1B3A6B;color:#fff;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0">Payments Received This Week</div>
-        <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <table style="width:100%;border-collapse:collapse;font-size:15px">
           <thead>
             <tr style="background:#f0f4fa">
               <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice</th>
@@ -561,12 +561,12 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       </div>
 
       <!-- Other Job Details Header -->
-      <div style="background:#374151;color:#fff;padding:6px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;margin-top:4px">Other Job Details</div>
+      <div style="background:#374151;color:#fff;padding:6px 10px;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;margin-top:4px">Other Job Details</div>
 
       <!-- Section 2: Completed Jobs Pending Payment -->
       <div style="margin-bottom:16px">
         <div style="background:#2D6A4F;color:#fff;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0">Completed Jobs — Pending Payment</div>
-        <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <table style="width:100%;border-collapse:collapse;font-size:15px">
           <thead>
             <tr style="background:#f0f4fa">
               <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice #</th>
@@ -587,7 +587,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <!-- Section 3: Scheduled Jobs -->
       <div style="margin-bottom:16px">
         <div style="background:#1a365d;color:#fff;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0">Scheduled Jobs</div>
-        <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <table style="width:100%;border-collapse:collapse;font-size:15px">
           <thead>
             <tr style="background:#f0f4fa">
               <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice #</th>
@@ -608,7 +608,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <!-- Section 4: Unscheduled Jobs -->
       <div style="margin-bottom:16px">
         <div style="background:#4B5563;color:#fff;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0">Un-scheduled Jobs</div>
-        <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <table style="width:100%;border-collapse:collapse;font-size:15px">
           <thead>
             <tr style="background:#f0f4fa">
               <th style="padding:5px 8px;text-align:left;border:1px solid #ddd">Invoice #</th>
@@ -628,7 +628,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
       <!-- Totals -->
       <div style="border-top:2px solid #1B3A6B;padding-top:12px;margin-top:8px">
-        <table style="width:100%;font-size:12px">
+        <table style="width:100%;font-size:15px">
           <tbody id="stmt-totals-body"></tbody>
         </table>
       </div>
@@ -641,10 +641,10 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
     <!-- Action buttons (not printed) -->
     <div style="background:var(--s2);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border)">
-      <span style="font-size:11px;color:var(--muted)">Screenshot this statement to send via WhatsApp</span>
+      <span style="font-size:15px;color:var(--muted)">Screenshot this statement to send via WhatsApp</span>
       <div style="display:flex;gap:8px">
         <button class="btn-secondary" onclick="closeModal('commStatementModal')">Close</button>
-        <button class="btn-secondary" style="font-size:11px;padding:6px 14px" onclick="savePDF()">⬇ Save as PDF</button>
+        <button class="btn-secondary" style="font-size:15px;padding:6px 14px" onclick="savePDF()">⬇ Save as PDF</button>
         <button class="btn-primary" style="width:auto;padding:8px 20px" onclick="window.print()">🖨 Print</button>
       </div>
     </div>
@@ -1260,7 +1260,7 @@ function updateCommission(){
     loadCommission(key);
   } else {
     $('comm-rep-title').textContent=`${rep} — ${week}`;
-    $('comm-payments-section').innerHTML=`<div style="color:var(--muted);font-size:12px;padding:16px 0">No statement for ${rep} in week ${week}</div>`;
+    $('comm-payments-section').innerHTML=`<div style="color:var(--muted);font-size:15px;padding:16px 0">No statement for ${rep} in week ${week}</div>`;
     $('comm-other-section').innerHTML='';
   }
 }
@@ -1304,7 +1304,7 @@ function loadWeek(idx){
     charts['incomeChart']=new Chart($('incomeChart').getContext('2d'),{type:'doughnut',data:{labels:inc.map(x=>x.name),datasets:[{data:inc.map(x=>x.amount),backgroundColor:IC.slice(0,inc.length),borderColor:'#141720',borderWidth:2}]},options:{responsive:false,cutout:'30%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.parsed)}`}}}}});
     const tot=inc.reduce((s,x)=>s+x.amount,0);
     $('incomeDist').innerHTML=inc.map((x,i)=>`<div class="ir"><span class="idot" style="background:${IC[i]}"></span><span class="in">${x.name}</span><span class="ip">${tot?(x.amount/tot*100).toFixed(0):0}%</span><span class="ia">${fmt(x.amount)}</span></div>`).join('')+`<div class="ir" style="border-top:1px solid var(--border);margin-top:4px"><span class="idot"></span><span class="in" style="font-weight:600">Total</span><span class="ip"></span><span class="ia" style="color:var(--accent)">${fmt(tot)}</span></div>`
-  }else{$('incomeDist').innerHTML=`<div style="color:var(--muted);font-size:11px;padding:8px 0">No income data for week ${wk}</div>`}
+  }else{$('incomeDist').innerHTML=`<div style="color:var(--muted);font-size:15px;padding:8px 0">No income data for week ${wk}</div>`}
   loadSchedWeek(d.start)
 }
 
@@ -1327,10 +1327,10 @@ function loadSchedWeek(startDate){
     const days=job.days.map((a,i)=>{if(!a)return'<td style="color:var(--dim)">—</td>';const c=job.comp[i];return`<td>${c===1?'<span class="badge bg">Done</span>':c!=null?`<span class="badge by">${Math.round(c*100)}%</span>`:'<span class="badge bb">Sched.</span>'}</td>`}).join('');
     const td=job.days.reduce((a,b)=>a+b,0),cv=job.comp.filter(x=>x!=null),ac=cv.length&&td?cv.reduce((a,b)=>a+b,0)/td:0;
     const pb=ac>=1?'<span class="badge bg">Complete</span>':ac>0?`<span class="badge by">${Math.round(ac*100)}%</span>`:'<span class="badge bx">Pending</span>';
-    return`<tr><td style="font-weight:600">${job.name}</td><td><div style="font-size:11px">${job.desc}</div></td><td><div class="sched-crew">${job.crew}</div></td>${days}<td>${pb}</td></tr>`
+    return`<tr><td style="font-weight:600">${job.name}</td><td><div style="font-size:15px">${job.desc}</div></td><td><div class="sched-crew">${job.crew}</div></td>${days}<td>${pb}</td></tr>`
   }).join('');
   const cm={};sch.jobs.forEach(j=>j.crew.split(',').map(c=>c.trim()).filter(Boolean).forEach(c=>{if(!cm[c])cm[c]={a:0,t:0};cm[c].a+=j.days.reduce((x,y)=>x+y,0);cm[c].t+=sch.dayLabels.length}));
-  $('crewGrid').innerHTML=Object.entries(cm).map(([name,d])=>{const u=d.t?d.a/d.t:0;return`<div class="card" style="padding:10px"><div style="font-size:12px;font-weight:600;margin-bottom:5px">${name}</div><div class="pt"><div class="pf" style="background:var(--cyan);width:${Math.round(u*100)}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:3px">${d.a}/${sch.dayLabels.length} days — ${Math.round(u*100)}%</div></div>`}).join('')
+  $('crewGrid').innerHTML=Object.entries(cm).map(([name,d])=>{const u=d.t?d.a/d.t:0;return`<div class="card" style="padding:10px"><div style="font-size:15px;font-weight:600;margin-bottom:5px">${name}</div><div class="pt"><div class="pf" style="background:var(--cyan);width:${Math.round(u*100)}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:3px">${d.a}/${sch.dayLabels.length} days — ${Math.round(u*100)}%</div></div>`}).join('')
 }
 
 function loadCommission(key){
@@ -1339,17 +1339,17 @@ function loadCommission(key){
   if(s.weekSheet)$('commWeekSel').value=s.weekSheet;
   if(s.repName)$('commRepSel').value=s.repName;
   $('comm-rep-title').textContent=`${s.repName} — ${s.dateLine}`;
-  const payRows=s.payments.map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.payment)}</td><td class="num pos">${fmt(p.available)}</td></tr>`).join('');
-  $('comm-payments-section').innerHTML=`<div class="cst">Payments Received</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Collected</th><th class="num">Commission</th></tr></thead><tbody>${payRows}</tbody></table>${s.weeklyDraw?`<div style="display:flex;justify-content:space-between;margin-top:10px;padding:8px 10px;background:var(--s2);border-radius:5px;font-size:12px"><span>Weekly draw available</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${fmt(s.weeklyDraw)}</span></div><div style="display:flex;justify-content:space-between;padding:4px 10px;font-size:11px"><span style="color:var(--muted)">Pay to PJ &amp; CJ</span><span style="font-family:'IBM Plex Mono',monospace">${fmt(s.payPJCJ)}</span></div><div style="display:flex;justify-content:space-between;padding:4px 10px;font-size:11px"><span style="color:var(--muted)">Pay to ${s.repName.split(' ')[0]}</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--green)">${fmt(s.payRep)}</span></div>`:''}`;
-  const pendRows=s.pending.map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num by">${fmt(p.available)}</td></tr>`).join('');
-  const othRows=[...(s.scheduled||[]),...(s.unscheduled||[])].map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num bb">${fmt(p.available)}</td></tr>`).join('');
+  const payRows=s.payments.map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.payment)}</td><td class="num pos">${fmt(p.available)}</td></tr>`).join('');
+  $('comm-payments-section').innerHTML=`<div class="cst">Payments Received</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Collected</th><th class="num">Commission</th></tr></thead><tbody>${payRows}</tbody></table>${s.weeklyDraw?`<div style="display:flex;justify-content:space-between;margin-top:10px;padding:8px 10px;background:var(--s2);border-radius:5px;font-size:15px"><span>Weekly draw available</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${fmt(s.weeklyDraw)}</span></div><div style="display:flex;justify-content:space-between;padding:4px 10px;font-size:15px"><span style="color:var(--muted)">Pay to PJ &amp; CJ</span><span style="font-family:'IBM Plex Mono',monospace">${fmt(s.payPJCJ)}</span></div><div style="display:flex;justify-content:space-between;padding:4px 10px;font-size:15px"><span style="color:var(--muted)">Pay to ${s.repName.split(' ')[0]}</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--green)">${fmt(s.payRep)}</span></div>`:''}`;
+  const pendRows=s.pending.map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num by">${fmt(p.available)}</td></tr>`).join('');
+  const othRows=[...(s.scheduled||[]),...(s.unscheduled||[])].map(p=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${p.invoice}</td><td>${p.customer}</td><td class="num">${fmt(p.total)}</td><td class="num bb">${fmt(p.available)}</td></tr>`).join('');
   $('comm-other-section').innerHTML=(pendRows?`<div class="cst">Completed — Pending Payment</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${pendRows}</tbody></table><br>`:'')+( othRows?`<div class="cst">Scheduled / Unscheduled Jobs</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${othRows}</tbody></table>`:'')
 }
 
 function renderConversion(){
   const conv=DATA.conversion;
   if(!conv||!conv.months||!conv.months.length){
-    document.getElementById('conv-kpi-row').innerHTML='<div style="color:var(--muted);font-size:12px;padding:16px">Load 05_Conversion_Analysis.xlsx to see conversion data</div>';
+    document.getElementById('conv-kpi-row').innerHTML='<div style="color:var(--muted);font-size:15px;padding:16px">Load 05_Conversion_Analysis.xlsx to see conversion data</div>';
     return;
   }
   // Build month selector
@@ -1436,7 +1436,7 @@ function loadConvMonth(idx){
       options:{responsive:true,maintainAspectRatio:false,cutout:'45%',plugins:{legend:{position:'right',labels:{color:'#64748b',font:{size:10},padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed.toFixed(1)} jobs`}}}}
     });
   }else{
-    document.getElementById('jobTypeChart').parentElement.innerHTML='<div style="color:var(--muted);font-size:12px;padding:16px">No job type data for this month</div>';
+    document.getElementById('jobTypeChart').parentElement.innerHTML='<div style="color:var(--muted);font-size:15px;padding:16px">No job type data for this month</div>';
   }
 }
 
@@ -1461,7 +1461,7 @@ function renderJobs(){
   const jobs=DATA.jobs;const tot=jobs.reduce((s,j)=>s+j.total,0);
   $('jobsKpiStrip').innerHTML=[{l:'Jobs Tracked',v:jobs.length,c:'ka'},{l:'Total Revenue',v:fmt(tot),c:'kg'},{l:'Avg Job Value',v:fmt(jobs.length?tot/jobs.length:0),c:'kb'},{l:'Avg Material %',v:tot?(jobs.reduce((s,j)=>s+j.mat,0)/tot*100).toFixed(1)+'%':'—',c:'kp'}].map(k=>`<div class="kpi ${k.c}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div></div>`).join('');
   const bm={Completed:'bg','In Progress':'by',Pending:'bx',Scheduled:'bb','Pending Payment':'by'};
-  $('jobsBody').innerHTML=jobs.map((j,i)=>`<tr style="cursor:pointer" onclick="openModal(${i})"><td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice}</td><td>${j.customer}</td><td><span class="badge bx">${j.rep}</span></td><td class="num">${j.total?fmt(j.total):'—'}</td><td class="num">${j.mat?fmt(j.mat):'—'}</td><td class="num">${j.fl?fmt(j.fl):'—'}</td><td class="num">${j.comm?fmt(j.comm):'—'}</td><td class="num ${j.outstanding>0?'by':'pos'}">${j.outstanding?fmt(j.outstanding):'—'}</td><td class="num ${j.profit>0?'pos':j.profit<0?'neg':''}">${j.profit?fmtD(j.profit):'—'}</td><td><span class="badge ${bm[j.status]||'bx'}">${j.status}</span></td></tr>`).join('')
+  $('jobsBody').innerHTML=jobs.map((j,i)=>`<tr style="cursor:pointer" onclick="openModal(${i})"><td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${j.invoice}</td><td>${j.customer}</td><td><span class="badge bx">${j.rep}</span></td><td class="num">${j.total?fmt(j.total):'—'}</td><td class="num">${j.mat?fmt(j.mat):'—'}</td><td class="num">${j.fl?fmt(j.fl):'—'}</td><td class="num">${j.comm?fmt(j.comm):'—'}</td><td class="num ${j.outstanding>0?'by':'pos'}">${j.outstanding?fmt(j.outstanding):'—'}</td><td class="num ${j.profit>0?'pos':j.profit<0?'neg':''}">${j.profit?fmtD(j.profit):'—'}</td><td><span class="badge ${bm[j.status]||'bx'}">${j.status}</span></td></tr>`).join('')
 }
 
 function openModal(i){
@@ -1879,7 +1879,7 @@ async function generateStatement(){
   $('stmt-totals-body').innerHTML = `
     <tr><td style="padding:4px 8px;color:#64748b">Weekly Draw Available</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:#1B3A6B">$${Number(totalCommOnPayments).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
     ${deduction > 0 ? `<tr><td style="padding:4px 8px;color:#64748b">${repData.deductionLabel||'Deduction'}</td><td style="padding:4px 8px;text-align:right;color:#ef4444">-$${Number(deduction).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>` : ''}
-    <tr style="border-top:2px solid #1B3A6B"><td style="padding:6px 8px;font-weight:700;font-size:13px">Pay to ${rep.split(' ')[0]}</td><td style="padding:6px 8px;text-align:right;font-weight:700;font-size:14px;color:#22543d">$${Number(netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
+    <tr style="border-top:2px solid #1B3A6B"><td style="padding:6px 8px;font-weight:700;font-size:15px">Pay to ${rep.split(' ')[0]}</td><td style="padding:6px 8px;text-align:right;font-weight:700;font-size:15px;color:#22543d">$${Number(netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
     ${repData.bimonthly ? '<tr><td colspan="2" style="padding:4px 8px;font-size:10px;color:#64748b;font-style:italic">Note: Yvonne&#39;s commission accumulates &mdash; paid by wire on 15th of even months</td></tr>' : ''}
   `;
 
@@ -2230,7 +2230,7 @@ function displayPipeline(data){
     const dateStr=date?new Date(date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
     return `<tr>
       <td><span class="pipe-badge ${bc}">${s}</span></td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice_number||j.invoice||'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${j.invoice_number||j.invoice||'—'}</td>
       <td>${j.customer_name||j.customer||'—'}</td>
       <td>${j.sales_rep||j.rep||'—'}</td>
       <td>${j.job_type||'—'}</td>
@@ -2311,7 +2311,7 @@ async function renderAging(){
   const agBuckets=$('aging-buckets');
   if(agBuckets) agBuckets.innerHTML=Object.entries(buckets).map(([label,amt])=>{
     const pct=totalOut>0?(amt/totalOut*100).toFixed(0):0;
-    return `<div><div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">${label}</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:${bcColors[label]}">$${amt.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="aging-bar"><div class="aging-bar-fill" style="width:${pct}%;background:${bcColors[label]}"></div></div></div>`;
+    return `<div><div style="display:flex;justify-content:space-between;font-size:15px"><span style="color:var(--muted)">${label}</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:${bcColors[label]}">$${amt.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="aging-bar"><div class="aging-bar-fill" style="width:${pct}%;background:${bcColors[label]}"></div></div></div>`;
   }).join('');
 
   const sorted=[...outstanding].sort((a,b)=>parseFloat(b.outstanding||0)-parseFloat(a.outstanding||0));
@@ -2327,7 +2327,7 @@ async function renderAging(){
     const bc=STATUS_COLORS[s]||'pipe-invoiced';
     return `<tr>
       <td>${j.customer_name||j.customer||'—'}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${j.invoice_number||j.invoice||'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${j.invoice_number||j.invoice||'—'}</td>
       <td>${j.sales_rep||j.rep||'—'}</td>
       <td class="num">$${Number(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td class="num pos">$${Number(paid).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
