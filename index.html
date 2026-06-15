@@ -1694,16 +1694,35 @@ async function openGenerateStmt(){
 
   // Immediately load weeks from Supabase for selected rep
   await loadAvailableWeeks(currentRep);
+
+  // Auto-select most recent week after loading
+  const sel = $('gen-week');
+  if(sel && sel.options.length > 1 && !sel.value){
+    sel.selectedIndex = 1;
+  }
 }
 
 async function generateStatement(){
   const rep = $('gen-rep').value;
-  const weekEnding = $('gen-week').value;
+  // Try dropdown first, then manual input
+  const genWeekEl = $('gen-week');
+  const weekEnding = genWeekEl ? genWeekEl.value : '';
   const stmtDate = $('gen-stmt-date').value || weekEnding;
 
-  if(!rep || !weekEnding){
-    alert('Please select a rep and week ending date');
+  console.log('generateStatement: rep=', rep, 'weekEnding=', weekEnding, 'options=', genWeekEl ? genWeekEl.options.length : 0);
+
+  if(!rep){
+    alert('Please select a sales rep');
     return;
+  }
+  if(!weekEnding){
+    // Auto-select first available week if nothing selected
+    if(genWeekEl && genWeekEl.options.length > 1){
+      genWeekEl.selectedIndex = 1;
+    } else {
+      alert('Please select a week ending date');
+      return;
+    }
   }
 
   // Format dates for display
