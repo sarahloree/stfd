@@ -1862,6 +1862,23 @@ async function generateStatement(){
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:${color};font-weight:600">$${Number(commAvail).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
     </tr>`;
   }
+  // ── Yvonne's rules for Other Job Details ────────────────────────
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Exclude if payment complete OR outstanding = 0
+  const eligibleJobs = allJobs.filter(j => {
+    const payStatus = (j.payment_status||j.invoice_status||'').toLowerCase();
+    if(payStatus === 'completed' || payStatus === 'paid') return false;
+    if(parseFloat(j.outstanding||0) === 0) return false;
+    return true;
+  });
+
+  // Completed construction, payment still owed → Completed Jobs – Pending Payment
+  const pendingJobs = eligibleJobs.filter(j => {
+    const s = (j.status||j.pipeline_status||'').toLowerCase();
+    return s === 'completed';
+  });
+
   $('stmt-pending-body').innerHTML = pendingJobs.length
     ? pendingJobs.map(j => jobDetailRow(j,'#f5a623')).join('')
     : '<tr><td colspan="6" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No completed jobs pending payment</td></tr>';
