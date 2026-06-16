@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.7/Sortable.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 :root{--bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;--border:#2a2f45;--accent:#c8922a;--green:#22c55e;--red:#ef4444;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee;--orange:#fb923c;--text:#ffffff;--muted:#94a3b8;--dim:#4a5070}
@@ -108,6 +109,43 @@ tr:hover td{background:rgba(255,255,255,.015)}
 hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 .sx{overflow-x:auto}.sy{overflow-y:auto;max-height:420px}
 .sched-crew{font-size:10px;color:var(--cyan);margin-top:1px}
+/* ── Drag-and-drop schedule board ─────────────────────────────── */
+.sched-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.sched-nav{display:flex;align-items:center;gap:6px}
+.sched-nav button{background:var(--s2);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:5px;cursor:pointer;font-size:16px;line-height:1;font-family:inherit}
+.sched-nav button:hover{border-color:var(--accent);color:var(--accent)}
+.sched-wklabel{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;min-width:190px;text-align:center}
+.sched-add{background:var(--accent);color:#000;border:none;padding:7px 14px;border-radius:5px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+.sched-add:hover{opacity:.85}
+.sched-pool{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px;background:var(--s1);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;min-height:48px}
+.sched-pool-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sched-pool-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-right:2px}
+.sched-pool-div{width:1px;align-self:stretch;background:var(--border);margin:0 6px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:5px;font-size:13px;font-weight:500;cursor:grab;user-select:none;white-space:nowrap;touch-action:none}
+.chip:active{cursor:grabbing}
+.chip-crew{background:rgba(96,165,250,.16);color:var(--blue);border:1px solid rgba(96,165,250,.35)}
+.chip-sub{background:rgba(167,139,250,.16);color:var(--purple);border:1px solid rgba(167,139,250,.35)}
+.chip.is-lead{box-shadow:0 0 0 1.5px var(--accent) inset}
+.chip .lead-btn{cursor:pointer;font-size:11px;opacity:.45;line-height:1}
+.chip .lead-btn:hover{opacity:1}
+.chip.is-lead .lead-btn{opacity:1;color:var(--accent)}
+.sched-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--s1)}
+.sched-grid{display:grid;min-width:760px}
+.sg-head,.sg-lanecell{padding:8px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+.sg-head{background:var(--s2);font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'IBM Plex Mono',monospace;position:sticky;top:0;z-index:5}
+.sg-head.sg-job{position:sticky;left:0;z-index:6}
+.sg-lanecell{display:flex;flex-direction:column;justify-content:center;gap:3px;position:sticky;left:0;background:var(--s1);z-index:4}
+.sg-lanecell .ll-name{font-weight:600;font-size:14px}
+.sg-lanecell .ll-inv{font-size:10px;color:var(--cyan);font-family:'IBM Plex Mono',monospace}
+.sg-lanecell .ll-x{position:absolute;top:4px;right:6px;color:var(--dim);cursor:pointer;font-size:13px}
+.sg-lanecell .ll-x:hover{color:var(--red)}
+.day-cell{border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:6px;display:flex;flex-direction:column;gap:5px;min-height:64px}
+.cell-head{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.cell-men{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.cell-comp{cursor:pointer;border:none;font-family:inherit}
+.cell-chips{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-height:26px;border-radius:5px;align-content:flex-start}
+.cell-chips.sortable-over{outline:1.5px dashed var(--accent);outline-offset:-2px}
+.sortable-ghost{opacity:.4}
 .mr-g td:first-child{border-left:2px solid var(--green)}.mr-r td:first-child{border-left:2px solid var(--red)}
 #jobModal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
 #jobModal.open{display:flex}
@@ -426,9 +464,37 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 </div>
 
 <div class="page" id="p-schedule">
-  <div class="card" style="margin-bottom:10px"><div class="ct">Job Schedule — Week <span id="sched-wk">—</span></div><div class="sx"><table><thead id="schedHead"></thead><tbody id="schedBody"></tbody></table></div></div>
-  <div class="card"><div class="ct">Crew Utilization</div><div class="grid g4" id="crewGrid" style="gap:8px"></div></div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="sched-toolbar">
+      <div class="sched-nav">
+        <button onclick="schedShiftWeek(-7)" title="Previous week">‹</button>
+        <div class="sched-wklabel" id="sched-wk">—</div>
+        <button onclick="schedShiftWeek(7)" title="Next week">›</button>
+      </div>
+      <button class="sched-add" onclick="openAddLane()">+ Add job to week</button>
+      <div id="sched-msg" style="font-size:11px;color:var(--muted)"></div>
+    </div>
+    <div class="sched-pool" id="schedPool"></div>
+    <div class="sched-scroll"><div class="sched-grid" id="schedGrid"></div></div>
+  </div>
 </div>
+
+<div id="addLaneModal" class="modal-overlay"><div class="modal-content" style="width:440px">
+  <div class="modal-header"><h3>Add Job to Week</h3><button class="modal-close" onclick="closeAddLane()">✕</button></div>
+  <div class="form-group">
+    <label>Pick an existing job</label>
+    <select id="addLaneJob"><option value="">— select a job —</option></select>
+  </div>
+  <div style="text-align:center;color:var(--muted);font-size:11px;margin:10px 0">— or —</div>
+  <div class="form-group">
+    <label>Ad-hoc label (e.g. Support Labor, VACANT)</label>
+    <input id="addLaneLabel" type="text" placeholder="Type a label…">
+  </div>
+  <div class="form-actions">
+    <button class="btn-secondary" onclick="closeAddLane()">Cancel</button>
+    <button class="btn-primary" style="width:auto" onclick="confirmAddLane()">Add Lane</button>
+  </div>
+</div></div>
 
 <div class="page" id="p-commissions">
   <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between">
@@ -1197,6 +1263,7 @@ function showTab(id){
   console.log('showTab('+id+') tab=',tab,'page=',page);
   if(tab)tab.classList.add('active');
   if(page)page.classList.add('active');
+  if(id==='schedule')refreshSchedBoard();
 }
 
 function buildWeekSel(){
@@ -1299,32 +1366,287 @@ function loadWeek(idx){
     const tot=inc.reduce((s,x)=>s+x.amount,0);
     $('incomeDist').innerHTML=inc.map((x,i)=>`<div class="ir"><span class="idot" style="background:${IC[i]}"></span><span class="in">${x.name}</span><span class="ip">${tot?(x.amount/tot*100).toFixed(0):0}%</span><span class="ia">${fmt(x.amount)}</span></div>`).join('')+`<div class="ir" style="border-top:1px solid var(--border);margin-top:4px"><span class="idot"></span><span class="in" style="font-weight:600">Total</span><span class="ip"></span><span class="ia" style="color:var(--accent)">${fmt(tot)}</span></div>`
   }else{$('incomeDist').innerHTML=`<div style="color:var(--muted);font-size:15px;padding:8px 0">No income data for week ${wk}</div>`}
-  loadSchedWeek(d.start)
+  loadSchedWeek(d.start||d.startDate)
 }
 
+// ═══════════════════════════════════════════════════════════════
+// DRAG-AND-DROP JOB-LANE SCHEDULE BOARD (Supabase-backed)
+// ═══════════════════════════════════════════════════════════════
+let schedAnchor=null;            // Monday (Date) of the week being viewed
+let schedWorkers=[];             // active workers from `workers` table
+let schedAssignments=[];         // schedule_assignments rows for the current week
+let schedExtraLanes=[];          // {job_label,invoice_number} lanes added manually for this week
+let schedSortables=[];           // live Sortable instances (destroyed before each re-render)
+let schedWorkersLoaded=false;
+const SCHED_DAYS=['Mon','Tue','Wed','Thu','Fri'];
+
+// Parse a 'YYYY-MM-DD' string into a local Date at noon (tz-safe, mirrors other tabs)
+function parseYMD(s){if(!s)return null;const p=String(s).split('-');return new Date(+p[0],(+p[1]||1)-1,+p[2]||1,12,0,0)}
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function mondayOf(d){const x=new Date(d.getTime());const dow=x.getDay();const diff=(dow===0?-6:1-dow);x.setDate(x.getDate()+diff);x.setHours(12,0,0,0);return x}
+function addDays(d,n){const x=new Date(d.getTime());x.setDate(x.getDate()+n);return x}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function schedMsg(t){const el=$('sched-msg');if(el)el.textContent=t||''}
+
+// Bridge from the weekly tab: align the board to the selected week's Monday.
 function loadSchedWeek(startDate){
-  if(!startDate)return;
-  // Timezone-independent date matching — parse date string directly
-  // avoids UTC shift issues for Yvonne in Hong Kong (GMT+8)
-  // startDate format: 'YYYY-MM-DD'
-  const parts=startDate.split('-');
-  const month=parts[1]?parseInt(parts[1],10):0;
-  const day=parts[2]?parseInt(parts[2],10):0;
-  const key1=`${month}-${day}`;
-  const key2=`${month}-${String(day).padStart(2,'0')}`;
-  // Also try matching by week number from DATA.weeks
-  const sch=DATA.schedules[key1]||DATA.schedules[key2]||DATA.schedules[startDate];
-  $('sched-wk').textContent=startDate;
-  if(!sch||!sch.jobs.length){$('schedHead').innerHTML='<tr><th colspan="10" style="color:var(--muted)">No schedule data for this week</th></tr>';$('schedBody').innerHTML='';$('crewGrid').innerHTML='';return}
-  $('schedHead').innerHTML=`<tr><th>Job</th><th>Description</th><th>Crew</th>${sch.dayLabels.map(d=>`<th>${d||'—'}</th>`).join('')}<th>Status</th></tr>`;
-  $('schedBody').innerHTML=sch.jobs.map(job=>{
-    const days=job.days.map((a,i)=>{if(!a)return'<td style="color:var(--dim)">—</td>';const c=job.comp[i];return`<td>${c===1?'<span class="badge bg">Done</span>':c!=null?`<span class="badge by">${Math.round(c*100)}%</span>`:'<span class="badge bb">Sched.</span>'}</td>`}).join('');
-    const td=job.days.reduce((a,b)=>a+b,0),cv=job.comp.filter(x=>x!=null),ac=cv.length&&td?cv.reduce((a,b)=>a+b,0)/td:0;
-    const pb=ac>=1?'<span class="badge bg">Complete</span>':ac>0?`<span class="badge by">${Math.round(ac*100)}%</span>`:'<span class="badge bx">Pending</span>';
-    return`<tr><td style="font-weight:600">${job.name}</td><td><div style="font-size:15px">${job.desc}</div></td><td><div class="sched-crew">${job.crew}</div></td>${days}<td>${pb}</td></tr>`
-  }).join('');
-  const cm={};sch.jobs.forEach(j=>j.crew.split(',').map(c=>c.trim()).filter(Boolean).forEach(c=>{if(!cm[c])cm[c]={a:0,t:0};cm[c].a+=j.days.reduce((x,y)=>x+y,0);cm[c].t+=sch.dayLabels.length}));
-  $('crewGrid').innerHTML=Object.entries(cm).map(([name,d])=>{const u=d.t?d.a/d.t:0;return`<div class="card" style="padding:10px"><div style="font-size:15px;font-weight:600;margin-bottom:5px">${name}</div><div class="pt"><div class="pf" style="background:var(--cyan);width:${Math.round(u*100)}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:3px">${d.a}/${sch.dayLabels.length} days — ${Math.round(u*100)}%</div></div>`}).join('')
+  const base=parseYMD(startDate)||new Date();
+  schedAnchor=mondayOf(base);
+  if($('p-schedule')&&$('p-schedule').classList.contains('active')) refreshSchedBoard();
+}
+
+async function loadSchedWorkers(){
+  if(!sb)return;
+  try{
+    const {data,error}=await sb.from('workers').select('*').eq('active',true).order('sort_order',{ascending:true});
+    if(!error&&data)schedWorkers=data;
+    schedWorkersLoaded=true;
+  }catch(e){console.error('loadSchedWorkers error:',e)}
+}
+
+async function loadSchedAssignments(){
+  if(!sb||!schedAnchor)return;
+  const mon=ymd(schedAnchor),fri=ymd(addDays(schedAnchor,4));
+  try{
+    const {data,error}=await sb.from('schedule_assignments').select('*').gte('work_date',mon).lte('work_date',fri).order('sort_order',{ascending:true});
+    if(!error&&data)schedAssignments=data;
+  }catch(e){console.error('loadSchedAssignments error:',e)}
+}
+
+// Main entry: ensure data is loaded, then render the board.
+async function refreshSchedBoard(){
+  if(!schedAnchor)schedAnchor=mondayOf(new Date());
+  if(!sb){renderSchedBoard();return}
+  if(!schedWorkersLoaded)await loadSchedWorkers();
+  await loadSchedAssignments();
+  renderSchedBoard();
+}
+
+function schedShiftWeek(delta){
+  if(!schedAnchor)schedAnchor=mondayOf(new Date());
+  schedAnchor=addDays(schedAnchor,delta);
+  schedExtraLanes=[];           // lanes are per-week; reset on navigation
+  refreshSchedBoard();
+}
+
+// Distinct lanes for the week: from assignments + manually-added lanes.
+function schedLanes(){
+  const map=new Map();
+  schedAssignments.forEach(a=>{
+    if(!map.has(a.job_label))map.set(a.job_label,{job_label:a.job_label,invoice_number:a.invoice_number||null});
+  });
+  schedExtraLanes.forEach(l=>{if(!map.has(l.job_label))map.set(l.job_label,{job_label:l.job_label,invoice_number:l.invoice_number||null})});
+  return [...map.values()];
+}
+
+function workerById(id){return schedWorkers.find(w=>String(w.id)===String(id))}
+
+function renderSchedBoard(){
+  schedSortables.forEach(s=>{try{s.destroy()}catch(e){}});schedSortables=[];
+  if(!schedAnchor)schedAnchor=mondayOf(new Date());
+  const mon=schedAnchor,fri=addDays(schedAnchor,4);
+  const fmtD2=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  $('sched-wk').textContent=`${fmtD2(mon)} – ${fmtD2(fri)}`;
+
+  // ── Worker pool (crew vs sub) ──
+  const pool=$('schedPool');
+  const crew=schedWorkers.filter(w=>w.kind!=='sub');
+  const subs=schedWorkers.filter(w=>w.kind==='sub');
+  const poolChip=w=>`<div class="chip chip-${w.kind==='sub'?'sub':'crew'}" data-wid="${esc(w.id)}" data-wname="${esc(w.name)}" data-kind="${esc(w.kind||'crew')}">${esc(w.name)}</div>`;
+  if(!schedWorkers.length){
+    pool.innerHTML=`<span class="sched-pool-lbl">No active workers found${sb?'':' (offline)'}</span>`;
+  }else{
+    pool.innerHTML=
+      `<div class="sched-pool-group" id="poolCrew"><span class="sched-pool-lbl">Crew</span>${crew.map(poolChip).join('')||'<span class="sched-pool-lbl" style="opacity:.5">none</span>'}</div>`+
+      `<div class="sched-pool-div"></div>`+
+      `<div class="sched-pool-group" id="poolSub"><span class="sched-pool-lbl">Subs / Resources</span>${subs.map(poolChip).join('')||'<span class="sched-pool-lbl" style="opacity:.5">none</span>'}</div>`;
+  }
+
+  // ── Grid ──
+  const lanes=schedLanes();
+  const grid=$('schedGrid');
+  grid.style.gridTemplateColumns=`minmax(150px,1.4fr) repeat(5,minmax(118px,1fr))`;
+  let html=`<div class="sg-head sg-job">Job / Activity</div>`+
+    SCHED_DAYS.map((d,i)=>`<div class="sg-head">${d} <span style="opacity:.6">${addDays(mon,i).getDate()}</span></div>`).join('');
+  if(!lanes.length){
+    html+=`<div class="sg-lanecell" style="grid-column:1/-1;color:var(--muted);text-align:center;padding:18px">No jobs scheduled this week — use “+ Add job to week”.</div>`;
+  }
+  lanes.forEach(lane=>{
+    html+=`<div class="sg-lanecell"><span class="ll-x" title="Remove lane" data-lane="${esc(lane.job_label)}">✕</span><span class="ll-name">${esc(lane.job_label)}</span>${lane.invoice_number?`<span class="ll-inv">#${esc(lane.invoice_number)}</span>`:''}</div>`;
+    for(let i=0;i<5;i++){
+      const date=ymd(addDays(mon,i));
+      const rows=schedAssignments.filter(a=>a.job_label===lane.job_label&&a.work_date===date);
+      const comp=rows.length?Math.max(...rows.map(r=>+r.completion||0)):null;
+      const compBadge=comp==null?`<span class="badge bx">—</span>`:comp>=1?`<span class="badge bg">Done</span>`:comp>0?`<span class="badge by">${Math.round(comp*100)}%</span>`:`<span class="badge bb">Sched</span>`;
+      const chips=rows.map(r=>{const w=workerById(r.worker_id);const nm=w?w.name:(r.worker_name||'?');const kind=w&&w.kind==='sub'?'sub':'crew';
+        return `<div class="chip chip-${kind} ${r.role==='lead'?'is-lead':''}" data-aid="${esc(r.id)}" data-wid="${esc(r.worker_id)}" data-wname="${esc(nm)}" data-kind="${kind}"><span class="lead-btn" title="Toggle lead" data-aid="${esc(r.id)}">★</span>${esc(nm)}</div>`}).join('');
+      html+=`<div class="day-cell"><div class="cell-head"><span class="cell-men">${rows.length} men</span><span class="cell-comp" data-label="${esc(lane.job_label)}" data-date="${date}" data-disabled="${rows.length?'0':'1'}">${compBadge}</span></div>`+
+        `<div class="cell-chips" data-label="${esc(lane.job_label)}" data-invoice="${esc(lane.invoice_number||'')}" data-date="${date}">${chips}</div></div>`;
+    }
+  });
+  grid.innerHTML=html;
+
+  attachSchedSortables();
+  bindSchedClicks();
+}
+
+function attachSchedSortables(){
+  // Pool groups: clone out, accept drops back in (= unstaff)
+  ['poolCrew','poolSub'].forEach(id=>{
+    const el=$(id);if(!el)return;
+    schedSortables.push(Sortable.create(el,{
+      group:{name:'sched',pull:'clone',put:true},
+      sort:false,filter:'.sched-pool-lbl',draggable:'.chip',animation:120,
+      onAdd:evt=>onPoolAdd(evt)
+    }));
+  });
+  // Each cell
+  document.querySelectorAll('#schedGrid .cell-chips').forEach(el=>{
+    schedSortables.push(Sortable.create(el,{
+      group:'sched',draggable:'.chip',filter:'.lead-btn',animation:120,
+      onAdd:evt=>onCellAdd(evt)
+    }));
+  });
+}
+
+// Dropped onto the pool from a cell → unstaff (delete row)
+function onPoolAdd(evt){
+  const item=evt.item,from=evt.from;
+  if(from===evt.to||from.classList.contains('sched-pool-group')){item.remove();return}
+  const aid=item.dataset.aid;
+  item.remove();
+  if(aid)schedDelete(aid);
+}
+
+// Dropped into a job/day cell
+function onCellAdd(evt){
+  const item=evt.item,from=evt.from,to=evt.to;
+  const wid=item.dataset.wid;
+  const label=to.dataset.label, inv=to.dataset.invoice||null, date=to.dataset.date;
+  item.remove(); // re-render rebuilds the DOM from state
+  const fromPool=from.classList.contains('sched-pool-group');
+  // prevent duplicate (unique work_date+worker_id+job_label)
+  const dup=schedAssignments.find(a=>a.job_label===label&&a.work_date===date&&String(a.worker_id)===String(wid));
+  if(fromPool){
+    if(dup){schedMsg('Already on this job/day.');scheduleRerender();return}
+    schedInsert(date,wid,label,inv);
+  }else{
+    const aid=item.dataset.aid;
+    const a=schedAssignments.find(x=>String(x.id)===String(aid));
+    if(!a){scheduleRerender();return}
+    if(dup&&String(dup.id)!==String(aid)){schedMsg('Already on this job/day.');scheduleRerender();return}
+    schedMove(aid,date,label,inv);
+  }
+}
+
+let _rerenderTimer=null;
+function scheduleRerender(){clearTimeout(_rerenderTimer);_rerenderTimer=setTimeout(renderSchedBoard,0)}
+
+// ── Supabase ops (optimistic: mutate state, re-render, then persist) ──
+function schedInsert(date,wid,label,inv){
+  const tmp='tmp_'+Math.random().toString(36).slice(2);
+  const row={id:tmp,work_date:date,worker_id:wid,job_label:label,invoice_number:inv||null,role:'crew',completion:0,sort_order:schedAssignments.length};
+  schedAssignments.push(row);scheduleRerender();schedMsg('');
+  if(!sb)return;
+  sb.from('schedule_assignments').insert([{work_date:date,worker_id:wid,job_label:label,invoice_number:inv||null,role:'crew',completion:0,sort_order:row.sort_order}]).select().then(({data,error})=>{
+    if(error){console.error(error);schedMsg('Save failed — reloading.');refreshSchedBoard();return}
+    if(data&&data[0])row.id=data[0].id;
+  });
+}
+function schedMove(aid,date,label,inv){
+  const a=schedAssignments.find(x=>String(x.id)===String(aid));if(!a)return;
+  a.work_date=date;a.job_label=label;a.invoice_number=inv||null;scheduleRerender();schedMsg('');
+  if(!sb||String(aid).startsWith('tmp_'))return;
+  sb.from('schedule_assignments').update({work_date:date,job_label:label,invoice_number:inv||null}).eq('id',aid).then(({error})=>{
+    if(error){console.error(error);schedMsg('Move failed — reloading.');refreshSchedBoard()}
+  });
+}
+function schedDelete(aid){
+  schedAssignments=schedAssignments.filter(x=>String(x.id)!==String(aid));scheduleRerender();schedMsg('');
+  if(!sb||String(aid).startsWith('tmp_'))return;
+  sb.from('schedule_assignments').delete().eq('id',aid).then(({error})=>{
+    if(error){console.error(error);schedMsg('Delete failed — reloading.');refreshSchedBoard()}
+  });
+}
+function schedToggleLead(aid){
+  const a=schedAssignments.find(x=>String(x.id)===String(aid));if(!a)return;
+  const makeLead=a.role!=='lead';
+  const peers=schedAssignments.filter(x=>x.job_label===a.job_label&&x.work_date===a.work_date);
+  const prevLeads=peers.filter(x=>x.role==='lead'&&String(x.id)!==String(aid));
+  peers.forEach(x=>{if(String(x.id)!==String(aid))x.role='crew'});
+  a.role=makeLead?'lead':'crew';
+  scheduleRerender();schedMsg('');
+  if(!sb)return;
+  // demote previous lead(s), then set/clear this one
+  prevLeads.forEach(p=>{if(!String(p.id).startsWith('tmp_'))sb.from('schedule_assignments').update({role:'crew'}).eq('id',p.id).then(()=>{})});
+  if(!String(aid).startsWith('tmp_'))sb.from('schedule_assignments').update({role:a.role}).eq('id',aid).then(({error})=>{if(error){console.error(error);refreshSchedBoard()}});
+}
+function schedEditCompletion(label,date){
+  const rows=schedAssignments.filter(a=>a.job_label===label&&a.work_date===date);
+  if(!rows.length){schedMsg('Staff this job/day before setting completion.');return}
+  const cur=Math.round((Math.max(...rows.map(r=>+r.completion||0)))*100);
+  const inp=prompt('Completion % (0–100) for this job/day:',cur);
+  if(inp==null)return;
+  let v=parseFloat(inp);if(isNaN(v))return;v=Math.max(0,Math.min(100,v))/100;
+  rows.forEach(r=>r.completion=v);scheduleRerender();schedMsg('');
+  if(!sb)return;
+  sb.from('schedule_assignments').update({completion:v}).eq('job_label',label).eq('work_date',date).then(({error})=>{
+    if(error){console.error(error);schedMsg('Completion save failed — reloading.');refreshSchedBoard()}
+  });
+}
+
+function bindSchedClicks(){
+  document.querySelectorAll('#schedGrid .lead-btn').forEach(b=>{
+    b.addEventListener('click',e=>{e.stopPropagation();schedToggleLead(b.dataset.aid)});
+  });
+  document.querySelectorAll('#schedGrid .cell-comp').forEach(c=>{
+    if(c.dataset.disabled==='1')return;
+    c.addEventListener('click',()=>schedEditCompletion(c.dataset.label,c.dataset.date));
+  });
+  document.querySelectorAll('#schedGrid .ll-x').forEach(x=>{
+    x.addEventListener('click',()=>removeLane(x.dataset.lane));
+  });
+}
+
+function removeLane(label){
+  const rows=schedAssignments.filter(a=>a.job_label===label);
+  if(rows.length){
+    if(!confirm(`Remove "${label}" and delete its ${rows.length} assignment(s) this week?`))return;
+    const ids=rows.map(r=>r.id);
+    schedAssignments=schedAssignments.filter(a=>a.job_label!==label);
+    schedExtraLanes=schedExtraLanes.filter(l=>l.job_label!==label);
+    scheduleRerender();
+    if(sb){const real=ids.filter(id=>!String(id).startsWith('tmp_'));if(real.length)sb.from('schedule_assignments').delete().in('id',real).then(({error})=>{if(error){console.error(error);refreshSchedBoard()}});}
+  }else{
+    schedExtraLanes=schedExtraLanes.filter(l=>l.job_label!==label);
+    scheduleRerender();
+  }
+}
+
+// ── Add-lane modal ──
+function openAddLane(){
+  const sel=$('addLaneJob');
+  const jobs=(sbJobs&&sbJobs.length?sbJobs.map(j=>({inv:j.invoice_number,cust:j.customer_name})):DATA.jobs.map(j=>({inv:j.invoice,cust:j.customer})));
+  sel.innerHTML='<option value="">— select a job —</option>'+jobs.filter(j=>j.inv).map(j=>`<option value="${esc(j.inv)}">#${esc(j.inv)} — ${esc(j.cust||'')}</option>`).join('');
+  $('addLaneLabel').value='';
+  $('addLaneModal').classList.add('open');
+}
+function closeAddLane(){$('addLaneModal').classList.remove('open')}
+function confirmAddLane(){
+  const inv=$('addLaneJob').value;
+  const adhoc=$('addLaneLabel').value.trim();
+  let label,invoice;
+  if(inv){
+    const jobs=(sbJobs&&sbJobs.length?sbJobs:[]);
+    const j=jobs.find(x=>String(x.invoice_number)===String(inv));
+    const cust=j?j.customer_name:'';
+    label=`#${inv}${cust?' '+cust:''}`;invoice=inv;
+  }else if(adhoc){
+    label=adhoc;invoice=null;
+  }else{schedMsg('Pick a job or type a label.');return}
+  if(schedLanes().some(l=>l.job_label===label)){schedMsg('That lane already exists.');closeAddLane();return}
+  schedExtraLanes.push({job_label:label,invoice_number:invoice});
+  closeAddLane();renderSchedBoard();
 }
 
 function loadCommission(key){
@@ -1506,6 +1828,11 @@ async function doLogin() {
     renderJobs();
     if(typeof renderPipeline==='function') renderPipeline();
     if(typeof renderAging==='function') renderAging();
+
+    // Schedule board: anchor to latest week's Monday (falls back to current week)
+    const lastWk=DATA.weeks.length?DATA.weeks[DATA.weeks.length-1]:null;
+    schedAnchor=mondayOf(parseYMD(lastWk&&(lastWk.start||lastWk.startDate))||new Date());
+    loadSchedWorkers();
 
     // Show appropriate default tab
     if(DATA.weeks.length) showTab('weekly');
