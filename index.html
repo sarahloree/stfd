@@ -517,7 +517,11 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="card"><div class="ct">2026 Monthly P&amp;L</div><div class="sx"><table><thead><tr><th>Month</th><th class="num">Sales</th><th class="num">Material</th><th class="num">Field Lab.</th><th class="num">Overhead</th><th class="num">Supp. Lab.</th><th class="num">Commission</th><th class="num">Profit</th></tr></thead><tbody id="monthlyBody"></tbody></table></div></div>
     <div class="card"><div class="ct">Monthly Trends</div><div class="ch" style="height:220px"><canvas id="monthlyChart"></canvas></div></div>
   </div>
-  <div class="card"><div class="ct">YTD Summary</div><div class="grid g4" id="ytdGrid" style="gap:8px;margin-top:4px"></div></div>
+  <div class="card" style="margin-bottom:10px"><div class="ct">YTD Summary</div><div class="grid g4" id="ytdGrid" style="gap:8px;margin-top:4px"></div></div>
+  <div class="grid g2">
+    <div class="card"><div class="ct">Sales vs Prior Years</div><div class="sx"><table><thead><tr><th>Month</th><th class="num">2022</th><th class="num">2023</th><th class="num">2024</th><th class="num">2025</th><th class="num">2026</th><th class="num">4-Yr Avg</th></tr></thead><tbody id="salesCompBody"></tbody></table></div></div>
+    <div class="card"><div class="ct">Sales Comparison — This Year vs Average</div><div class="ch" style="height:240px"><canvas id="salesCompChart"></canvas></div></div>
+  </div>
 </div>
 
 <div class="page" id="p-conversion">
@@ -752,7 +756,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <script>
 const STATE={outlook:null,jobs:null,schedule:null,commissions:null,conversion:null,monthly:null}; // commissions becomes array when files loaded
-let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{},conversion:{months:[],jobTypes:{}},monthlyAvg:{},excelPayments:[],conversionRows:[]};
+let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{},conversion:{months:[],jobTypes:{}},monthlyAvg:{},excelPayments:[],conversionRows:[],overhead:[],conversionQuotes:[]};
 let charts={};
 const IC=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'];
 const $=id=>document.getElementById(id);
@@ -1264,6 +1268,10 @@ function showTab(id){
   if(tab)tab.classList.add('active');
   if(page)page.classList.add('active');
   if(id==='schedule')refreshSchedBoard();
+  // Repaint live-data tabs on activation so they reflect the latest Supabase data
+  if(id==='monthly'){try{renderMonthly()}catch(e){console.warn('renderMonthly skipped:',e.message)}}
+  if(id==='conversion'){try{renderConversion()}catch(e){console.warn('renderConversion skipped:',e.message)}}
+  if(id==='commissions'){try{buildCommSel();loadCommission()}catch(e){console.warn('commissions render skipped:',e.message)}}
 }
 
 function buildWeekSel(){
@@ -1282,46 +1290,46 @@ function buildWeekSel(){
 }
 
 function buildCommSel(){
-  // Populate REP selector from jobs data so it works with just Job Costs file
-  const rSel2=$('commRepSel');
-  if(rSel2&&rSel2.options.length<=1){
-    const reps=new Set(['Paul Vincent','Jeff Yates','Sherrell Ezzell','Taylor Bassett','Jery Edgett','Yvonne Chiang']);
-    DATA.jobs.forEach(j=>{if(j.rep)reps.add(j.rep);});
-    sbJobs.forEach(j=>{if(j.sales_rep)reps.add(j.sales_rep);});
-    [...reps].sort().forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;rSel2.appendChild(o);});
-  }
-  // Populate WEEK selector with unique weeks only — no rep names
-  const weeks=[...new Set(Object.values(DATA.commissions).map(c=>c.weekSheet).filter(Boolean))]
-    .sort((a,b)=>{
-      // Sort by month-day numerically e.g. 4-8 < 4-15 < 5-13
-      const [am,ad]=a.split('-').map(Number);
-      const [bm,bd]=b.split('-').map(Number);
-      return bm!==am?bm-am:bd-ad; // descending
-    });
-  const wSel=$('commWeekSel');
-  weeks.forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent=w;wSel.appendChild(o)});
+  const entries=Object.values(DATA.commissions||{});
+  const wSel=$('commWeekSel'), rSel=$('commRepSel');
+  if(!wSel||!rSel)return;
+  const prevWeek=wSel.value, prevRep=rSel.value;
 
-  // Populate REP selector with unique rep names only
-  const reps=[...new Set(Object.values(DATA.commissions).map(c=>c.repName).filter(Boolean))].sort();
-  const rSel=$('commRepSel');
-  reps.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;rSel.appendChild(o)});
+  // WEEK selector — distinct week_ending dates, newest first
+  const weeks=[...new Set(entries.map(c=>c.weekSheet).filter(Boolean))].sort().reverse();
+  wSel.innerHTML='<option value="">-- Select Week --</option>'+weeks.map(w=>{
+    const lbl=new Date(w+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    return `<option value="${w}">${lbl}</option>`;
+  }).join('');
 
-  // Default: latest week, first rep
-  if(weeks.length)wSel.value=weeks[0];
-  if(reps.length)rSel.value=reps[0];
+  // REP selector — reps present in the data, plus the known roster as fallback
+  const reps=new Set(entries.map(c=>c.repName).filter(Boolean));
+  ['Paul Vincent','Jeff Yates','Sherrell Ezzell','Taylor Bassett','Jery Edgett','Yvonne Chiang'].forEach(r=>reps.add(r));
+  const repList=[...reps].sort();
+  rSel.innerHTML='<option value="">-- Select Rep --</option>'+repList.map(r=>`<option value="${r}">${r}</option>`).join('');
+
+  // Restore prior selection where possible; otherwise default to latest week / first rep
+  wSel.value=(prevWeek&&weeks.includes(prevWeek))?prevWeek:(weeks[0]||'');
+  rSel.value=(prevRep&&repList.includes(prevRep))?prevRep:(repList[0]||'');
   updateCommission();
 }
 
 function updateCommission(){
   const week=$('commWeekSel').value;
   const rep=$('commRepSel').value;
-  if(!week||!rep)return;
+  if(!week||!rep){
+    $('comm-rep-title').textContent='Commission Statement';
+    $('comm-payments-section').innerHTML='<div style="color:var(--muted);font-size:15px;padding:16px 0">Select a rep and week to view the statement.</div>';
+    $('comm-other-section').innerHTML='';
+    return;
+  }
   const key=`${rep}|${week}`;
   if(DATA.commissions[key]){
     loadCommission(key);
   } else {
-    $('comm-rep-title').textContent=`${rep} — ${week}`;
-    $('comm-payments-section').innerHTML=`<div style="color:var(--muted);font-size:15px;padding:16px 0">No statement for ${rep} in week ${week}</div>`;
+    const lbl=new Date(week+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    $('comm-rep-title').textContent=`${rep} — ${lbl}`;
+    $('comm-payments-section').innerHTML=`<div style="color:var(--muted);font-size:15px;padding:16px 0">No statement for ${rep} in week of ${lbl}</div>`;
     $('comm-other-section').innerHTML='';
   }
 }
@@ -1486,11 +1494,14 @@ function renderSchedBoard(){
   });
   grid.innerHTML=html;
 
-  attachSchedSortables();
+  // Wire lane ✕ / lead / completion handlers BEFORE Sortable init so a
+  // library hiccup in attachSchedSortables() can't strip the click handlers.
   bindSchedClicks();
+  attachSchedSortables();
 }
 
 function attachSchedSortables(){
+  if(typeof Sortable==='undefined'){console.warn('SortableJS not loaded');return;}
   // Pool groups: clone out, accept drops back in (= unstaff)
   ['poolCrew','poolSub'].forEach(id=>{
     const el=$(id);if(!el)return;
@@ -1650,7 +1661,13 @@ function confirmAddLane(){
 }
 
 function loadCommission(key){
-  const s=DATA.commissions[key];if(!s)return;
+  // No key → use the current rep + week selection (tab-activation path)
+  if(!key){
+    const rep=$('commRepSel').value, week=$('commWeekSel').value;
+    if(!rep||!week){updateCommission();return}
+    key=`${rep}|${week}`;
+  }
+  const s=DATA.commissions[key];if(!s){updateCommission();return}
   // Keep week selector as-is — only update rep selector to match
   if(s.weekSheet)$('commWeekSel').value=s.weekSheet;
   if(s.repName)$('commRepSel').value=s.repName;
@@ -1662,115 +1679,184 @@ function loadCommission(key){
   $('comm-other-section').innerHTML=(pendRows?`<div class="cst">Completed — Pending Payment</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${pendRows}</tbody></table><br>`:'')+( othRows?`<div class="cst">Scheduled / Unscheduled Jobs</div><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Invoice Total</th><th class="num">Comm. Available</th></tr></thead><tbody>${othRows}</tbody></table>`:'')
 }
 
+// Aggregate close-rate stats over an array of quote rows
+function convStats(rows){
+  const quoted=rows.length;
+  const conv=rows.filter(q=>q.converted);
+  const converted=conv.length;
+  return {
+    quoted,converted,
+    rate:quoted?converted/quoted:0,
+    revQuoted:rows.reduce((s,q)=>s+q.total,0),
+    revWon:conv.reduce((s,q)=>s+q.total,0),
+  };
+}
+function convMonthKey(s){return s?String(s).slice(0,7):''} // 'YYYY-MM'
+function convMonthLabel(key){const[y,m]=key.split('-');return `${MONTH_NAMES[(+m||1)-1]} ${y}`}
+
 function renderConversion(){
-  const conv=DATA.conversion;
-  if(!conv||!conv.months||!conv.months.length){
-    document.getElementById('conv-kpi-row').innerHTML='<div style="color:var(--muted);font-size:15px;padding:16px">Load 05_Conversion_Analysis.xlsx to see conversion data</div>';
+  const all=DATA.conversionQuotes||[];
+  const krow=document.getElementById('conv-kpi-row');
+  if(!all.length){
+    if(krow)krow.innerHTML='<div style="color:var(--muted);font-size:15px;padding:16px">No conversion quotes loaded yet.</div>';
     return;
   }
-  // Build month selector
+  const YEAR=new Date().getFullYear();
+  const ytdRows=all.filter(q=>yearOf(q.quote_date)===YEAR);
+  const rows=ytdRows.length?ytdRows:all; // fall back to all-time if no current-year rows
+  const st=convStats(rows);
+  const res=convStats(rows.filter(q=>!q.commercial));
+  const com=convStats(rows.filter(q=>q.commercial));
+
+  // KPI row
+  const kpis=[
+    {l:'YTD Quoted',v:st.quoted.toLocaleString(),c:'var(--blue)'},
+    {l:'YTD Converted',v:st.converted.toLocaleString(),c:'var(--green)'},
+    {l:'YTD Close Rate',v:(st.rate*100).toFixed(1)+'%',c:st.rate>=0.4?'var(--green)':'var(--accent)'},
+    {l:'Revenue Won',v:fmt(st.revWon),c:'var(--accent)'},
+    {l:'Residential Close',v:(res.rate*100).toFixed(1)+'%',c:'var(--cyan)'},
+    {l:'Commercial Close',v:(com.rate*100).toFixed(1)+'%',c:'var(--purple)'},
+  ];
+  krow.innerHTML=kpis.map(k=>`<div class="card" style="border-top:2px solid ${k.c};padding:12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">${k.l}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:${k.c}">${k.v}</div></div>`).join('');
+
+  // Month selector
   const sel=document.getElementById('convMonthSel');
-  sel.innerHTML='<option value="">-- Select Month --</option>';
-  // Filter to monthly rows only (not annual summaries)
-  // Monthly rows have a date range < 35 days; annual rows span a full year
-  const months2026=conv.months.filter(m=>{
-    if(!m.start.startsWith('2026'))return false;
-    // Exclude the annual summary row (Jan 1 to Dec 31)
-    if(m.start==='2026-01-01'&&m.quoted>200)return false;
-    return true;
-  });
-  months2026.forEach((m,i)=>{
-    const o=document.createElement('option');o.value=i;o.textContent=monthLabel(m.start);sel.appendChild(o);
-  });
-  // Store filtered months for loadConvMonth to use
-  DATA.conversion.months2026=months2026;
-  if(months2026.length){sel.value=months2026.length-1;loadConvMonth(months2026.length-1);}
+  const keys=[...new Set(rows.map(q=>convMonthKey(q.quote_date)).filter(Boolean))].sort();
+  const prev=sel.value;
+  sel.innerHTML='<option value="">-- Select Month --</option>'+keys.map(k=>`<option value="${k}">${convMonthLabel(k)}</option>`).join('');
+  const pick=(prev&&keys.includes(prev))?prev:(keys[keys.length-1]||'');
+  sel.value=pick;
 
-  // YTD KPIs — find the annual summary row (Jan 1 with large quoted count)
-  const ytd=conv.months.find(m=>m.start==='2026-01-01'&&m.quoted>50)||conv.months.find(m=>m.start.startsWith('2026'))||conv.months[0];
-  const kpis=ytd?[
-    {l:'YTD Quoted',v:ytd.quoted,c:'var(--blue)'},
-    {l:'YTD Converted',v:ytd.converted,c:'var(--green)'},
-    {l:'YTD Close Rate',v:(ytd.rate*100).toFixed(1)+'%',c:ytd.rate>=0.4?'var(--green)':'var(--accent)'},
-  ]:[];
-  document.getElementById('conv-kpi-row').innerHTML=kpis.map(k=>`<div class="card" style="border-top:2px solid ${k.c};padding:12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">${k.l}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:${k.c}">${typeof k.v==='number'?k.v.toLocaleString():k.v}</div></div>`).join('');
-
-  // Trend chart — monthly close rate 2026
-  const months2026Filtered=conv.months.filter(m=>m.start.startsWith('2026')&&!m.start.endsWith('01-01'));
+  // Monthly close-rate trend
   dc('convTrendChart');
-  if(months2026Filtered.length){
+  if(keys.length){
+    const trend=keys.map(k=>+(convStats(rows.filter(q=>convMonthKey(q.quote_date)===k)).rate*100).toFixed(1));
     charts['convTrendChart']=new Chart(document.getElementById('convTrendChart').getContext('2d'),{
       type:'line',
-      data:{labels:months2026Filtered.map(m=>monthLabel(m.start)),datasets:[{label:'Close Rate',data:months2026Filtered.map(m=>+(m.rate*100).toFixed(1)),borderColor:'#f5a623',backgroundColor:'rgba(245,166,35,.1)',borderWidth:2,fill:true,tension:.3}]},
+      data:{labels:keys.map(convMonthLabel),datasets:[{label:'Close Rate',data:trend,borderColor:'#f5a623',backgroundColor:'rgba(245,166,35,.1)',borderWidth:2,fill:true,tension:.3}]},
       options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10},callback:v=>v+'%'},min:0,max:100}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` Close Rate: ${ctx.parsed.y}%`}}}}
     });
   }
 
-  // Rep performance YTD chart
-  const ytdReps=ytd?ytd.reps:[];
+  // Rep performance (YTD): quoted vs converted per rep
+  const reps=[...new Set(rows.map(q=>q.rep))].sort();
+  const repStats=reps.map(r=>({name:r,...convStats(rows.filter(q=>q.rep===r))})).sort((a,b)=>b.quoted-a.quoted);
   dc('repPerfChart');
-  if(ytdReps.length){
+  if(repStats.length){
     charts['repPerfChart']=new Chart(document.getElementById('repPerfChart').getContext('2d'),{
       type:'bar',
-      data:{labels:ytdReps.map(r=>r.name.split(' ')[0]),datasets:[
-        {label:'Quoted',data:ytdReps.map(r=>r.quoted),backgroundColor:'rgba(96,165,250,.3)',borderColor:'#60a5fa',borderWidth:1},
-        {label:'Converted',data:ytdReps.map(r=>r.converted),backgroundColor:'rgba(34,197,94,.5)',borderColor:'#22c55e',borderWidth:1}
+      data:{labels:repStats.map(r=>r.name.split(' ')[0]),datasets:[
+        {label:'Quoted',data:repStats.map(r=>r.quoted),backgroundColor:'rgba(96,165,250,.3)',borderColor:'#60a5fa',borderWidth:1},
+        {label:'Converted',data:repStats.map(r=>r.converted),backgroundColor:'rgba(34,197,94,.5)',borderColor:'#22c55e',borderWidth:1}
       ]},
       options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10}}}},plugins:{legend:{labels:{color:'#64748b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y}`}}}}
     });
   }
+
+  if(pick)loadConvMonth(pick);
 }
 
-function loadConvMonth(idx){
-  const months2026=DATA.conversion.months2026||DATA.conversion.months.filter(m=>m.start.startsWith('2026')&&m.quoted<200);
-  const m=months2026[idx];if(!m)return;
-  document.getElementById('convMonthSel').value=idx;
+function loadConvMonth(key){
+  const all=DATA.conversionQuotes||[];
+  if(!key){document.getElementById('convRepBody').innerHTML='';return}
+  document.getElementById('convMonthSel').value=key;
+  const rows=all.filter(q=>convMonthKey(q.quote_date)===key);
 
-  // Rep table
-  const repColors=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee'];
-  document.getElementById('convRepBody').innerHTML=m.reps.map((r,i)=>{
+  // Per-rep table for the selected month
+  const repColors=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'];
+  const reps=[...new Set(rows.map(q=>q.rep))].sort();
+  const repStats=reps.map(r=>({name:r,...convStats(rows.filter(q=>q.rep===r))})).sort((a,b)=>b.quoted-a.quoted);
+  document.getElementById('convRepBody').innerHTML=repStats.length?repStats.map((r,i)=>{
     const ratePct=(r.rate*100).toFixed(1)+'%';
     const rateColor=r.rate>=0.5?'var(--green)':r.rate>=0.35?'var(--accent)':'var(--red)';
     return`<tr>
-      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${repColors[i]};margin-right:6px"></span>${r.name}</td>
+      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${repColors[i%repColors.length]};margin-right:6px"></span>${r.name}</td>
       <td class="num">${r.quoted}</td>
       <td class="num">${r.converted}</td>
       <td class="num" style="color:${rateColor};font-weight:600">${ratePct}</td>
-      <td class="num">${fmt(r.invQuoted)}</td>
-      <td class="num pos">${fmt(r.invConverted)}</td>
+      <td class="num">${fmt(r.revQuoted)}</td>
+      <td class="num pos">${fmt(r.revWon)}</td>
     </tr>`;
-  }).join('');
+  }).join(''):'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:14px">No quotes this month</td></tr>';
 
-  // Job type pie
-  const jt=DATA.conversion.jobTypes[m.start]||{};
-  const jtLabels=Object.keys(jt);const jtVals=Object.values(jt);
+  // Job-type breakdown — revenue quoted by type for the month
+  const jt={};
+  rows.forEach(q=>q.types.forEach(t=>{jt[t.label]=(jt[t.label]||0)+t.amt}));
+  const jtLabels=Object.keys(jt).filter(l=>jt[l]>0);
+  const jtVals=jtLabels.map(l=>jt[l]);
   dc('jobTypeChart');
   if(jtLabels.length){
     charts['jobTypeChart']=new Chart(document.getElementById('jobTypeChart').getContext('2d'),{
       type:'doughnut',
       data:{labels:jtLabels,datasets:[{data:jtVals,backgroundColor:['#60a5fa','#f5a623','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'],borderColor:'#141720',borderWidth:2}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:'45%',plugins:{legend:{position:'right',labels:{color:'#64748b',font:{size:10},padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed.toFixed(1)} jobs`}}}}
+      options:{responsive:true,maintainAspectRatio:false,cutout:'45%',plugins:{legend:{position:'right',labels:{color:'#64748b',font:{size:10},padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.parsed)}`}}}}
     });
-  }else{
-    document.getElementById('jobTypeChart').parentElement.innerHTML='<div style="color:var(--muted);font-size:15px;padding:16px">No job type data for this month</div>';
   }
 }
 
+const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+// Month index (0-11) from a 'YYYY-MM-DD' string, tz-safe
+function monthIdxOf(s){if(!s)return null;const p=String(s).split('-');return p[1]?(+p[1]-1):null}
+function yearOf(s){if(!s)return null;const p=String(s).split('-');return p[0]?+p[0]:null}
+
 function renderMonthly(){
-  const months=DATA.monthly.filter(m=>m.inv>0);
+  const YEAR=new Date().getFullYear();
+  // ── (a) Live P&L from jobs + weekly_overhead, current year, by month ──
+  const pl=MONTH_NAMES.map((_,i)=>({mi:i,inv:0,mat:0,fl:0,comm:0,oh:0,sp:0}));
+  DATA.jobs.forEach(j=>{
+    if(yearOf(j.startDate)!==YEAR)return;
+    const mi=monthIdxOf(j.startDate);if(mi==null)return;
+    const r=pl[mi];r.inv+=j.total||0;r.mat+=j.mat||0;r.fl+=j.fl||0;r.comm+=j.comm||0;
+  });
+  DATA.overhead.forEach(o=>{
+    if(yearOf(o.week_ending)!==YEAR)return;
+    const mi=monthIdxOf(o.week_ending);if(mi==null)return;
+    pl[mi].oh+=o.overhead||0;pl[mi].sp+=o.support||0;
+  });
+  pl.forEach(r=>r.profit=r.inv-r.mat-r.fl-r.oh-r.sp-r.comm);
+  const months=pl.filter(m=>m.inv>0||m.oh>0||m.sp>0);
+
   let yi=0,ym=0,yf=0,yo=0,ys=0,yc=0,yp=0;
   $('monthlyBody').innerHTML=months.map(m=>{
     yi+=m.inv;ym+=m.mat;yf+=m.fl;yo+=m.oh;ys+=m.sp;yc+=m.comm;yp+=m.profit;
-    // Get historical average for this month if available
-    const mName=monthLabel(m.start).split(' ')[0];
-    const avg=DATA.monthlyAvg[mName];
-    const avgVal=avg?avg.avg4yr:0;
+    // vs 4-year average from monthly_sales reference
+    const ref=DATA.monthly.find(x=>(x.monthNumber===m.mi+1)||(x.month&&x.month.slice(0,3)===MONTH_NAMES[m.mi]));
+    const avgVal=ref?((ref.y2022+ref.y2023+ref.y2024+ref.y2025)/4):0;
     const vsAvg=avgVal?(m.inv-avgVal)/avgVal*100:null;
     const vsStr=vsAvg!==null?` <span style="font-size:9px;color:${vsAvg>=0?'var(--green)':'var(--red)'}">(${vsAvg>=0?'+':''}${vsAvg.toFixed(0)}% vs avg)</span>`:'';
-    return`<tr class="${m.profit>=0?'mr-g':'mr-r'}"><td>${monthLabel(m.start)}</td><td class="num">${fmt(m.inv)}${vsStr}</td><td class="num">${fmt(m.mat)}</td><td class="num">${fmt(m.fl)}</td><td class="num">${fmt(m.oh)}</td><td class="num">${fmt(m.sp)}</td><td class="num">${fmt(m.comm)}</td><td class="num ${m.profit>=0?'pos':'neg'}">${fmtD(m.profit)}</td></tr>`;
+    return`<tr class="${m.profit>=0?'mr-g':'mr-r'}"><td>${MONTH_NAMES[m.mi]} ${YEAR}</td><td class="num">${fmt(m.inv)}${vsStr}</td><td class="num">${fmt(m.mat)}</td><td class="num">${fmt(m.fl)}</td><td class="num">${fmt(m.oh)}</td><td class="num">${fmt(m.sp)}</td><td class="num">${fmt(m.comm)}</td><td class="num ${m.profit>=0?'pos':'neg'}">${fmtD(m.profit)}</td></tr>`;
   }).join('')+`<tr style="border-top:1px solid var(--border);font-weight:600"><td>YTD</td><td class="num" style="color:var(--accent)">${fmt(yi)}</td><td class="num">${fmt(ym)}</td><td class="num">${fmt(yf)}</td><td class="num">${fmt(yo)}</td><td class="num">${fmt(ys)}</td><td class="num">${fmt(yc)}</td><td class="num ${yp>=0?'pos':'neg'}">${fmtD(yp)}</td></tr>`;
-  dc('monthlyChart');charts['monthlyChart']=new Chart($('monthlyChart').getContext('2d'),{type:'bar',data:{labels:months.map(m=>monthLabel(m.start)),datasets:[{label:'Sales',data:months.map(m=>m.inv),backgroundColor:'rgba(245,166,35,.2)',borderColor:'#f5a623',borderWidth:1,yAxisID:'y'},{label:'Profit/Loss',data:months.map(m=>m.profit),backgroundColor:months.map(m=>m.profit>=0?'rgba(34,197,94,.5)':'rgba(239,68,68,.5)'),borderColor:months.map(m=>m.profit>=0?'#22c55e':'#ef4444'),borderWidth:1,yAxisID:'y2',type:'line'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}},y2:{position:'right',grid:{display:false},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}}},plugins:{legend:{labels:{color:'#64748b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}}}});
-  $('ytdGrid').innerHTML=[{l:'Total Revenue',v:fmt(yi),c:'var(--accent)'},{l:'Net Profit',v:fmtD(yp),c:yp>=0?'var(--green)':'var(--red)'},{l:'Material %',v:yi?(ym/yi*100).toFixed(1)+'%':'—',c:'var(--blue)'},{l:'Profit Margin',v:yi?(yp/yi*100).toFixed(1)+'%':'—',c:yp>=0?'var(--green)':'var(--red)'}].map(it=>`<div class="card" style="padding:12px;border-top:2px solid ${it.c}"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">${it.l}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:${it.c}">${it.v}</div></div>`).join('')
+  renderMonthly._months=months.map(m=>({mi:m.mi,inv:m.inv,profit:m.profit}));
+  dc('monthlyChart');charts['monthlyChart']=new Chart($('monthlyChart').getContext('2d'),{type:'bar',data:{labels:months.map(m=>MONTH_NAMES[m.mi]),datasets:[{label:'Sales',data:months.map(m=>m.inv),backgroundColor:'rgba(245,166,35,.2)',borderColor:'#f5a623',borderWidth:1,yAxisID:'y'},{label:'Profit/Loss',data:months.map(m=>m.profit),backgroundColor:months.map(m=>m.profit>=0?'rgba(34,197,94,.5)':'rgba(239,68,68,.5)'),borderColor:months.map(m=>m.profit>=0?'#22c55e':'#ef4444'),borderWidth:1,yAxisID:'y2',type:'line'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}},y2:{position:'right',grid:{display:false},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}}},plugins:{legend:{labels:{color:'#64748b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}}}});
+  $('ytdGrid').innerHTML=[{l:'Total Revenue',v:fmt(yi),c:'var(--accent)'},{l:'Net Profit',v:fmtD(yp),c:yp>=0?'var(--green)':'var(--red)'},{l:'Material %',v:yi?(ym/yi*100).toFixed(1)+'%':'—',c:'var(--blue)'},{l:'Profit Margin',v:yi?(yp/yi*100).toFixed(1)+'%':'—',c:yp>=0?'var(--green)':'var(--red)'}].map(it=>`<div class="card" style="padding:12px;border-top:2px solid ${it.c}"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">${it.l}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:${it.c}">${it.v}</div></div>`).join('');
+
+  // ── (b) Sales vs prior years — current year overridden with live P&L sales ──
+  renderSalesComparison(YEAR,pl);
+}
+
+// Month×year sales table + chart. Prior years are fixed reference from
+// monthly_sales; the current-year column is the live P&L sales from (a).
+function renderSalesComparison(YEAR,pl){
+  const body=$('salesCompBody');if(!body)return;
+  const ref=DATA.monthly||[];
+  const liveByMi={};pl.forEach(r=>{liveByMi[r.mi]=r.inv});
+  const rows=MONTH_NAMES.map((nm,mi)=>{
+    const r=ref.find(x=>(x.monthNumber===mi+1)||(x.month&&x.month.slice(0,3)===nm))||{};
+    const y22=r.y2022||0,y23=r.y2023||0,y24=r.y2024||0,y25=r.y2025||0;
+    const live=liveByMi[mi]||0;
+    const avg4=(y22+y23+y24+y25)/4;
+    return {mi,nm,y22,y23,y24,y25,live,avg4};
+  });
+  body.innerHTML=rows.map(r=>`<tr><td>${r.nm}</td><td class="num">${fmt(r.y22)}</td><td class="num">${fmt(r.y23)}</td><td class="num">${fmt(r.y24)}</td><td class="num">${fmt(r.y25)}</td><td class="num" style="color:var(--accent)">${fmt(r.live)}</td><td class="num" style="color:var(--muted)">${fmt(r.avg4)}</td></tr>`).join('');
+  dc('salesCompChart');
+  charts['salesCompChart']=new Chart($('salesCompChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:MONTH_NAMES,datasets:[
+      {label:`${YEAR} (live)`,data:rows.map(r=>r.live),backgroundColor:'rgba(245,166,35,.5)',borderColor:'#f5a623',borderWidth:1,order:2},
+      {label:'4-Yr Avg',data:rows.map(r=>r.avg4),type:'line',borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.1)',borderWidth:2,tension:.3,fill:false,order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'#2a2f45'},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+Math.round(v/1000)+'k'}},x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}}},plugins:{legend:{labels:{color:'#64748b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}}}
+  });
 }
 
 function renderJobs(){
@@ -1908,11 +1994,12 @@ async function loadAllSupabaseData() {
         loadWeek(DATA.weeks.length-1);
       }
     }
-    // Load monthly sales
+    // Load monthly sales (prior-year reference for the sales-comparison section)
     const {data:monthly} = await sb.from('monthly_sales').select('*').order('month_number');
-    if(monthly && monthly.length && DATA.monthly.length === 0){
+    if(monthly && monthly.length){
       DATA.monthly = monthly.map(m => ({
         month: m.month_name,
+        monthNumber: parseInt(m.month_number)||0,
         y2022: parseFloat(m.sales_2022)||0,
         y2023: parseFloat(m.sales_2023)||0,
         y2024: parseFloat(m.sales_2024)||0,
@@ -1921,25 +2008,89 @@ async function loadAllSupabaseData() {
         min: parseFloat(m.avg_min)||0,
         max: parseFloat(m.avg_max)||0,
       }));
-      renderMonthly();
     }
-    // Load conversion analysis
-    const {data:conv} = await sb.from('conversion_analysis').select('*').order('start_date');
-    if(conv && conv.length){
-      // Store raw conversion data for renderConversion
-      DATA.conversionRows = conv.map(c => ({
-        startDate: c.start_date,
-        endDate: c.end_date,
-        converted: parseInt(c.jobs_converted)||0,
-        quoted: parseInt(c.jobs_quoted)||0,
-        rate: parseFloat(c.conversion_rate)||0,
-        totalConverted: parseFloat(c.invoice_total_converted)||0,
-        totalQuoted: parseFloat(c.invoice_total_quoted)||0,
-      }));
-      // Only call renderConversion if it can handle this data safely
-      try { renderConversion(); } catch(e) { console.log('Conversion render skipped:', e.message); }
-    }
+    // Load weekly overhead (feeds the live Monthly P&L) — must be ready before renderMonthly
+    const {data:oh} = await sb.from('weekly_overhead').select('*');
+    if(oh) DATA.overhead = oh.map(o => ({
+      week_ending: o.week_ending,
+      overhead: parseFloat(o.overhead_amount)||0,
+      support: parseFloat(o.support_labour_amount)||0,
+    }));
+    // Monthly P&L + sales comparison are computed live from jobs + overhead
+    try { renderMonthly(); } catch(e) { console.warn('renderMonthly skipped:', e.message); }
+
+    // Load raw conversion quotes → compute the Conversion tab from these
+    const {data:cq} = await sb.from('conversion_quotes').select('*');
+    if(cq) DATA.conversionQuotes = cq.map(q => ({
+      quote_date: q.quote_date,
+      rep: q.sales_rep||'Unassigned',
+      total: parseFloat(q.invoice_total)||0,
+      converted: q.converted===true||q.converted==='true'||q.converted===1,
+      commercial: q.commercial===true||q.commercial==='true'||q.commercial===1,
+      types: [
+        {label:q.job_type_1, amt:parseFloat(q.amt_1)||0},
+        {label:q.job_type_2, amt:parseFloat(q.amt_2)||0},
+        {label:q.job_type_3, amt:parseFloat(q.amt_3)||0},
+      ].filter(t=>t.label),
+    }));
+    try { renderConversion(); } catch(e) { console.warn('renderConversion skipped:', e.message); }
+
+    // Load commission statement entries → power the Commissions tab from Supabase
+    const {data:hist} = await sb.from('historical_commission_entries').select('*');
+    if(hist) buildCommissionsFromHist(hist);
+    try { buildCommSel(); } catch(e) { console.warn('buildCommSel skipped:', e.message); }
   } catch(e) { console.error('loadAllSupabaseData error:', e); }
+}
+
+// Group historical_commission_entries into the {rep|week_ending} shape the
+// inline commissions renderer (loadCommission) already consumes. Other-job
+// rows (pending/scheduled/unscheduled) are derived from DATA.jobs per rep,
+// using the same classification rules as the Generate Statement flow.
+function buildCommissionsFromHist(hist){
+  const today=new Date();today.setHours(0,0,0,0);
+  const byRepJobs={};
+  DATA.jobs.forEach(j=>{(byRepJobs[j.rep]=byRepJobs[j.rep]||[]).push(j)});
+  const map={};
+  hist.forEach(e=>{
+    const rep=e.rep_name, wk=e.week_ending;
+    if(!rep||!wk)return;
+    const key=`${rep}|${wk}`;
+    if(!map[key]){
+      map[key]={repName:rep,weekSheet:wk,dateLine:new Date(wk+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),payments:[],pending:[],scheduled:[],unscheduled:[],weeklyDraw:0,payPJCJ:0,payRep:0};
+    }
+    const g=map[key];
+    g.payments.push({
+      invoice:e.invoice_number||'—',
+      customer:e.customer_name||'—',
+      total:parseFloat(e.invoice_total)||0,
+      payment:parseFloat(e.payment_received)||0,
+      available:parseFloat(e.commission_on_payment)||parseFloat(e.available)||0,
+    });
+    g.weeklyDraw+=parseFloat(e.commission_on_payment)||0;
+  });
+  // Per-rep deductions mirror the Generate Statement repInfo table
+  const deductions={'Paul Vincent':100};
+  Object.values(map).forEach(g=>{
+    const ded=deductions[g.repName]||0;
+    g.payPJCJ=ded;
+    g.payRep=Math.max(0,g.weeklyDraw-ded);
+    // Other job details for this rep (eligible = not paid & outstanding>0)
+    const jobs=(byRepJobs[g.repName]||[]).filter(j=>{
+      const s=(j.status||'').toLowerCase();
+      if(s==='completed'&&(!j.outstanding||j.outstanding===0))return false;
+      if((j.outstanding||0)===0&&s!=='completed')return false;
+      return true;
+    });
+    jobs.forEach(j=>{
+      const s=(j.status||'').toLowerCase();
+      const avail=j.comm||0;
+      const row={invoice:j.invoice,customer:j.customer,total:j.total,available:avail};
+      if(s==='completed')g.pending.push(row);
+      else if(j.startDate&&new Date(j.startDate+'T12:00:00')<=today)g.scheduled.push(row);
+      else g.unscheduled.push(row);
+    });
+  });
+  DATA.commissions=map;
 }
 
 function mergeSbJobsIntoDashboard(dbJobs) {
