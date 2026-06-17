@@ -752,35 +752,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   </div>
 </div>
 
-<div id="jobModal"><div class="modal-box"><button class="modal-close" onclick="closeJobModal()">✕</button><div class="modal-title" id="modalTitle">Job Detail</div><div class="modal-grid" id="modalGrid"></div></div></div>
-
-<!-- Pipeline status update modal -->
-<div class="modal-overlay" id="pipelineStatusModal">
-  <div class="modal-content" style="width:420px">
-    <div class="modal-header">
-      <h3>Update Pipeline Status</h3>
-      <button class="btn-secondary" onclick="closeModal('pipelineStatusModal')">✕</button>
-    </div>
-    <div class="form-group">
-      <label>Job</label>
-      <div id="ps-job-info" style="font-size:15px;color:var(--muted);padding:4px 0"></div>
-    </div>
-    <div class="form-group">
-      <label>Status *</label>
-      <select id="ps-status">
-        <option value="Estimate">Estimate</option>
-        <option value="Contracted">Contracted</option>
-        <option value="Invoiced">Invoiced</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Completed">Completed</option>
-      </select>
-    </div>
-    <div class="form-actions">
-      <button class="btn-secondary" onclick="closeModal('pipelineStatusModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:8px 24px" onclick="savePipelineStatus()">Save</button>
-    </div>
-  </div>
-</div>
+<div id="jobModal"><div class="modal-box"><button class="modal-close" onclick="closeModal()">✕</button><div class="modal-title" id="modalTitle">Job Detail</div><div class="modal-grid" id="modalGrid"></div></div></div>
 
 <script>
 const STATE={outlook:null,jobs:null,schedule:null,commissions:null,conversion:null,monthly:null}; // commissions becomes array when files loaded
@@ -1120,6 +1092,7 @@ async function syncToSupabase(jobs, payments){
         customer_name: String(p.customer_name||'').trim().substring(0,200),
         rep_name: String(p.rep_name||'').trim(),
         week_ending: p.week_ending||null,
+        payment_date: p.payment_date||null,
         invoice_total: parseFloat(p.invoice_total)||0,
         commission_rate: parseFloat(p.commission_rate)||0.06,
         total_commission: parseFloat(p.total_commission)||0,
@@ -1180,10 +1153,15 @@ function parsePaymentsFromJobs(wb){
         }else{dateStr=String(rawDate).split('T')[0].split(' ')[0];}
         if(!dateStr)return;
         const pd=new Date(dateStr+'T12:00:00');
-        const daysUntilTue=(1-pd.getDay()+7)%7||7;
-        const we=new Date(pd);we.setDate(pd.getDate()+daysUntilTue);
+        // Commission week runs Tuesday→Monday; week_ending is the closing Monday.
+        // A payment that lands ON Monday belongs to THAT Monday's week (offset 0),
+        // not the next week — so NO "||7" here (the old ||7 shoved every Monday a
+        // full week forward: it dropped Monday-closing payments out of their week
+        // and pulled the prior week's Monday into this one).
+        const daysUntilMon=(1-pd.getDay()+7)%7;
+        const we=new Date(pd);we.setDate(pd.getDate()+daysUntilMon);
         const weekEnding=we.toISOString().split('T')[0];
-        payments.push({invoice_number:inv,customer_name:customer,rep_name:rep,week_ending:weekEnding,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:Math.round(payAmt*100)/100,commission_on_payment:Math.round(commAmt*100)/100,pre_paid:0,available:Math.round((totalComm-commAmt)*100)/100});
+        payments.push({invoice_number:inv,customer_name:customer,rep_name:rep,week_ending:weekEnding,payment_date:dateStr,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:Math.round(payAmt*100)/100,commission_on_payment:Math.round(commAmt*100)/100,pre_paid:0,available:Math.round((totalComm-commAmt)*100)/100});
       }
     });
   });
@@ -1891,17 +1869,17 @@ function renderJobs(){
   const jobs=DATA.jobs;const tot=jobs.reduce((s,j)=>s+j.total,0);
   $('jobsKpiStrip').innerHTML=[{l:'Jobs Tracked',v:jobs.length,c:'ka'},{l:'Total Revenue',v:fmt(tot),c:'kg'},{l:'Avg Job Value',v:fmt(jobs.length?tot/jobs.length:0),c:'kb'},{l:'Avg Material %',v:tot?(jobs.reduce((s,j)=>s+j.mat,0)/tot*100).toFixed(1)+'%':'—',c:'kp'}].map(k=>`<div class="kpi ${k.c}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div></div>`).join('');
   const bm={Completed:'bg','In Progress':'by',Pending:'bx',Scheduled:'bb','Pending Payment':'by'};
-  $('jobsBody').innerHTML=jobs.map((j,i)=>`<tr style="cursor:pointer" onclick="openJob(${i})"><td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${j.invoice}</td><td>${j.customer}</td><td><span class="badge bx">${j.rep}</span></td><td class="num">${j.total?fmt(j.total):'—'}</td><td class="num">${j.mat?fmt(j.mat):'—'}</td><td class="num">${j.fl?fmt(j.fl):'—'}</td><td class="num">${j.comm?fmt(j.comm):'—'}</td><td class="num ${j.outstanding>0?'by':'pos'}">${j.outstanding?fmt(j.outstanding):'—'}</td><td class="num ${j.profit>0?'pos':j.profit<0?'neg':''}">${j.profit?fmtD(j.profit):'—'}</td><td><span class="badge ${bm[j.status]||'bx'}">${j.status}</span></td></tr>`).join('')
+  $('jobsBody').innerHTML=jobs.map((j,i)=>`<tr style="cursor:pointer" onclick="openModal(${i})"><td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${j.invoice}</td><td>${j.customer}</td><td><span class="badge bx">${j.rep}</span></td><td class="num">${j.total?fmt(j.total):'—'}</td><td class="num">${j.mat?fmt(j.mat):'—'}</td><td class="num">${j.fl?fmt(j.fl):'—'}</td><td class="num">${j.comm?fmt(j.comm):'—'}</td><td class="num ${j.outstanding>0?'by':'pos'}">${j.outstanding?fmt(j.outstanding):'—'}</td><td class="num ${j.profit>0?'pos':j.profit<0?'neg':''}">${j.profit?fmtD(j.profit):'—'}</td><td><span class="badge ${bm[j.status]||'bx'}">${j.status}</span></td></tr>`).join('')
 }
 
-function openJob(i){
+function openModal(i){
   const j=DATA.jobs[i];if(!j)return;
   $('modalTitle').textContent=`${j.invoice} — ${j.customer}`;
   $('modalGrid').innerHTML=[{l:'Invoice Total',v:fmt(j.total),c:'var(--accent)'},{l:'Sales Rep',v:j.rep||'—',c:'var(--text)'},{l:'Material',v:fmt(j.mat),c:'var(--blue)'},{l:'Field Labour',v:fmt(j.fl),c:'var(--orange)'},{l:'Commission',v:fmt(j.comm),c:'var(--cyan)'},{l:'Comm. Rate',v:j.commRate||'—',c:'var(--cyan)'},{l:'Outstanding',v:fmt(j.outstanding),c:j.outstanding>0?'var(--accent)':'var(--green)'},{l:'Profit',v:fmtD(j.profit),c:j.profit>=0?'var(--green)':'var(--red)'},{l:'Status',v:j.status,c:'var(--text)'},{l:'Start Date',v:j.startDate||'—',c:'var(--text)'}].map(it=>`<div class="modal-item"><div class="ml">${it.l}</div><div class="mv" style="color:${it.c}">${it.v}</div></div>`).join('');
   $('jobModal').classList.add('open')
 }
-function closeJobModal(){$('jobModal').classList.remove('open')}
-$('jobModal').addEventListener('click',e=>{if(e.target===$('jobModal'))closeJobModal()})
+function closeModal(){$('jobModal').classList.remove('open')}
+$('jobModal').addEventListener('click',e=>{if(e.target===$('jobModal'))closeModal()})
 
 // ═══════════════════════════════════════════════════════════════
 // SUPABASE + LOGIN
@@ -2317,7 +2295,8 @@ async function generateStatement(){
       const customerName = entry.customer_name || job.customer_name || job.customer || '—';
       const commPct = (entry.commission_rate * 100).toFixed(0) + '%';
       totalCommOnPayments += parseFloat(entry.commission_on_payment) || 0;
-            const payDateStr = entry.week_ending ? new Date(entry.week_ending+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+            const payDateRaw = entry.payment_date || entry.week_ending;
+            const payDateStr = payDateRaw ? new Date(payDateRaw+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
       payRows += `<tr>
         <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${entry.invoice_number||'—'}</td>
         <td style="padding:4px 8px;border:1px solid #ddd">${customerName}</td>
