@@ -601,7 +601,45 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 </div>
 <div class="page" id="p-jobs">
   <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px" id="jobsKpiStrip"></div>
-  <div class="card"><div class="ct">All Jobs — Click any row to see full details</div><div class="sx sy" style="max-height:500px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Sales Rep</th><th class="num">Total</th><th class="num">Material</th><th class="num">Field Labour</th><th class="num">Commission</th><th class="num">Outstanding</th><th class="num">Profit</th><th>Status</th></tr></thead><tbody id="jobsBody"></tbody></table></div></div>
+  <style>
+  .jc-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .jc-toolbar input[type=text],.jc-toolbar select{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:14px}
+  .jc-in{background:transparent;border:1px solid transparent;color:var(--text);font-family:inherit;font-size:14px;padding:3px 5px;border-radius:4px;width:100%;outline:none;color-scheme:dark}
+  .jc-in:hover{border-color:var(--border)}
+  .jc-in:focus{border-color:var(--accent);background:var(--s2)}
+  .jc-num{text-align:right;font-family:'IBM Plex Mono',monospace}
+  select.jc-in{cursor:pointer}
+  .jc-saved{animation:jcflash .9s ease-out}
+  @keyframes jcflash{0%{background:rgba(34,197,94,.35)}100%{background:transparent}}
+  .jc-err{border-color:var(--red)!important}
+  .jc-exp{cursor:pointer;color:var(--muted);user-select:none;font-size:13px;padding:0 4px}
+  th.jc-sortable{cursor:pointer;user-select:none;white-space:nowrap}
+  .jc-pay-panel{background:var(--s2);border-radius:6px;padding:12px}
+  </style>
+  <div class="card">
+    <div class="ct">All Jobs — edit any cell to save; click ▸ to add payments</div>
+    <div class="jc-toolbar">
+      <input type="text" id="jcSearch" placeholder="Search invoice, customer, rep…" oninput="jcSetFilter()" style="min-width:240px">
+      <select id="jcRepFilter" onchange="jcSetFilter()"><option value="">All Reps</option></select>
+      <select id="jcStatusFilter" onchange="jcSetFilter()"><option value="">All Statuses</option></select>
+      <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px"><input type="checkbox" id="jcOutOnly" onchange="jcSetFilter()"> Outstanding only</label>
+      <span id="jcCount" style="color:var(--muted);font-size:13px;margin-left:auto"></span>
+    </div>
+    <div class="sx sy" style="max-height:560px"><table><thead><tr>
+      <th style="width:24px"></th>
+      <th class="jc-sortable" data-sort="invoice" onclick="jcSortBy('invoice')">Invoice<span class="jc-arrow"></span></th>
+      <th class="jc-sortable" data-sort="customer" onclick="jcSortBy('customer')">Customer<span class="jc-arrow"></span></th>
+      <th class="jc-sortable" data-sort="rep" onclick="jcSortBy('rep')">Sales Rep<span class="jc-arrow"></span></th>
+      <th class="jc-sortable num" data-sort="total" onclick="jcSortBy('total')">Total<span class="jc-arrow"></span></th>
+      <th class="jc-sortable num" data-sort="rate" onclick="jcSortBy('rate')">Rate<span class="jc-arrow"></span></th>
+      <th class="jc-sortable num" data-sort="comm" onclick="jcSortBy('comm')">Commission<span class="jc-arrow"></span></th>
+      <th class="jc-sortable num" data-sort="outstanding" onclick="jcSortBy('outstanding')">Outstanding<span class="jc-arrow"></span></th>
+      <th class="jc-sortable num" data-sort="pmargin" onclick="jcSortBy('pmargin')">Pred. Margin<span class="jc-arrow"></span></th>
+      <th class="jc-sortable num" data-sort="amargin" onclick="jcSortBy('amargin')">Actual Margin<span class="jc-arrow"></span></th>
+      <th class="jc-sortable" data-sort="status" onclick="jcSortBy('status')">Status<span class="jc-arrow"></span></th>
+      <th class="jc-sortable" data-sort="cdate" onclick="jcSortBy('cdate')">Constr. Date<span class="jc-arrow"></span></th>
+    </tr></thead><tbody id="jobsBody"></tbody></table></div>
+  </div>
 </div>
 </div>
 
@@ -757,6 +795,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 <script>
 const STATE={outlook:null,jobs:null,schedule:null,commissions:null,conversion:null,monthly:null}; // commissions becomes array when files loaded
 let DATA={weeks:[],income:{},monthly:[],jobs:[],schedules:{},commissions:{},conversion:{months:[],jobTypes:{}},monthlyAvg:{},excelPayments:[],conversionRows:[],overhead:[],conversionQuotes:[]};
+let jcPaid={}, jcPaidLoaded=false;
 let charts={};
 const IC=['#f5a623','#60a5fa','#22c55e','#ef4444','#a78bfa','#22d3ee','#fb923c','#84cc16'];
 const $=id=>document.getElementById(id);
@@ -1057,8 +1096,17 @@ async function syncToSupabase(jobs, payments){
       sales_rep: String(j.rep||'').trim(),
       job_type: j.jobType || 'Custom Fence',
       invoice_total: parseFloat(j.total)||0,
-      material_cost: parseFloat(j.mat)||0,
-      field_labour_cost: parseFloat(j.fl)||0,
+      material_cost: parseFloat(j.matAct)||0,
+      field_labour_cost: parseFloat(j.flAct)||0,
+      estimated_material_cost: parseFloat(j.matPred)||0,
+      actual_material_cost: parseFloat(j.matAct)||0,
+      estimated_labour_cost: parseFloat(j.flPred)||0,
+      actual_labour_cost: parseFloat(j.flAct)||0,
+      subcontractor_cost: parseFloat(j.sub)||0,
+      warranty_basis: j.warrantyBasis||'all',
+      warranty_manual: parseFloat(j.warrantyManual)||0,
+      fuel_surcharge: parseFloat(j.fuel)||0,
+      construction_days: parseFloat(j.days)||0,
       commission_rate: (()=>{
         const r = j.commRate;
         if(!r) return 0.06;
@@ -1096,10 +1144,11 @@ async function syncToSupabase(jobs, payments){
 
     // ── UPSERT PAYMENTS ──────────────────────────────────────────
     if(payments && payments.length){
-      // Clear and re-insert all payment records from this file
-      await sb.from('historical_commission_entries').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      
-      const payRows = payments.map(p => ({
+      // Non-destructive import: the dashboard is now the source of truth, so ADD
+      // payments from the file without wiping anything. Skip any payment already
+      // present (matched on invoice + date + amount) so re-imports are idempotent
+      // and manually-entered payments are preserved.
+      const payRowsAll = payments.map(p => ({
         invoice_number: String(p.invoice_number||'').trim(),
         customer_name: String(p.customer_name||'').trim().substring(0,200),
         rep_name: String(p.rep_name||'').trim(),
@@ -1114,16 +1163,25 @@ async function syncToSupabase(jobs, payments){
         available: parseFloat(p.available)||0
       })).filter(p => p.invoice_number && p.payment_received > 0);
 
+      const payKey = r => r.invoice_number+'|'+(r.payment_date||'')+'|'+Math.round((parseFloat(r.payment_received)||0)*100);
+      let existingKeys = new Set();
+      try{
+        const { data: ex } = await sb.from('historical_commission_entries').select('invoice_number,payment_date,payment_received');
+        (ex||[]).forEach(r=>existingKeys.add(payKey(r)));
+      }catch(e){ console.error('existing payments fetch failed:', e); }
+      const payRows = payRowsAll.filter(p => !existingKeys.has(payKey(p)));
+
       for(let i=0; i<payRows.length; i+=50){
         const batch = payRows.slice(i, i+50);
         const {error} = await sb.from('historical_commission_entries').insert(batch);
         if(error) console.error('Payment insert error:', error.message);
       }
-      console.log('✓ Synced', payRows.length, 'payments to Supabase');
+      console.log('✓ Synced', payRows.length, 'new payments ('+(payRowsAll.length-payRows.length)+' already present, kept)');
     }
   } catch(e){
     console.error('Supabase sync error:', e);
   }
+  jcPaidLoaded=false; // re-derive outstanding from the ledger after an import
 }
 
 function parsePaymentsFromJobs(wb){
@@ -1191,10 +1249,14 @@ function parseJobs(wb){
   const iC=col(['customer name','customer']);
   const iR=col(['sales rep']);
   const iT=col(['invoice total']);
-  // Material: prefer 'actual material cost' over 'estimated'
-  const iM=col(['actual material cost']);
-  // Field Labour: prefer 'actual field labour' over 'estimated'
-  const iF=col(['actual field labour','actual field labor']);
+  // Material & In-house Labour now carry BOTH the predicted (estimated) and actual
+  // figures from the master, so the dashboard can show predicted-vs-actual margins.
+  const iMa=col(['actual material cost']);
+  const iMp=col(['estimated material cost']);
+  const iFa=col(['actual field labour','actual field labor']);
+  const iFp=col(['estimated field labour','estimated field labor']);
+  // Construction Days = job-costed day estimate; reference only (flags schedule drift).
+  const iDays=col(['construction days']);
   // Commission: initial commission amount
   const iCm=col(['initial commission']);
   const iO=col(['outstanding amount','outstanding']);
@@ -1208,6 +1270,7 @@ function parseJobs(wb){
   // far-future placeholders, and read with cellDates it stringifies to a weekday
   // abbreviation, so it can't be used for bucketing.)
   const iCD=col(['construction dates 1','construction date 1','construction date']);
+  const iN=col(['notes','note']);
   const ymd=v=>{
     if(v==null||v==='')return'';
     if(v instanceof Date)return v.toISOString().split('T')[0];
@@ -1216,8 +1279,16 @@ function parseJobs(wb){
   };
   return rows.slice(1).map(r=>{
     const inv=String(r[iI]||'').trim();if(!inv||inv==='null')return null;
-    const t=+r[iT]||0,m=+r[iM]||0,f=+r[iF]||0,c=+r[iCm]||0;
-    return{invoice:inv,customer:String(r[iC]||'').trim(),rep:String(r[iR]||'').trim(),total:t,mat:m,fl:f,comm:c,outstanding:+r[iO]||0,status:String(r[iS]||'Pending').trim(),commRate:String(r[iCr]||'').trim(),startDate:r[iD]?String(r[iD]).split(' ')[0]:'',constructionDate1:ymd(iCD>=0?r[iCD]:null),profit:Math.round((t-m-f-c)*100)/100}
+    const ma=+r[iMa]||0, mp=(iMp>=0?+r[iMp]:0)||ma;
+    const fa=+r[iFa]||0, fp=(iFp>=0?+r[iFp]:0)||fa;
+    const j={invoice:inv,customer:String(r[iC]||'').trim(),rep:String(r[iR]||'').trim(),total:+r[iT]||0,
+      matAct:ma,matPred:mp,flAct:fa,flPred:fp,mat:ma,fl:fa,
+      sub:0,warrantyBasis:'all',warrantyManual:0,fuel:0,days:(iDays>=0?+r[iDays]:0)||0,comm:+r[iCm]||0,
+      outstanding:+r[iO]||0,status:String(r[iS]||'Pending').trim(),commRate:String(r[iCr]||'').trim(),
+      startDate:r[iD]?String(r[iD]).split(' ')[0]:'',constructionDate1:ymd(iCD>=0?r[iCD]:null),
+      notes:iN>=0?String(r[iN]||'').trim():''};
+    jcRecompute(j);
+    return j;
   }).filter(Boolean)
 }
 
@@ -1888,17 +1959,235 @@ function renderSalesComparison(YEAR,pl){
   });
 }
 
-function renderJobs(){
-  const jobs=DATA.jobs;const tot=jobs.reduce((s,j)=>s+j.total,0);
-  $('jobsKpiStrip').innerHTML=[{l:'Jobs Tracked',v:jobs.length,c:'ka'},{l:'Total Revenue',v:fmt(tot),c:'kg'},{l:'Avg Job Value',v:fmt(jobs.length?tot/jobs.length:0),c:'kb'},{l:'Avg Material %',v:tot?(jobs.reduce((s,j)=>s+j.mat,0)/tot*100).toFixed(1)+'%':'—',c:'kp'}].map(k=>`<div class="kpi ${k.c}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div></div>`).join('');
-  const bm={Completed:'bg','In Progress':'by',Pending:'bx',Scheduled:'bb','Pending Payment':'by'};
-  $('jobsBody').innerHTML=jobs.map((j,i)=>`<tr style="cursor:pointer" onclick="openModal(${i})"><td style="font-family:'IBM Plex Mono',monospace;font-size:15px">${j.invoice}</td><td>${j.customer}</td><td><span class="badge bx">${j.rep}</span></td><td class="num">${j.total?fmt(j.total):'—'}</td><td class="num">${j.mat?fmt(j.mat):'—'}</td><td class="num">${j.fl?fmt(j.fl):'—'}</td><td class="num">${j.comm?fmt(j.comm):'—'}</td><td class="num ${j.outstanding>0?'by':'pos'}">${j.outstanding?fmt(j.outstanding):'—'}</td><td class="num ${j.profit>0?'pos':j.profit<0?'neg':''}">${j.profit?fmtD(j.profit):'—'}</td><td><span class="badge ${bm[j.status]||'bx'}">${j.status}</span></td></tr>`).join('')
+const JC_REPS=['Paul Vincent','Jeff Yates','Sherrell Ezzell','Taylor Bassett','Jery Edgett','Yvonne Chiang'];
+const JC_STATUSES=['Scheduled','In Progress','Completed','Pending Payment'];
+const JC_RATES=[0.08,0.06,0.04,0.03];
+let jcFilter={q:'',rep:'',status:'',outOnly:false};
+let jcSort={col:'invoice',dir:1};
+let jcExpanded=new Set();
+function jcId(s){return String(s).replace(/[^A-Za-z0-9_-]/g,'_');}
+function jcAtt(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/'/g,'&#39;');}
+function jcRate(j){let r=parseFloat(String(j.commRate).replace('%',''));if(isNaN(r))r=(j.total?((j.comm||0)/j.total):0.06);return r>1?r/100:r;}
+// Warranty defaults to 5% of labour, but the basis varies per job:
+//  'all'     = 5% of (in-house labour + subcontractor)   [standard]
+//  'inhouse' = 5% of in-house labour only                 [Jeff's sub-includes-material jobs]
+//  'manual'  = a typed dollar amount
+function jcWarranty(labourInhouse,j){
+  const basis=j.warrantyBasis||'all';
+  if(basis==='manual') return Math.round((parseFloat(j.warrantyManual)||0)*100)/100;
+  const base=(basis==='inhouse')?(labourInhouse||0):((labourInhouse||0)+(parseFloat(j.sub)||0));
+  return Math.round(0.05*base*100)/100;
+}
+// Gross Profit = Total − Material − In-house Labour − Subcontractor − Warranty − Fuel − Commission.
+// kind 'pred' uses estimated material/labour; 'act' uses actuals. Subcontractor/fuel/commission
+// are the same in both. (Subcontractor is counted as labour.)
+function jcGP(j,kind){
+  const m=kind==='pred'?(parseFloat(j.matPred)||0):(parseFloat(j.matAct)||0);
+  const l=kind==='pred'?(parseFloat(j.flPred)||0):(parseFloat(j.flAct)||0);
+  const sub=parseFloat(j.sub)||0, fuel=parseFloat(j.fuel)||0, comm=parseFloat(j.comm)||0;
+  const w=jcWarranty(l,j);
+  return Math.round(((parseFloat(j.total)||0)-m-l-sub-w-fuel-comm)*100)/100;
+}
+function jcRecompute(j){
+  j.comm=Math.round(jcRate(j)*(j.total||0)*100)/100;
+  j.profitPred=jcGP(j,'pred');
+  j.profitAct=jcGP(j,'act');
+  j.profit=j.profitAct;                          // actual GP is the headline figure
+  j.mat=parseFloat(j.matAct)||0;                 // keep legacy aliases pointed at actuals
+  j.fl=parseFloat(j.flAct)||0;
+}
+function jcMargin(j){return (j.total)?Math.round((j.profit/j.total)*1000)/10:0;}        // actual
+function jcMarginPred(j){return (j.total)?Math.round((j.profitPred/j.total)*1000)/10:0;}
+function jcMarginAct(j){return (j.total)?Math.round((j.profitAct/j.total)*1000)/10:0;}
+
+function jcKpi(){
+  const jobs=DATA.jobs;const tot=jobs.reduce((s,j)=>s+(j.total||0),0);
+  $('jobsKpiStrip').innerHTML=[{l:'Jobs Tracked',v:jobs.length,c:'ka'},{l:'Total Revenue',v:fmt(tot),c:'kg'},{l:'Avg Job Value',v:fmt(jobs.length?tot/jobs.length:0),c:'kb'},{l:'Avg Material %',v:tot?(jobs.reduce((s,j)=>s+(j.mat||0),0)/tot*100).toFixed(1)+'%':'—',c:'kp'}].map(k=>`<div class="kpi ${k.c}"><div class="kl">${k.l}</div><div class="kv">${k.v}</div></div>`).join('');
+}
+function renderJobs(){ jcKpi(); jcInitFilterControls(); renderJobsTable(); jcLoadPaid(); }
+async function jcLoadPaid(force){
+  if(jcPaidLoaded && !force) return;
+  jcPaidLoaded=true;
+  const paid={};
+  if(sb){ try{ const {data}=await sb.from('historical_commission_entries').select('invoice_number,payment_received'); (data||[]).forEach(r=>{const k=r.invoice_number; paid[k]=(paid[k]||0)+(parseFloat(r.payment_received)||0);}); }catch(e){ console.error('jcLoadPaid:',e); } }
+  jcPaid=paid; jcApplyOutstanding();
+}
+function jcApplyOutstanding(){
+  // Outstanding = invoice total − payments collected (from the ledger). Derived, not hand-edited.
+  const counts={}; DATA.jobs.forEach(j=>counts[j.invoice]=(counts[j.invoice]||0)+1);
+  const fixes=[];
+  DATA.jobs.forEach(j=>{
+    if(counts[j.invoice]!==1) return; // multi-phase commercial invoices share a number — parked, leave as-is
+    const der=Math.max(0,Math.round(((j.total||0)-(jcPaid[j.invoice]||0))*100)/100);
+    if(Math.abs((parseFloat(j.outstanding)||0)-der)>0.01) fixes.push({inv:j.invoice,out:der});
+    j.outstanding=der;
+  });
+  if(sb && fixes.length){ fixes.forEach(f=>sb.from('jobs').update({outstanding:f.out}).eq('invoice_number',f.inv).then(()=>{})); }
+  jcKpi(); renderJobsTable();
+}
+function jcInitFilterControls(){
+  const rs=$('jcRepFilter'); if(rs&&rs.options.length<=1){rs.innerHTML='<option value="">All Reps</option>'+JC_REPS.map(r=>`<option>${r}</option>`).join('');}
+  const ss=$('jcStatusFilter'); if(ss&&ss.options.length<=1){ss.innerHTML='<option value="">All Statuses</option>'+JC_STATUSES.map(s=>`<option>${s}</option>`).join('');}
+}
+function jcSetFilter(){ jcFilter.q=$('jcSearch').value.trim(); jcFilter.rep=$('jcRepFilter').value; jcFilter.status=$('jcStatusFilter').value; jcFilter.outOnly=$('jcOutOnly').checked; renderJobsTable(); }
+function jcSortBy(col){ if(jcSort.col===col)jcSort.dir*=-1; else{jcSort.col=col;jcSort.dir=1;} renderJobsTable(); }
+function jcSortVal(j,c){switch(c){case 'customer':return (j.customer||'').toLowerCase();case 'rep':return (j.rep||'').toLowerCase();case 'total':return j.total||0;case 'rate':return jcRate(j);case 'comm':return j.comm||0;case 'outstanding':return j.outstanding||0;case 'pmargin':return j.total?(j.profitPred/j.total):0;case 'amargin':return j.total?(j.profitAct/j.total):0;case 'status':return j.status||'';case 'cdate':return j.constructionDate1||'';default:return (j.invoice||'');}}
+function jcView(){
+  let v=DATA.jobs.slice();
+  const q=jcFilter.q.toLowerCase();
+  if(q)v=v.filter(j=>((j.invoice||'')+' '+(j.customer||'')+' '+(j.rep||'')).toLowerCase().includes(q));
+  if(jcFilter.rep)v=v.filter(j=>j.rep===jcFilter.rep);
+  if(jcFilter.status)v=v.filter(j=>(j.status||'')===jcFilter.status);
+  if(jcFilter.outOnly)v=v.filter(j=>(j.outstanding||0)>0);
+  const c=jcSort.col,d=jcSort.dir;
+  v.sort((a,b)=>{const x=jcSortVal(a,c),y=jcSortVal(b,c);return x<y?-d:x>y?d:0;});
+  return v;
+}
+function jcRepOpts(sel){return JC_REPS.map(r=>`<option ${r===sel?'selected':''}>${r}</option>`).join('');}
+function jcStatusOpts(sel){return JC_STATUSES.map(s=>`<option ${s===sel?'selected':''}>${s}</option>`).join('');}
+function jcRateOpts(rate){return JC_RATES.map(r=>`<option value="${r}" ${Math.abs(r-rate)<1e-9?'selected':''}>${Math.round(r*100)}%</option>`).join('');}
+function jcRowHTML(j){
+  const id=jcId(j.invoice), rate=jcRate(j), cd=(j.constructionDate1||'').slice(0,10), inv=jcAtt(j.invoice);
+  return `<tr data-row="${id}">`+
+    `<td style="text-align:center"><span class="jc-exp" onclick="jcToggle('${inv}')">${jcExpanded.has(j.invoice)?'▾':'▸'}</span></td>`+
+    `<td style="font-family:'IBM Plex Mono',monospace;font-size:13px;white-space:nowrap">${inv}</td>`+
+    `<td><input class="jc-in" data-inv="${inv}" data-f="customer" value="${jcAtt(j.customer)}" onchange="jcSave(this)"></td>`+
+    `<td><select class="jc-in" data-inv="${inv}" data-f="rep" onchange="jcSave(this)">${jcRepOpts(j.rep)}</select></td>`+
+    `<td><input type="number" step="0.01" class="jc-in jc-num" data-inv="${inv}" data-f="total" value="${j.total||0}" onchange="jcSave(this)"></td>`+
+    `<td><select class="jc-in jc-num" data-inv="${inv}" data-f="rate" onchange="jcSave(this)">${jcRateOpts(rate)}</select></td>`+
+    `<td class="num" id="jc-c-${id}">${j.comm?fmt(j.comm):'—'}</td>`+
+    `<td class="num" id="jc-o-${id}">${j.outstanding?fmt(j.outstanding):'—'}</td>`+
+    `<td class="num ${j.profitPred>0?'pos':j.profitPred<0?'neg':''}" id="jc-pm-${id}">${j.total?jcMarginPred(j)+'%':'—'}</td>`+
+    `<td class="num ${j.profitAct>0?'pos':j.profitAct<0?'neg':''}" id="jc-am-${id}">${j.total?jcMarginAct(j)+'%':'—'}</td>`+
+    `<td><select class="jc-in" data-inv="${inv}" data-f="status" onchange="jcSave(this)">${jcStatusOpts(j.status)}</select></td>`+
+    `<td><input type="date" class="jc-in" data-inv="${inv}" data-f="cdate" value="${cd}" onchange="jcSave(this)"></td>`+
+  `</tr>`+
+  (jcExpanded.has(j.invoice)?`<tr class="jc-payrow"><td colspan="12"><div class="jc-pay-panel" id="pay-${id}">Loading…</div></td></tr>`:'');
+}
+function renderJobsTable(){
+  const view=jcView(), body=$('jobsBody'); if(!body)return;
+  if($('jcCount'))$('jcCount').textContent=view.length+' of '+DATA.jobs.length+' jobs';
+  body.innerHTML=view.length?view.map(jcRowHTML).join(''):'<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:14px">No jobs match the current filters</td></tr>';
+  document.querySelectorAll('th.jc-sortable').forEach(th=>{const c=th.getAttribute('data-sort'),a=th.querySelector('.jc-arrow');if(a)a.textContent=(c===jcSort.col)?(jcSort.dir>0?' ▲':' ▼'):'';});
+  view.forEach(j=>{ if(jcExpanded.has(j.invoice)) loadJobPayments(j.invoice); });
+}
+function jcSave(el){
+  const inv=el.getAttribute('data-inv'), f=el.getAttribute('data-f'); let v=el.value;
+  const j=DATA.jobs.find(x=>x.invoice===inv); if(!j)return;
+  let upd={};
+  switch(f){
+    case 'customer': j.customer=v; upd={customer_name:v}; break;
+    case 'rep': j.rep=v; upd={sales_rep:v}; break;
+    case 'total': v=parseFloat(v)||0; j.total=v; upd={invoice_total:v}; break;
+    case 'rate': v=parseFloat(v)||0.06; j.commRate=Math.round(v*100)+'%'; upd={commission_rate:v}; break;
+    case 'status': j.status=v; upd={status:v}; break;
+    case 'cdate': j.constructionDate1=v||''; upd={construction_date_1:v||null}; break;
+    case 'notes': j.notes=v; upd={notes:v}; break;
+    // ── cost-card fields ──
+    case 'matPred': v=parseFloat(v)||0; j.matPred=v; upd={estimated_material_cost:v}; break;
+    case 'matAct':  v=parseFloat(v)||0; j.matAct=v; upd={actual_material_cost:v,material_cost:v}; break;
+    case 'flPred':  v=parseFloat(v)||0; j.flPred=v; upd={estimated_labour_cost:v}; break;
+    case 'flAct':   v=parseFloat(v)||0; j.flAct=v; upd={actual_labour_cost:v,field_labour_cost:v}; break;
+    case 'sub':     v=parseFloat(v)||0; j.sub=v; upd={subcontractor_cost:v}; break;
+    case 'warrantyBasis': j.warrantyBasis=v; upd={warranty_basis:v}; break;
+    case 'warrantyManual': v=parseFloat(v)||0; j.warrantyManual=v; upd={warranty_manual:v}; break;
+    case 'fuel':    v=parseFloat(v)||0; j.fuel=v; upd={fuel_surcharge:v}; break;
+    case 'days':    v=parseFloat(v)||0; j.days=v; upd={construction_days:v}; break;
+    default: return;
+  }
+  jcRecompute(j);
+  const id=jcId(inv);
+  if(f==='total'){ j.outstanding=Math.max(0,Math.round(((j.total||0)-(jcPaid[inv]||0))*100)/100); const oc=document.getElementById('jc-o-'+id); if(oc)oc.textContent=j.outstanding?fmt(j.outstanding):'—'; upd.outstanding=j.outstanding; }
+  const cc=document.getElementById('jc-c-'+id); if(cc)cc.textContent=j.comm?fmt(j.comm):'—';
+  const pm=document.getElementById('jc-pm-'+id); if(pm){pm.textContent=j.total?jcMarginPred(j)+'%':'—';pm.className='num '+(j.profitPred>0?'pos':j.profitPred<0?'neg':'');}
+  const am=document.getElementById('jc-am-'+id); if(am){am.textContent=j.total?jcMarginAct(j)+'%':'—';am.className='num '+(j.profitAct>0?'pos':j.profitAct<0?'neg':'');}
+  jcKpi();
+  if(sb){
+    sb.from('jobs').update(upd).eq('invoice_number',inv).then(({error})=>{
+      el.classList.remove('jc-err','jc-saved');
+      if(error){el.classList.add('jc-err');alert('Save failed: '+error.message);}
+      else{void el.offsetWidth; el.classList.add('jc-saved');}
+    });
+  }
+  // refresh the open cost card (computed warranty / GP / margins) last, since this
+  // detaches the edited element from the DOM.
+  const card=document.getElementById('card-'+id); if(card) card.outerHTML=jcCardHTML(j);
+}
+function jcToggle(inv){ if(jcExpanded.has(inv))jcExpanded.delete(inv); else jcExpanded.add(inv); renderJobsTable(); }
+function jcWeekMonday(ds){ const d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+((1-d.getDay()+7)%7)); return d.toISOString().split('T')[0]; }
+function jcWarrEff(j,kind){ const l=kind==='pred'?(parseFloat(j.flPred)||0):(parseFloat(j.flAct)||0); return jcWarranty(l,j); }
+function jcCardHTML(j){
+  const id=jcId(j.invoice), inv=jcAtt(j.invoice);
+  const basis=j.warrantyBasis||'all';
+  const lbl='font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:3px';
+  const num=(f,val)=>`<input type="number" step="0.01" class="jc-in jc-num" data-inv="${inv}" data-f="${f}" value="${val||0}" onchange="jcSave(this)" style="border-color:var(--border);max-width:130px">`;
+  const cell=(label,inner)=>`<div><span style="${lbl}">${label}</span>${inner}</div>`;
+  const basisOpts=[['all','5% of all labour'],['inhouse','5% of in-house only'],['manual','Manual amount']]
+    .map(([v,t])=>`<option value="${v}" ${v===basis?'selected':''}>${t}</option>`).join('');
+  const fuelOpts=[[0,'None — $0'],[100,'In town — $100'],[200,'Out of town — $200']]
+    .map(([v,t])=>`<option value="${v}" ${(parseFloat(j.fuel)||0)===v?'selected':''}>${t}</option>`).join('');
+  const pmCls=j.profitPred>=0?'pos':'neg', amCls=j.profitAct>=0?'pos':'neg';
+  return `<div id="card-${id}" style="flex:1;min-width:520px">`+
+    `<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">Job Costs</div>`+
+    `<div style="display:grid;grid-template-columns:repeat(4,minmax(110px,1fr));gap:10px 14px;align-items:end">`+
+      `<div style="grid-column:1 / -1;font-size:11px;font-weight:600;color:var(--text);opacity:.7">Material &amp; Labour — predicted vs actual</div>`+
+      cell('Est. Material',num('matPred',j.matPred))+
+      cell('Actual Material',num('matAct',j.matAct))+
+      cell('Est. In-house Labour',num('flPred',j.flPred))+
+      cell('Actual In-house Labour',num('flAct',j.flAct))+
+      `<div style="grid-column:1 / -1;font-size:11px;font-weight:600;color:var(--text);opacity:.7;margin-top:4px">Other costs</div>`+
+      cell('Subcontractor',num('sub',j.sub))+
+      cell('Warranty basis',`<select class="jc-in" data-inv="${inv}" data-f="warrantyBasis" onchange="jcSave(this)" style="border-color:var(--border);max-width:150px">${basisOpts}</select>`)+
+      cell(basis==='manual'?'Warranty $ (manual)':'Warranty (auto)', basis==='manual'
+          ? num('warrantyManual',j.warrantyManual)
+          : `<div class="jc-num" style="padding:6px 0;color:var(--muted)">${fmt(jcWarrEff(j,'act'))}<span style="font-size:10px"> (5% labour)</span></div>`)+
+      cell('Fuel surcharge',`<select class="jc-in" data-inv="${inv}" data-f="fuel" onchange="jcSave(this)" style="border-color:var(--border);max-width:150px">${fuelOpts}</select>`)+
+      cell('Total Days <span style="font-weight:400;text-transform:none;letter-spacing:0">(ref)</span>',num('days',j.days))+
+      cell('Commission',`<div class="jc-num" style="padding:6px 0;color:var(--cyan)">${fmt(j.comm)}<span style="font-size:10px"> @ ${j.commRate||'—'}</span></div>`)+
+    `</div>`+
+    `<div style="display:flex;gap:28px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">`+
+      `<div><span style="${lbl}">Predicted GP / Margin</span><span class="jc-num ${pmCls}" style="font-size:15px;font-weight:600">${fmtD(j.profitPred)} · ${j.total?jcMarginPred(j):0}%</span></div>`+
+      `<div><span style="${lbl}">Actual GP / Margin</span><span class="jc-num ${amCls}" style="font-size:15px;font-weight:600">${fmtD(j.profitAct)} · ${j.total?jcMarginAct(j):0}%</span></div>`+
+    `</div>`+
+  `</div>`;
+}
+async function loadJobPayments(inv){
+  const id=jcId(inv), cont=document.getElementById('pay-'+id); if(!cont)return;
+  const j=DATA.jobs.find(x=>x.invoice===inv)||{};
+  let rows=[];
+  if(sb){ try{ const {data}=await sb.from('historical_commission_entries').select('*').eq('invoice_number',inv).order('payment_date',{ascending:true}); rows=data||[]; }catch(e){} }
+  const list = rows.length
+    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th class="num">Commission</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.payment_date||'—'}</td><td class="num">${fmt(parseFloat(r.payment_received)||0)}</td><td class="num">${fmt(parseFloat(r.commission_on_payment)||0)}</td></tr>`).join('')}</tbody></table>`
+    : '<div style="color:var(--muted);font-size:13px;margin-bottom:8px">No payments recorded yet.</div>';
+  cont.innerHTML = `<div style="display:flex;gap:24px;flex-wrap:wrap">`+
+    jcCardHTML(j)+
+    `<div style="flex:1;min-width:300px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Payments</div>${list}`+
+      `<div style="display:flex;gap:6px;align-items:center"><input type="date" id="payd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="paya-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddPayment('${jcAtt(inv)}')">+ Add payment</button></div></div>`+
+    `<div style="flex:1;min-width:240px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Notes</div><textarea class="jc-in" data-inv="${jcAtt(inv)}" data-f="notes" rows="3" style="border-color:var(--border)" onchange="jcSave(this)">${jcAtt(j.notes||'')}</textarea></div>`+
+  `</div>`;
+}
+async function jcAddPayment(inv){
+  const j=DATA.jobs.find(x=>x.invoice===inv); if(!j)return;
+  const id=jcId(inv);
+  const date=document.getElementById('payd-'+id).value;
+  const amount=parseFloat(document.getElementById('paya-'+id).value)||0;
+  if(!date||amount===0){alert('Enter a payment date and amount');return;}
+  const rate=jcRate(j), total=j.total||0;
+  const totalComm=Math.round(total*rate*100)/100, commOnPay=Math.round(amount*rate*100)/100;
+  const row={invoice_number:inv,customer_name:j.customer,rep_name:j.rep,week_ending:jcWeekMonday(date),payment_date:date,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:amount,commission_on_payment:commOnPay,pre_paid:0,available:Math.round((totalComm-commOnPay)*100)/100};
+  if(sb){ const {error}=await sb.from('historical_commission_entries').insert([row]); if(error){alert('Error saving payment: '+error.message);return;} }
+  jcPaid[inv]=(jcPaid[inv]||0)+amount;
+  j.outstanding=Math.max(0,Math.round(((j.total||0)-(jcPaid[inv]||0))*100)/100);
+  if(sb){ await sb.from('jobs').update({outstanding:j.outstanding}).eq('invoice_number',inv); }
+  const oc=document.getElementById('jc-o-'+jcId(inv)); if(oc)oc.textContent=j.outstanding?fmt(j.outstanding):'—';
+  jcKpi();
+  loadJobPayments(inv);
 }
 
 function openModal(i){
   const j=DATA.jobs[i];if(!j)return;
   $('modalTitle').textContent=`${j.invoice} — ${j.customer}`;
-  $('modalGrid').innerHTML=[{l:'Invoice Total',v:fmt(j.total),c:'var(--accent)'},{l:'Sales Rep',v:j.rep||'—',c:'var(--text)'},{l:'Material',v:fmt(j.mat),c:'var(--blue)'},{l:'Field Labour',v:fmt(j.fl),c:'var(--orange)'},{l:'Commission',v:fmt(j.comm),c:'var(--cyan)'},{l:'Comm. Rate',v:j.commRate||'—',c:'var(--cyan)'},{l:'Outstanding',v:fmt(j.outstanding),c:j.outstanding>0?'var(--accent)':'var(--green)'},{l:'Profit',v:fmtD(j.profit),c:j.profit>=0?'var(--green)':'var(--red)'},{l:'Status',v:j.status,c:'var(--text)'},{l:'Start Date',v:j.startDate||'—',c:'var(--text)'}].map(it=>`<div class="modal-item"><div class="ml">${it.l}</div><div class="mv" style="color:${it.c}">${it.v}</div></div>`).join('');
+  $('modalGrid').innerHTML=[{l:'Invoice Total',v:fmt(j.total),c:'var(--accent)'},{l:'Sales Rep',v:j.rep||'—',c:'var(--text)'},{l:'Material (Pred / Act)',v:fmt(j.matPred)+' / '+fmt(j.matAct),c:'var(--blue)'},{l:'In-house Labour (Pred / Act)',v:fmt(j.flPred)+' / '+fmt(j.flAct),c:'var(--orange)'},{l:'Subcontractor',v:fmt(j.sub),c:'var(--orange)'},{l:'Warranty',v:fmt(jcWarrEff(j,'act')),c:'var(--text)'},{l:'Fuel Surcharge',v:fmt(j.fuel),c:'var(--text)'},{l:'Commission',v:fmt(j.comm),c:'var(--cyan)'},{l:'Comm. Rate',v:j.commRate||'—',c:'var(--cyan)'},{l:'Outstanding',v:fmt(j.outstanding),c:j.outstanding>0?'var(--accent)':'var(--green)'},{l:'Predicted Margin',v:(j.total?jcMarginPred(j)+'%':'—')+' · '+fmtD(j.profitPred),c:j.profitPred>=0?'var(--green)':'var(--red)'},{l:'Actual Margin',v:(j.total?jcMarginAct(j)+'%':'—')+' · '+fmtD(j.profitAct),c:j.profitAct>=0?'var(--green)':'var(--red)'},{l:'Status',v:j.status,c:'var(--text)'},{l:'Constr. Date',v:j.constructionDate1||'—',c:'var(--text)'}].map(it=>`<div class="modal-item"><div class="ml">${it.l}</div><div class="mv" style="color:${it.c}">${it.v}</div></div>`).join('');
   $('jobModal').classList.add('open')
 }
 function closeModal(){$('jobModal').classList.remove('open')}
@@ -1964,6 +2253,34 @@ async function doLogin() {
   }
 }
 
+// Map a Supabase `jobs` row to the dashboard job object. New cost columns fall back
+// to the legacy material_cost/field_labour_cost so this keeps working before the
+// migration runs (and before the Excel re-import populates the estimated columns).
+function sbRowToJob(j){
+  const matAct=parseFloat(j.actual_material_cost!=null?j.actual_material_cost:j.material_cost)||0;
+  const flAct =parseFloat(j.actual_labour_cost  !=null?j.actual_labour_cost  :j.field_labour_cost)||0;
+  const matPred=j.estimated_material_cost==null?matAct:(parseFloat(j.estimated_material_cost)||0);
+  const flPred =j.estimated_labour_cost ==null?flAct :(parseFloat(j.estimated_labour_cost )||0);
+  const o={
+    invoice:j.invoice_number, customer:j.customer_name, rep:j.sales_rep,
+    total:parseFloat(j.invoice_total)||0,
+    matAct, matPred, flAct, flPred, mat:matAct, fl:flAct,
+    sub:parseFloat(j.subcontractor_cost)||0,
+    warrantyBasis:j.warranty_basis||'all',
+    warrantyManual:parseFloat(j.warranty_manual)||0,
+    fuel:parseFloat(j.fuel_surcharge)||0,
+    days:parseFloat(j.construction_days)||0,
+    commRate:((parseFloat(j.commission_rate)||0.06)*100)+'%',
+    outstanding:parseFloat(j.outstanding)||0,
+    status:j.pipeline_status||j.status||'Scheduled',
+    startDate:j.start_date||'',
+    constructionDate1:(j.construction_date_1||'').slice(0,10),
+    notes:j.notes||''
+  };
+  jcRecompute(o);
+  return o;
+}
+
 // Load jobs from Supabase for payment lookup
 async function loadSbJobs() {
   if (!sb) return;
@@ -1972,20 +2289,7 @@ async function loadSbJobs() {
     if (!error && data) {
       sbJobs = data;
       if(data.length > 0 && DATA.jobs.length === 0){
-        DATA.jobs = data.map(j => ({
-          invoice: j.invoice_number,
-          customer: j.customer_name,
-          rep: j.sales_rep,
-          total: parseFloat(j.invoice_total)||0,
-          mat: parseFloat(j.material_cost)||0,
-          fl: parseFloat(j.field_labour_cost)||0,
-          comm: (parseFloat(j.invoice_total)||0)*(parseFloat(j.commission_rate)||0.06),
-          commRate: ((parseFloat(j.commission_rate)||0.06)*100)+'%',
-          outstanding: parseFloat(j.outstanding)||0,
-          status: j.pipeline_status||j.status||'Scheduled',
-          startDate: j.start_date||'',
-          profit: (parseFloat(j.invoice_total)||0)-(parseFloat(j.material_cost)||0)-(parseFloat(j.field_labour_cost)||0)-((parseFloat(j.invoice_total)||0)*(parseFloat(j.commission_rate)||0.06))
-        }));
+        DATA.jobs = data.map(sbRowToJob);
       }
       if(data.length > 0) mergeSbJobsIntoDashboard(data);
     }
@@ -2127,21 +2431,7 @@ function mergeSbJobsIntoDashboard(dbJobs) {
   const existingInvoices = new Set(DATA.jobs.map(j => j.invoice));
   const newJobs = dbJobs
     .filter(j => !existingInvoices.has(j.invoice_number))
-    .map(j => ({
-      invoice: j.invoice_number,
-      customer: j.customer_name,
-      rep: j.sales_rep,
-      total: parseFloat(j.invoice_total) || 0,
-      mat: parseFloat(j.material_cost) || 0,
-      fl: parseFloat(j.field_labour_cost) || 0,
-      comm: parseFloat(j.invoice_total) * parseFloat(j.commission_rate) || 0,
-      outstanding: parseFloat(j.invoice_total) || 0,
-      status: j.status || 'Scheduled',
-      commRate: (parseFloat(j.commission_rate)*100)+'%',
-      startDate: j.start_date || '',
-      constructionDate1: j.construction_date_1 || '',
-      profit: (parseFloat(j.invoice_total)||0) - (parseFloat(j.material_cost)||0) - (parseFloat(j.field_labour_cost)||0) - ((parseFloat(j.invoice_total)||0)*(parseFloat(j.commission_rate)||0))
-    }));
+    .map(sbRowToJob);
   if (newJobs.length > 0) {
     DATA.jobs = [...newJobs, ...DATA.jobs];
     renderJobs();
@@ -2543,6 +2833,11 @@ async function saveNewInvoice(){
     invoice_total: total,
     material_cost: parseFloat($('ni-material').value) || 0,
     field_labour_cost: parseFloat($('ni-labour').value) || 0,
+    estimated_material_cost: parseFloat($('ni-material').value) || 0,
+    actual_material_cost: parseFloat($('ni-material').value) || 0,
+    estimated_labour_cost: parseFloat($('ni-labour').value) || 0,
+    actual_labour_cost: parseFloat($('ni-labour').value) || 0,
+    warranty_basis: 'all',
     commission_rate: rate,
     start_date: $('ni-start').value || invoiceDate,
     status: 'Scheduled',
@@ -2616,6 +2911,11 @@ async function saveNewJob() {
     invoice_total: total,
     material_cost: parseFloat($('nj-material').value) || 0,
     field_labour_cost: parseFloat($('nj-labour').value) || 0,
+    estimated_material_cost: parseFloat($('nj-material').value) || 0,
+    actual_material_cost: parseFloat($('nj-material').value) || 0,
+    estimated_labour_cost: parseFloat($('nj-labour').value) || 0,
+    actual_labour_cost: parseFloat($('nj-labour').value) || 0,
+    warranty_basis: 'all',
     commission_rate: rate,
     start_date: $('nj-date').value || null,
     status: $('nj-status').value,
