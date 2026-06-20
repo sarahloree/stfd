@@ -1067,7 +1067,9 @@ async function syncToSupabase(jobs, payments){
         if(isNaN(n)) return 0.06;
         return n > 1 ? n/100 : n;
       })(),
-      // start_date excluded — Yvonne uses non-standard values in this field
+      // start_date excluded — Yvonne uses non-standard values in this field.
+      // construction_date_1 is the clean concrete date used to split Scheduled vs Un-scheduled.
+      construction_date_1: j.constructionDate1 || null,
       status: j.status||'Scheduled',
       outstanding: parseFloat(j.outstanding)||0,
       is_commercial: false,
@@ -1191,10 +1193,21 @@ function parseJobs(wb){
   // Comm Rate: handles both 'comm rate' and 'commission rate'
   const iCr=col(['comm rate','commission rate']);
   const iD=col(['job start date','start date']);
+  // Construction Date 1 = the concrete scheduled construction date. This is the
+  // clean field that drives Scheduled vs Un-scheduled. (Job Start Date holds
+  // far-future placeholders, and read with cellDates it stringifies to a weekday
+  // abbreviation, so it can't be used for bucketing.)
+  const iCD=col(['construction dates 1','construction date 1','construction date']);
+  const ymd=v=>{
+    if(v==null||v==='')return'';
+    if(v instanceof Date)return v.toISOString().split('T')[0];
+    if(typeof v==='number'&&v>40000){const d=new Date(Math.round((v-25569)*86400*1000));return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');}
+    return String(v).split('T')[0].split(' ')[0];
+  };
   return rows.slice(1).map(r=>{
     const inv=String(r[iI]||'').trim();if(!inv||inv==='null')return null;
     const t=+r[iT]||0,m=+r[iM]||0,f=+r[iF]||0,c=+r[iCm]||0;
-    return{invoice:inv,customer:String(r[iC]||'').trim(),rep:String(r[iR]||'').trim(),total:t,mat:m,fl:f,comm:c,outstanding:+r[iO]||0,status:String(r[iS]||'Pending').trim(),commRate:String(r[iCr]||'').trim(),startDate:r[iD]?String(r[iD]).split(' ')[0]:'',profit:Math.round((t-m-f-c)*100)/100}
+    return{invoice:inv,customer:String(r[iC]||'').trim(),rep:String(r[iR]||'').trim(),total:t,mat:m,fl:f,comm:c,outstanding:+r[iO]||0,status:String(r[iS]||'Pending').trim(),commRate:String(r[iCr]||'').trim(),startDate:r[iD]?String(r[iD]).split(' ')[0]:'',constructionDate1:ymd(iCD>=0?r[iCD]:null),profit:Math.round((t-m-f-c)*100)/100}
   }).filter(Boolean)
 }
 
@@ -2092,7 +2105,7 @@ function buildCommissionsFromHist(hist){
       const avail=j.comm||0;
       const row={invoice:j.invoice,customer:j.customer,total:j.total,available:avail};
       if(s==='completed')g.pending.push(row);
-      else if(j.startDate&&new Date(j.startDate+'T12:00:00')<=today)g.scheduled.push(row);
+      else if(j.constructionDate1)g.scheduled.push(row);
       else g.unscheduled.push(row);
     });
   });
@@ -2116,6 +2129,7 @@ function mergeSbJobsIntoDashboard(dbJobs) {
       status: j.status || 'Scheduled',
       commRate: (parseFloat(j.commission_rate)*100)+'%',
       startDate: j.start_date || '',
+      constructionDate1: j.construction_date_1 || '',
       profit: (parseFloat(j.invoice_total)||0) - (parseFloat(j.material_cost)||0) - (parseFloat(j.field_labour_cost)||0) - ((parseFloat(j.invoice_total)||0)*(parseFloat(j.commission_rate)||0))
     }));
   if (newJobs.length > 0) {
@@ -2280,7 +2294,8 @@ async function generateStatement(){
         invoice_total: j.total,
         commission_rate: parseFloat(j.commRate) / 100 || 0.06,
         status: j.status,
-        outstanding: j.outstanding
+        outstanding: j.outstanding,
+        construction_date_1: j.constructionDate1
       }));
   }
 
@@ -2367,9 +2382,8 @@ async function generateStatement(){
   const scheduledJobs = eligibleJobs.filter(j => {
     const s = (j.status||j.pipeline_status||'').toLowerCase();
     if(s === 'completed') return false;
-    const sd = j.start_date||j.startDate||'';
-    if(!sd) return false;
-    return new Date(sd+'T12:00:00') <= today;
+    // Scheduled = incomplete job with a concrete construction date set
+    return !!(j.construction_date_1||j.constructionDate1);
   });
   $('stmt-scheduled-body').innerHTML = scheduledJobs.length
     ? scheduledJobs.map(j => jobDetailRow(j,'#60a5fa')).join('')
@@ -2380,9 +2394,8 @@ async function generateStatement(){
   const unscheduledJobs = eligibleJobs.filter(j => {
     const s = (j.status||j.pipeline_status||'').toLowerCase();
     if(s === 'completed') return false;
-    const sd = j.start_date||j.startDate||'';
-    if(!sd) return true;
-    return new Date(sd+'T12:00:00') > today;
+    // Un-scheduled = incomplete job with no concrete construction date yet
+    return !(j.construction_date_1||j.constructionDate1);
   });
   $('stmt-unscheduled-body').innerHTML = unscheduledJobs.length
     ? unscheduledJobs.map(j => jobDetailRow(j,'#94a3b8')).join('')
@@ -2671,7 +2684,7 @@ async function savePayment() {
     const totalComm = parseFloat(job.invoice_total) * commRate;
     const commOnPayment = (amount / parseFloat(job.invoice_total)) * totalComm;
     const weekEnding = new Date(date);
-    weekEnding.setDate(weekEnding.getDate() + (1 - weekEnding.getDay() + 7) % 7 + 1);
+    weekEnding.setDate(weekEnding.getDate() + (1 - weekEnding.getDay() + 7) % 7);
 
     await sb.from('commission_entries').insert([{
       payment_id: payData[0].payment_id,
