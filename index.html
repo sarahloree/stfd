@@ -1076,6 +1076,16 @@ async function syncToSupabase(jobs, payments){
       notes: ''
     })).filter(j => j.invoice_number && j.invoice_number.match(/[0-9]/));
 
+    // Commercial jobs appear as several master rows sharing one invoice number
+    // (phased billing). A Postgres upsert can't touch the same conflict key twice
+    // in one batch, so make each phase unique: 1st = base, 2nd = base-2, 3rd = base-3…
+    // This also lets every phase keep its own construction date for bucketing.
+    const seenInv = {};
+    jobRows.forEach(r => {
+      seenInv[r.invoice_number] = (seenInv[r.invoice_number]||0) + 1;
+      if(seenInv[r.invoice_number] > 1) r.invoice_number = r.invoice_number + '-' + seenInv[r.invoice_number];
+    });
+
     // Batch upsert in chunks of 50
     for(let i=0; i<jobRows.length; i+=50){
       const batch = jobRows.slice(i, i+50);
