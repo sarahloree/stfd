@@ -1231,7 +1231,7 @@ function parsePaymentsFromJobs(wb){
         const daysUntilMon=(1-pd.getDay()+7)%7;
         const we=new Date(pd);we.setDate(pd.getDate()+daysUntilMon);
         const weekEnding=we.toISOString().split('T')[0];
-        payments.push({invoice_number:inv,customer_name:customer,rep_name:rep,week_ending:weekEnding,payment_date:dateStr,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:Math.round(payAmt*100)/100,commission_on_payment:Math.round(commAmt*100)/100,pre_paid:0,available:Math.round((totalComm-commAmt)*100)/100});
+        payments.push({invoice_number:inv,customer_name:customer,rep_name:rep,week_ending:weekEnding,payment_date:dateStr,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:Math.round(payAmt*100)/100,commission_on_payment:Math.round(commAmt*100)/100,pre_paid:0,available:Math.round(commAmt*100)/100});
       }
     });
   });
@@ -2154,17 +2154,40 @@ function jcCardHTML(j){
 async function loadJobPayments(inv){
   const id=jcId(inv), cont=document.getElementById('pay-'+id); if(!cont)return;
   const j=DATA.jobs.find(x=>x.invoice===inv)||{};
-  let rows=[];
-  if(sb){ try{ const {data}=await sb.from('historical_commission_entries').select('*').eq('invoice_number',inv).order('payment_date',{ascending:true}); rows=data||[]; }catch(e){} }
+  let rows=[], advs=[];
+  if(sb){
+    try{ const {data}=await sb.from('historical_commission_entries').select('*').eq('invoice_number',inv).order('payment_date',{ascending:true}); rows=data||[]; }catch(e){}
+    try{ const {data}=await sb.from('commission_advances').select('*').eq('invoice_number',inv).order('advance_date',{ascending:true}); advs=data||[]; }catch(e){}
+  }
+  const advTotal=advs.reduce((s,a)=>s+(parseFloat(a.amount)||0),0);
+  const ppApplied=rows.reduce((s,r)=>s+(parseFloat(r.pre_paid)||0),0);
+  const advOut=Math.max(0,Math.round((advTotal-ppApplied)*100)/100);
   const list = rows.length
-    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th class="num">Commission</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.payment_date||'—'}</td><td class="num">${fmt(parseFloat(r.payment_received)||0)}</td><td class="num">${fmt(parseFloat(r.commission_on_payment)||0)}</td></tr>`).join('')}</tbody></table>`
+    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th class="num">Commission</th><th class="num">Pre-paid</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.payment_date||'—'}</td><td class="num">${fmt(parseFloat(r.payment_received)||0)}</td><td class="num">${fmt(parseFloat(r.commission_on_payment)||0)}</td><td class="num">${(parseFloat(r.pre_paid)||0)?fmt(parseFloat(r.pre_paid)):'—'}</td></tr>`).join('')}</tbody></table>`
     : '<div style="color:var(--muted);font-size:13px;margin-bottom:8px">No payments recorded yet.</div>';
+  const advList = advs.length
+    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th style="text-align:left">Note</th></tr></thead><tbody>${advs.map(a=>`<tr><td>${a.advance_date||'—'}</td><td class="num">${fmt(parseFloat(a.amount)||0)}</td><td>${jcAtt(a.note||'')}</td></tr>`).join('')}</tbody></table>`
+    : '<div style="color:var(--muted);font-size:13px;margin-bottom:8px">No advances logged.</div>';
   cont.innerHTML = `<div style="display:flex;gap:24px;flex-wrap:wrap">`+
     jcCardHTML(j)+
     `<div style="flex:1;min-width:300px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Payments</div>${list}`+
-      `<div style="display:flex;gap:6px;align-items:center"><input type="date" id="payd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="paya-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddPayment('${jcAtt(inv)}')">+ Add payment</button></div></div>`+
+      `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="payd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="paya-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="number" step="0.01" id="payp-${id}" class="jc-in jc-num" placeholder="Pre-paid" value="${advOut||''}" title="Commission advanced earlier, recouped by this payment" style="border-color:${advOut?'var(--accent)':'var(--border)'};max-width:110px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddPayment('${jcAtt(inv)}')">+ Add payment</button></div>`+
+      `<div style="margin-top:14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Commission Advances ${advOut?`<span style="color:var(--accent);text-transform:none;letter-spacing:0">· ${fmt(advOut)} outstanding</span>`:''}</div>${advList}`+
+        `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="advd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="adva-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="text" id="advn-${id}" class="jc-in" placeholder="Note (optional)" style="border-color:var(--border);max-width:150px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddAdvance('${jcAtt(inv)}')">+ Log advance</button></div></div>`+
+    `</div>`+
     `<div style="flex:1;min-width:240px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Notes</div><textarea class="jc-in" data-inv="${jcAtt(inv)}" data-f="notes" rows="3" style="border-color:var(--border)" onchange="jcSave(this)">${jcAtt(j.notes||'')}</textarea></div>`+
   `</div>`;
+}
+async function jcAddAdvance(inv){
+  const j=DATA.jobs.find(x=>x.invoice===inv); if(!j)return;
+  const id=jcId(inv);
+  const date=document.getElementById('advd-'+id).value;
+  const amount=parseFloat(document.getElementById('adva-'+id).value)||0;
+  const note=(document.getElementById('advn-'+id)||{}).value||'';
+  if(!date||amount===0){alert('Enter an advance date and amount');return;}
+  const row={invoice_number:inv,rep_name:j.rep,advance_date:date,amount:Math.round(amount*100)/100,note:note};
+  if(sb){ const {error}=await sb.from('commission_advances').insert([row]); if(error){alert('Error saving advance: '+error.message);return;} }
+  loadJobPayments(inv);
 }
 async function jcAddPayment(inv){
   const j=DATA.jobs.find(x=>x.invoice===inv); if(!j)return;
@@ -2174,7 +2197,12 @@ async function jcAddPayment(inv){
   if(!date||amount===0){alert('Enter a payment date and amount');return;}
   const rate=jcRate(j), total=j.total||0;
   const totalComm=Math.round(total*rate*100)/100, commOnPay=Math.round(amount*rate*100)/100;
-  const row={invoice_number:inv,customer_name:j.customer,rep_name:j.rep,week_ending:jcWeekMonday(date),payment_date:date,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:amount,commission_on_payment:commOnPay,pre_paid:0,available:Math.round((totalComm-commOnPay)*100)/100};
+  // Pre-paid = commission already advanced against this invoice, recouped on this payment.
+  // Defaults to the invoice's outstanding advance balance; capped at this payment's commission.
+  const prePaidIn=parseFloat((document.getElementById('payp-'+id)||{}).value)||0;
+  const prePaid=Math.min(Math.max(0,Math.round(prePaidIn*100)/100),commOnPay);
+  const available=Math.round((commOnPay-prePaid)*100)/100;
+  const row={invoice_number:inv,customer_name:j.customer,rep_name:j.rep,week_ending:jcWeekMonday(date),payment_date:date,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:amount,commission_on_payment:commOnPay,pre_paid:prePaid,available:available};
   if(sb){ const {error}=await sb.from('historical_commission_entries').insert([row]); if(error){alert('Error saving payment: '+error.message);return;} }
   jcPaid[inv]=(jcPaid[inv]||0)+amount;
   j.outstanding=Math.max(0,Math.round(((j.total||0)-(jcPaid[inv]||0))*100)/100);
@@ -2392,14 +2420,16 @@ function buildCommissionsFromHist(hist){
       map[key]={repName:rep,weekSheet:wk,dateLine:new Date(wk+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),payments:[],pending:[],scheduled:[],unscheduled:[],weeklyDraw:0,payPJCJ:0,payRep:0};
     }
     const g=map[key];
+    const onPay=parseFloat(e.commission_on_payment)||0, pp=parseFloat(e.pre_paid)||0;
+    const av=Math.round((onPay-pp)*100)/100;
     g.payments.push({
       invoice:e.invoice_number||'—',
       customer:e.customer_name||'—',
       total:parseFloat(e.invoice_total)||0,
       payment:parseFloat(e.payment_received)||0,
-      available:parseFloat(e.commission_on_payment)||parseFloat(e.available)||0,
+      available:av,
     });
-    g.weeklyDraw+=parseFloat(e.commission_on_payment)||0;
+    g.weeklyDraw+=av;
   });
   // Per-rep deductions mirror the Generate Statement repInfo table
   const deductions={'Paul Vincent':100};
@@ -2600,7 +2630,8 @@ async function generateStatement(){
   }
 
   // Build payments section from historical_commission_entries
-  let totalCommOnPayments = 0;
+  let totalCommOnPayments = 0;   // gross commission earned this week ("Total Commission This Week")
+  let drawNet = 0;               // net of pre-paid = what's actually drawable ("Weekly Draw Available")
   let payRows = '';
 
   if(payments.length > 0){
@@ -2609,7 +2640,11 @@ async function generateStatement(){
       const job = allJobs.find(j => (j.invoice_number||j.invoice) === entry.invoice_number) || {};
       const customerName = entry.customer_name || job.customer_name || job.customer || '—';
       const commPct = (entry.commission_rate * 100).toFixed(0) + '%';
-      totalCommOnPayments += parseFloat(entry.commission_on_payment) || 0;
+      const onPay = parseFloat(entry.commission_on_payment) || 0;
+      const prePaidPay = parseFloat(entry.pre_paid) || 0;
+      const availPay = Math.round((onPay - prePaidPay) * 100) / 100;
+      totalCommOnPayments += onPay;
+      drawNet += availPay;
             const payDateRaw = entry.payment_date || entry.week_ending;
             const payDateStr = payDateRaw ? new Date(payDateRaw+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
       payRows += `<tr>
@@ -2622,7 +2657,7 @@ async function generateStatement(){
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.payment_received||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#22543d;font-weight:600">$${Number(entry.commission_on_payment||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.pre_paid||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#1B3A6B;font-weight:600">$${Number(entry.available||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#1B3A6B;font-weight:600">$${Number(availPay).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       </tr>`;
     });
   }
@@ -2701,11 +2736,24 @@ async function generateStatement(){
     ? unscheduledJobs.map(j => jobDetailRow(j,'#94a3b8')).join('')
     : '<tr><td colspan="9" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No unscheduled jobs</td></tr>';
 
+  // Commission advances paid out this week — early pay-outs that add to the draw.
+  let advRows = [], advTotal = 0;
+  if(sb){
+    try{
+      const { data: adv } = await sb.from('commission_advances').select('*')
+        .eq('rep_name', rep).gte('advance_date', wStartStr).lte('advance_date', weekEnding);
+      if(adv){ advRows = adv; advTotal = adv.reduce((s,a)=>s+(parseFloat(a.amount)||0),0); }
+    }catch(e){ console.error('advances load:', e); }
+  }
+  advTotal = Math.round(advTotal*100)/100;
+
   // Totals
   const deduction = repData.deduction || 0;
-  const netToRep = Math.max(0, totalCommOnPayments - deduction);
+  const netToRep = Math.max(0, Math.round((drawNet + advTotal - deduction)*100)/100);
+  const advLines = advRows.map(a=>`<tr><td style="padding:4px 8px;color:#64748b">Commission advance${a.invoice_number?' &mdash; '+a.invoice_number:''}${a.note?' ('+a.note+')':''}</td><td style="padding:4px 8px;text-align:right;color:#22543d">+$${Number(parseFloat(a.amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('');
   $('stmt-totals-body').innerHTML = `
-    <tr><td style="padding:4px 8px;color:#64748b">Weekly Draw Available</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:#1B3A6B">$${Number(totalCommOnPayments).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
+    <tr><td style="padding:4px 8px;color:#64748b">Weekly Draw Available</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:#1B3A6B">$${Number(drawNet).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
+    ${advLines}
     ${deduction > 0 ? `<tr><td style="padding:4px 8px;color:#64748b">${repData.deductionLabel||'Deduction'}</td><td style="padding:4px 8px;text-align:right;color:#ef4444">-$${Number(deduction).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>` : ''}
     <tr style="border-top:2px solid #1B3A6B"><td style="padding:6px 8px;font-weight:700;font-size:15px">Pay to ${rep.split(' ')[0]}</td><td style="padding:6px 8px;text-align:right;font-weight:700;font-size:15px;color:#22543d">$${Number(netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
     ${repData.bimonthly ? '<tr><td colspan="2" style="padding:4px 8px;font-size:10px;color:#64748b;font-style:italic">Note: Yvonne&#39;s commission accumulates &mdash; paid by wire on 15th of even months</td></tr>' : ''}
