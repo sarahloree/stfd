@@ -2163,7 +2163,7 @@ async function loadJobPayments(inv){
   const ppApplied=rows.reduce((s,r)=>s+(parseFloat(r.pre_paid)||0),0);
   const advOut=Math.max(0,Math.round((advTotal-ppApplied)*100)/100);
   const list = rows.length
-    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th class="num">Commission</th><th class="num">Pre-paid</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.payment_date||'—'}</td><td class="num">${fmt(parseFloat(r.payment_received)||0)}</td><td class="num">${fmt(parseFloat(r.commission_on_payment)||0)}</td><td class="num">${(parseFloat(r.pre_paid)||0)?fmt(parseFloat(r.pre_paid)):'—'}</td></tr>`).join('')}</tbody></table>`
+    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th class="num">Commission</th><th class="num">Pre-paid</th></tr></thead><tbody>${rows.map(r=>{const pamt=parseFloat(r.payment_received)||0,pcomm=parseFloat(r.commission_on_payment)||0,pdate=r.payment_date||'';return `<tr><td>${pdate||'—'}</td><td class="num">${fmt(pamt)}</td><td class="num">${fmt(pcomm)}</td><td class="num"><input type="number" step="0.01" class="jc-in jc-num" style="max-width:90px;border-color:var(--border);text-align:right" value="${parseFloat(r.pre_paid)||0}" title="Commission advanced earlier, recouped by this payment" onchange="jcSavePrepaid('${jcAtt(inv)}','${jcAtt(pdate)}',${pamt},${pcomm},this)"></td></tr>`}).join('')}</tbody></table>`
     : '<div style="color:var(--muted);font-size:13px;margin-bottom:8px">No payments recorded yet.</div>';
   const advList = advs.length
     ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th style="text-align:left">Note</th></tr></thead><tbody>${advs.map(a=>`<tr><td>${a.advance_date||'—'}</td><td class="num">${fmt(parseFloat(a.amount)||0)}</td><td>${jcAtt(a.note||'')}</td></tr>`).join('')}</tbody></table>`
@@ -2177,6 +2177,21 @@ async function loadJobPayments(inv){
     `</div>`+
     `<div style="flex:1;min-width:240px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Notes</div><textarea class="jc-in" data-inv="${jcAtt(inv)}" data-f="notes" rows="3" style="border-color:var(--border)" onchange="jcSave(this)">${jcAtt(j.notes||'')}</textarea></div>`+
   `</div>`;
+}
+async function jcSavePrepaid(inv,date,payAmt,comm,el){
+  let pp=parseFloat(el.value)||0;
+  pp=Math.min(Math.max(0,Math.round(pp*100)/100),Math.round((comm||0)*100)/100);
+  el.value=pp;
+  const available=Math.round(((comm||0)-pp)*100)/100;
+  if(sb){
+    const {error}=await sb.from('historical_commission_entries')
+      .update({pre_paid:pp,available:available})
+      .eq('invoice_number',inv).eq('payment_date',date).eq('payment_received',payAmt);
+    el.classList.remove('jc-err','jc-saved');
+    if(error){el.classList.add('jc-err');alert('Save failed: '+error.message);return;}
+    void el.offsetWidth; el.classList.add('jc-saved');
+  }
+  loadJobPayments(inv);
 }
 async function jcAddAdvance(inv){
   const j=DATA.jobs.find(x=>x.invoice===inv); if(!j)return;
