@@ -663,6 +663,13 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <div style="flex:0 0 210px"></div>
       </div>
 
+      <!-- Payout summary (top, most prominent) -->
+      <div style="margin:4px 0 18px;display:flex;justify-content:center">
+        <div style="min-width:430px;background:#f1f6fd;border:1px solid #cdd8ea;border-radius:10px;padding:10px 24px">
+          <table class="stmt-totals" style="width:100%"><tbody id="stmt-totals-body"></tbody></table>
+        </div>
+      </div>
+
       <!-- Section 1: Payments Received -->
       <div style="margin-bottom:16px">
         <div class="stmt-band">Payments Received This Week</div>
@@ -726,13 +733,6 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
           </tr></thead>
           <tbody id="stmt-unscheduled-body"></tbody>
         </table>
-      </div>
-
-      <!-- Totals -->
-      <div style="display:flex;justify-content:flex-end;margin-top:14px">
-        <div style="min-width:390px;background:#f7f9fd;border:1px solid #d7dde8;border-radius:8px;padding:6px 18px">
-          <table class="stmt-totals" style="width:100%"><tbody id="stmt-totals-body"></tbody></table>
-        </div>
       </div>
 
       <!-- Footer -->
@@ -2154,10 +2154,11 @@ function jcCardHTML(j){
 async function loadJobPayments(inv){
   const id=jcId(inv), cont=document.getElementById('pay-'+id); if(!cont)return;
   const j=DATA.jobs.find(x=>x.invoice===inv)||{};
-  let rows=[], advs=[];
+  let rows=[], advs=[], splits=[];
   if(sb){
     try{ const {data}=await sb.from('historical_commission_entries').select('*').eq('invoice_number',inv).order('payment_date',{ascending:true}); rows=data||[]; }catch(e){}
     try{ const {data}=await sb.from('commission_advances').select('*').eq('invoice_number',inv).order('advance_date',{ascending:true}); advs=data||[]; }catch(e){}
+    try{ const {data}=await sb.from('commission_splits').select('*').eq('invoice_number',normInv(inv)); splits=data||[]; }catch(e){}
   }
   const advTotal=advs.reduce((s,a)=>s+(parseFloat(a.amount)||0),0);
   const ppApplied=rows.reduce((s,r)=>s+(parseFloat(r.pre_paid)||0),0);
@@ -2174,6 +2175,18 @@ async function loadJobPayments(inv){
       `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="payd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="paya-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="number" step="0.01" id="payp-${id}" class="jc-in jc-num" placeholder="Pre-paid" value="${advOut||''}" title="Commission advanced earlier, recouped by this payment" style="border-color:${advOut?'var(--accent)':'var(--border)'};max-width:110px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddPayment('${jcAtt(inv)}')">+ Add payment</button></div>`+
       `<div style="margin-top:14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Commission Advances ${advOut?`<span style="color:var(--accent);text-transform:none;letter-spacing:0">· ${fmt(advOut)} outstanding</span>`:''}</div>${advList}`+
         `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="advd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="adva-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="text" id="advn-${id}" class="jc-in" placeholder="Note (optional)" style="border-color:var(--border);max-width:150px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddAdvance('${jcAtt(inv)}')">+ Log advance</button></div></div>`+
+      (()=>{ const reps=[...new Set(DATA.jobs.map(x=>x.rep).filter(Boolean))].sort();
+        const repOpts=(sel)=>['<option value="">— rep —</option>'].concat(reps.map(r=>`<option value="${jcAtt(r)}" ${r===sel?'selected':''}>${r}</option>`)).join('');
+        const splitTot=splits.reduce((s,x)=>s+(parseFloat(x.rate)||0),0);
+        const jr=jcRate(j);
+        const splitList = splits.length
+          ? `<table style="width:100%;font-size:13px;margin-bottom:4px"><tbody>${splits.map(s=>`<tr><td>${s.rep_name}</td><td class="num">${((parseFloat(s.rate)||0)*100).toFixed(2)}%</td><td style="text-align:right"><span title="Remove" style="cursor:pointer;color:var(--red);font-weight:700" onclick="jcRemoveSplit('${jcAtt(inv)}',${s.id})">&times;</span></td></tr>`).join('')}</tbody></table><div style="font-size:11px;color:${Math.abs(splitTot-jr)<0.0001?'var(--muted)':'var(--accent)'}">Split total ${(splitTot*100).toFixed(2)}% &middot; job rate ${(jr*100).toFixed(2)}%${Math.abs(splitTot-jr)<0.0001?'':' (mismatch)'}</div>`
+          : `<div style="color:var(--muted);font-size:13px;margin-bottom:4px">No split &mdash; full ${(jr*100).toFixed(0)}% to ${j.rep||'\u2014'}.</div>`;
+        return `<div style="margin-top:14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Commission Split</div>${splitList}`+
+          `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px"><select id="splr-${id}" class="jc-in" style="border-color:var(--border);max-width:150px">${repOpts(j.rep)}</select><input type="number" step="0.5" id="splp-${id}" class="jc-in jc-num" placeholder="%" title="this rep's commission %" style="border-color:var(--border);max-width:70px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddSplit('${jcAtt(inv)}')">+ Add</button></div>`+
+          (splits.length?'':`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px"><span style="font-size:11px;color:var(--muted)">or 50/50 with</span><select id="spl50-${id}" class="jc-in" style="border-color:var(--border);max-width:150px">${repOpts('')}</select><button class="btn-secondary" style="padding:5px 12px" onclick="jcSplit5050('${jcAtt(inv)}')">Apply</button></div>`)+
+        `</div>`;
+      })()+
     `</div>`+
     `<div style="flex:1;min-width:240px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Notes</div><textarea class="jc-in" data-inv="${jcAtt(inv)}" data-f="notes" rows="3" style="border-color:var(--border)" onchange="jcSave(this)">${jcAtt(j.notes||'')}</textarea></div>`+
   `</div>`;
@@ -2190,6 +2203,38 @@ async function jcSavePrepaid(inv,date,payAmt,comm,el){
     el.classList.remove('jc-err','jc-saved');
     if(error){el.classList.add('jc-err');alert('Save failed: '+error.message);return;}
     void el.offsetWidth; el.classList.add('jc-saved');
+  }
+  loadJobPayments(inv);
+}
+// Strip a trailing phase suffix ("-2", "-5") but keep the prefix, so a split logged on
+// "C2083" matches its phases "C2083-2" etc. without colliding with e.g. "S2083".
+function normInv(s){ return String(s==null?'':s).trim().replace(/-\d+$/,''); }
+async function jcAddSplit(inv){
+  const j=DATA.jobs.find(x=>x.invoice===inv); if(!j)return;
+  const id=jcId(inv);
+  const rep=(document.getElementById('splr-'+id)||{}).value||'';
+  const pct=parseFloat((document.getElementById('splp-'+id)||{}).value)||0;
+  if(!rep||pct===0){alert('Pick a rep and enter a %');return;}
+  const row={invoice_number:normInv(inv),rep_name:rep,rate:Math.round((pct/100)*10000)/10000};
+  if(sb){ const {error}=await sb.from('commission_splits').insert([row]); if(error){alert('Error saving split: '+error.message);return;} }
+  loadJobPayments(inv);
+}
+async function jcRemoveSplit(inv,splitId){
+  if(sb){ const {error}=await sb.from('commission_splits').delete().eq('id',splitId); if(error){alert('Error removing split: '+error.message);return;} }
+  loadJobPayments(inv);
+}
+async function jcSplit5050(inv){
+  const j=DATA.jobs.find(x=>x.invoice===inv); if(!j)return;
+  const id=jcId(inv);
+  const partner=(document.getElementById('spl50-'+id)||{}).value||'';
+  if(!partner){alert('Pick a partner rep');return;}
+  const half=Math.round((jcRate(j)/2)*10000)/10000, base=normInv(inv);
+  if(sb){
+    const {error}=await sb.from('commission_splits').insert([
+      {invoice_number:base,rep_name:j.rep,rate:half},
+      {invoice_number:base,rep_name:partner,rate:half}
+    ]);
+    if(error){alert('Error saving split: '+error.message);return;}
   }
   loadJobPayments(inv);
 }
@@ -2644,6 +2689,51 @@ async function generateStatement(){
       }));
   }
 
+  // ── Commission rep-splits ───────────────────────────────────────
+  // A commercial job can be shared between reps. commission_splits holds {invoice, rep, rate}.
+  // When a split exists for an invoice it OVERRIDES the master rep/rate: each participant earns
+  // at their own rate and the invoice appears on every participant's statement.
+  let splitsByNorm = {};
+  if(sb){
+    try{
+      const { data: sp } = await sb.from('commission_splits').select('*');
+      (sp||[]).forEach(s=>{ const k=normInv(s.invoice_number); (splitsByNorm[k]=splitsByNorm[k]||[]).push({rep:s.rep_name, rate:parseFloat(s.rate)||0}); });
+    }catch(e){ console.error('splits load:', e); }
+  }
+  const mySplitKeys = new Set(Object.keys(splitsByNorm).filter(k=>splitsByNorm[k].some(x=>x.rep===rep)));
+  const repRate = (invv)=>{ const arr=splitsByNorm[normInv(invv)]; if(!arr) return undefined; const m=arr.find(x=>x.rep===rep); return m? m.rate : null; };
+  if(Object.keys(splitsByNorm).length){
+    // pull split payments/jobs where this rep is a partner (master rep ≠ rep)
+    if(mySplitKeys.size && sb){
+      try{
+        const { data: wkPays } = await sb.from('historical_commission_entries').select('*').gte('week_ending', wStartStr).lte('week_ending', weekEnding);
+        (wkPays||[]).forEach(p=>{ if(p.rep_name===rep) return; if(mySplitKeys.has(normInv(p.invoice_number))) payments.push(p); });
+      }catch(e){ console.error('split payments:', e); }
+      try{
+        const { data: allJ } = await sb.from('jobs').select('*');
+        const have = new Set(allJobs.map(j=>j.invoice_number));
+        (allJ||[]).forEach(j=>{ if(j.sales_rep===rep) return; if(mySplitKeys.has(normInv(j.invoice_number)) && !have.has(j.invoice_number)) allJobs.push(j); });
+      }catch(e){ console.error('split jobs:', e); }
+    }
+    // re-rate & filter payments by this rep's split share
+    payments = payments.filter(p=>{
+      const r = repRate(p.invoice_number);
+      if(r===undefined) return true;                 // not a split invoice → leave as is
+      if(r===null) return false;                     // split excludes this rep
+      const pay=parseFloat(p.payment_received)||0, tot=parseFloat(p.invoice_total)||0;
+      p.commission_rate=r; p.commission_on_payment=Math.round(pay*r*100)/100; p.total_commission=Math.round(tot*r*100)/100;
+      return true;
+    });
+    // re-rate & filter job-detail rows
+    allJobs = allJobs.filter(j=>{
+      const r = repRate(j.invoice_number||j.invoice);
+      if(r===undefined) return true;
+      if(r===null) return false;
+      j.commission_rate=r;
+      return true;
+    });
+  }
+
   // Build payments section from historical_commission_entries
   let totalCommOnPayments = 0;   // gross commission earned this week ("Total Commission This Week")
   let drawNet = 0;               // net of pre-paid = what's actually drawable ("Weekly Draw Available")
@@ -2680,9 +2770,7 @@ async function generateStatement(){
   if(!payRows) payRows = '<tr><td colspan="10" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No payments recorded for this week</td></tr>';
 
   $('stmt-payments-body').innerHTML = payRows;
-  $('stmt-payments-foot').innerHTML = totalCommOnPayments > 0
-    ? `<tr style="background:#f0f4fa;font-weight:700"><td colspan="9" style="padding:5px 8px;border:1px solid #ddd;text-align:right">Total Commission This Week</td><td style="padding:5px 8px;border:1px solid #ddd;text-align:right;color:#1B3A6B">$${Number(totalCommOnPayments).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`
-    : '';
+  $('stmt-payments-foot').innerHTML = '';
 
   // Helper to build a job detail row
   function jobDetailRow(j, color){
