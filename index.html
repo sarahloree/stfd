@@ -363,7 +363,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01g</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01i</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -419,9 +419,9 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <text x="183" y="33" fill="#22c55e" font-size="8" font-family="IBM Plex Mono" opacity=".8">Target</text>
         <text x="232" y="86" fill="#60a5fa" font-size="8" font-family="IBM Plex Mono" opacity=".8">Exceed</text>
         <text x="263" y="163" fill="#60a5fa" font-size="8" font-family="IBM Plex Mono" opacity=".8">110k</text>
-        <line id="needle" x1="150" y1="148" x2="150" y2="36" stroke="white" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90,150,148)"/>
-        <circle cx="150" cy="148" r="6" fill="white" opacity=".9"/>
-        <text id="gaugeAmt" x="150" y="123" fill="white" font-size="19" font-family="IBM Plex Mono" font-weight="600" text-anchor="middle">—</text>
+        <line id="needle" x1="150" y1="148" x2="150" y2="36" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90,150,148)"/>
+        <circle cx="150" cy="148" r="6" fill="var(--text)" opacity=".9"/>
+        <text id="gaugeAmt" x="150" y="123" fill="var(--text)" font-size="19" font-family="IBM Plex Mono" font-weight="600" text-anchor="middle">—</text>
         <text x="150" y="136" fill="#64748b" font-size="8" text-anchor="middle">vs $90,000 target</text>
       </svg>
       <hr>
@@ -3151,8 +3151,8 @@ async function generateAllStatements(weekArg){
   }
   status.textContent=`Done — ${reps.length} statements for week ending ${new Date(wk+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}.`;
   summary.innerHTML =
-    `<table class="stmt-table" style="max-width:560px"><thead><tr><th class="l">Rep</th><th class="r">Pay This Week</th></tr></thead><tbody>${
-      BATCH.map(b=>`<tr><td style="text-align:left">${b.rep}</td><td style="text-align:right;font-weight:600">$${Number(b.netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('')
+    `<table style="max-width:560px"><thead><tr><th>Rep</th><th class="num">Pay This Week</th></tr></thead><tbody>${
+      BATCH.map(b=>`<tr><td>${b.rep}</td><td class="num" style="font-weight:600">$${Number(b.netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('')
     }</tbody></table>`;
   $('batchPdfAllBtn').style.display = BATCH.length ? '' : 'none';
 }
