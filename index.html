@@ -1149,23 +1149,32 @@ async function syncToSupabase(jobs, payments){
     // ── PRUNE removed jobs ───────────────────────────────────────
     // Yvonne always uploads the complete job-cost file, so any job in Supabase
     // absent from this upload was deleted in the master and should go too (fixes
-    // "removed from Excel but still showing"). Guard against a truncated/empty
-    // file wiping the table: only prune when the upload has a full-looking set.
+    // "removed from Excel but still showing", and clears stale duplicate rows like
+    // an old "2160" left behind when the master invoice became "S2160"). Guard
+    // against a truncated/empty file wiping the table: only prune on a full upload.
     try{
       const importedInv = new Set(jobRows.map(r=>r.invoice_number));
       if(importedInv.size >= 50){
-        const { data: existingJobs } = await sb.from('jobs').select('invoice_number');
+        const { data: existingJobs, error: selErr } = await sb.from('jobs').select('invoice_number');
+        if(selErr) throw selErr;
         const toDelete = (existingJobs||[]).map(r=>r.invoice_number).filter(inv => inv && !importedInv.has(inv));
-        for(let i=0;i<toDelete.length;i+=50){
+        let deleted=0, delErr=null;
+        for(let i=0;i<toDelete.length && !delErr;i+=50){
           const chunk = toDelete.slice(i,i+50);
           const { error } = await sb.from('jobs').delete().in('invoice_number', chunk);
-          if(error) console.error('Job prune error:', error.message);
+          if(error){ delErr=error; } else { deleted += chunk.length; }
         }
-        if(toDelete.length) console.log('✓ Pruned', toDelete.length, 'removed job(s):', toDelete.join(', '));
+        if(delErr){
+          console.error('Job prune delete blocked:', delErr.message);
+          alert('⚠ Stale/removed jobs could NOT be deleted:\n'+delErr.message+'\n\nThe jobs table is blocking DELETE (row-level security). Allow delete on the jobs table, then re-import.');
+        } else if(toDelete.length){
+          console.log('✓ Pruned', deleted, 'job(s):', toDelete.join(', '));
+          alert('Cleaned up '+deleted+' stale/removed job row(s):\n'+toDelete.join(', '));
+        }
       } else {
         console.warn('Prune skipped — only', importedInv.size, 'jobs in upload (guard needs ≥50). Nothing deleted.');
       }
-    }catch(e){ console.error('Job prune failed:', e); }
+    }catch(e){ console.error('Job prune failed:', e); alert('⚠ Prune step errored: '+(e.message||e)); }
 
     // ── UPSERT PAYMENTS ──────────────────────────────────────────
     if(payments && payments.length){
