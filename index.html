@@ -354,7 +354,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01c</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01d</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -2215,15 +2215,16 @@ async function loadJobPayments(inv){
   const list = rows.length
     ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th class="num">Commission</th><th class="num">Pre-paid</th></tr></thead><tbody>${rows.map(r=>{const pamt=parseFloat(r.payment_received)||0,pcomm=parseFloat(r.commission_on_payment)||0,pdate=r.payment_date||'';return `<tr><td>${pdate||'—'}</td><td class="num">${fmt(pamt)}</td><td class="num">${fmt(pcomm)}</td><td class="num"><input type="number" step="0.01" class="jc-in jc-num" style="max-width:90px;border-color:var(--border);text-align:right" value="${parseFloat(r.pre_paid)||0}" title="Commission advanced earlier, recouped by this payment" onchange="jcSavePrepaid('${jcAtt(inv)}','${jcAtt(pdate)}',${pamt},${pcomm},this)"></td></tr>`}).join('')}</tbody></table>`
     : '<div style="color:var(--muted);font-size:13px;margin-bottom:8px">No payments recorded yet.</div>';
+  const _tt=new Date(), _pm=new Date(); _pm.setDate(_tt.getDate()-((_tt.getDay()+6)%7)); const prevMon=dLocalStr(_pm); // last closed week-ending Monday
   const advList = advs.length
-    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th style="text-align:left">Note</th></tr></thead><tbody>${advs.map(a=>`<tr><td>${a.advance_date||'—'}</td><td class="num">${fmt(parseFloat(a.amount)||0)}</td><td>${jcAtt(a.note||'')}</td></tr>`).join('')}</tbody></table>`
+    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th style="text-align:left">Note</th></tr></thead><tbody>${advs.map(a=>`<tr><td>${a.advance_date||'—'}</td><td class="num">${fmt(parseFloat(a.amount)||0)}</td><td>${jcAtt(a.note||'')} <span title="Remove advance" style="cursor:pointer;color:var(--red);font-weight:700;float:right" onclick="jcRemoveAdvance('${jcAtt(inv)}',${a.id})">&times;</span></td></tr>`).join('')}</tbody></table>`
     : '<div style="color:var(--muted);font-size:13px;margin-bottom:8px">No advances logged.</div>';
   cont.innerHTML = `<div style="display:flex;gap:24px;flex-wrap:wrap">`+
     jcCardHTML(j)+
     `<div style="flex:1;min-width:300px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Payments</div>${list}`+
       `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="payd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="paya-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="number" step="0.01" id="payp-${id}" class="jc-in jc-num" placeholder="Pre-paid" value="${advOut||''}" title="Commission advanced earlier, recouped by this payment" style="border-color:${advOut?'var(--accent)':'var(--border)'};max-width:110px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddPayment('${jcAtt(inv)}')">+ Add payment</button></div>`+
       `<div style="margin-top:14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Commission Advances ${advOut?`<span style="color:var(--accent);text-transform:none;letter-spacing:0">· ${fmt(advOut)} outstanding</span>`:''}</div>${advList}`+
-        `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="advd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="adva-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="text" id="advn-${id}" class="jc-in" placeholder="Note (optional)" style="border-color:var(--border);max-width:150px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddAdvance('${jcAtt(inv)}')">+ Log advance</button></div></div>`+
+        `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="advd-${id}" class="jc-in" value="${prevMon}" title="Week this advance applies to — defaults to the last closed week" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="adva-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="text" id="advn-${id}" class="jc-in" placeholder="Note (optional)" style="border-color:var(--border);max-width:150px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddAdvance('${jcAtt(inv)}')">+ Log advance</button></div></div>`+
       (()=>{ const reps=[...new Set(DATA.jobs.map(x=>x.rep).filter(Boolean))].sort();
         const repOpts=(sel)=>['<option value="">— rep —</option>'].concat(reps.map(r=>`<option value="${jcAtt(r)}" ${r===sel?'selected':''}>${r}</option>`)).join('');
         const splitTot=splits.reduce((s,x)=>s+(parseFloat(x.rate)||0),0);
@@ -2296,6 +2297,10 @@ async function jcAddAdvance(inv){
   if(!date||amount===0){alert('Enter an advance date and amount');return;}
   const row={invoice_number:inv,rep_name:j.rep,advance_date:date,amount:Math.round(amount*100)/100,note:note};
   if(sb){ const {error}=await sb.from('commission_advances').insert([row]); if(error){alert('Error saving advance: '+error.message);return;} }
+  loadJobPayments(inv);
+}
+async function jcRemoveAdvance(inv,advId){
+  if(sb){ const {error}=await sb.from('commission_advances').delete().eq('id',advId); if(error){alert('Error removing advance: '+error.message);return;} }
   loadJobPayments(inv);
 }
 async function jcAddPayment(inv){
