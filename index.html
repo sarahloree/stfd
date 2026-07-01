@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +13,15 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 :root{--bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;--border:#2a2f45;--accent:#c8922a;--green:#22c55e;--red:#ef4444;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee;--orange:#fb923c;--text:#ffffff;--muted:#94a3b8;--dim:#4a5070}
+/* ── Light theme (default) — overrides the CSS variables + a few hardcoded holdouts ── */
+html[data-theme="light"]{--bg:#f4f6fb;--s1:#ffffff;--s2:#eef2f8;--s3:#e4e9f2;--border:#d3dbe8;--accent:#9a7016;--green:#15803d;--red:#dc2626;--blue:#2563eb;--purple:#7c3aed;--cyan:#0e7490;--orange:#ea580c;--text:#14203a;--muted:#5a6a86;--dim:#9aa6bb}
+html[data-theme="light"] .hdr{background:#ffffff;border-bottom:1px solid var(--border)}
+html[data-theme="light"] #loginScreen{background:#eef2f8}
+html[data-theme="light"] .tab:hover{background:rgba(0,0,0,.045)}
+html[data-theme="light"] tr:hover td{background:rgba(0,0,0,.03)}
+html[data-theme="light"] td{border-bottom-color:var(--border)}
+html[data-theme="light"] .ir,html[data-theme="light"] .sr{border-bottom-color:var(--border)}
+html[data-theme="light"] .btn-danger{color:#fff}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:15px;min-height:100vh}
 #loginScreen{position:fixed;inset:0;background:#1e293b;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
@@ -107,7 +116,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .sr:last-child{border-bottom:none}
 .sl{font-size:15px;color:var(--muted)}.sv{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600}
 hr{border:none;border-top:1px solid var(--border);margin:10px 0}
-.sx{overflow-x:auto}.sy{overflow-y:auto;max-height:420px}
+.sx{overflow-x:auto}.sy{overflow-y:auto;max-height:max(420px,calc(100vh - 300px))}
 .sched-crew{font-size:10px;color:var(--cyan);margin-top:1px}
 /* ── Drag-and-drop schedule board ─────────────────────────────── */
 .sched-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -354,7 +363,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01d</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01g</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -366,6 +375,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="tab" onclick="showTab('aging')" id="t-aging">Aging Report</div>
   </nav>
   <div class="hdr-right">
+    <button class="btn-secondary" id="themeToggle" style="font-size:15px;padding:5px 10px" onclick="toggleTheme()" title="Toggle light / dark mode">🌙 Dark</button>
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Week</span>
     <select id="weekSel" onchange="loadWeek(this.value)"></select>
     <div class="sb-status" id="sbStatus"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>Live</div>
@@ -504,7 +514,10 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Sales Rep</span>
     <select id="commRepSel" onchange="onCommRepChange()"><option value="">-- Select Rep --</option></select>
     </div>
-    <button class="btn-primary" style="width:auto;padding:6px 16px;font-size:15px" onclick="openGenerateStmt()">📋 Generate Statement</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn-secondary" style="width:auto;padding:6px 16px;font-size:15px" onclick="openBatchStmt()">📑 Generate All Reps</button>
+      <button class="btn-primary" style="width:auto;padding:6px 16px;font-size:15px" onclick="openGenerateStmt()">📋 Generate Statement</button>
+    </div>
   </div>
   <div class="grid g2">
     <div class="card"><div class="ct" id="comm-rep-title">Commission Statement</div><div id="comm-payments-section"></div></div>
@@ -625,7 +638,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px"><input type="checkbox" id="jcOutOnly" onchange="jcSetFilter()"> Outstanding only</label>
       <span id="jcCount" style="color:var(--muted);font-size:13px;margin-left:auto"></span>
     </div>
-    <div class="sx sy" style="max-height:560px"><table><thead><tr>
+    <div class="sx sy"><table><thead><tr>
       <th style="width:24px"></th>
       <th class="jc-sortable" data-sort="invoice" onclick="jcSortBy('invoice')">Invoice<span class="jc-arrow"></span></th>
       <th class="jc-sortable" data-sort="customer" onclick="jcSortBy('customer')">Customer<span class="jc-arrow"></span></th>
@@ -690,6 +703,18 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
           </thead>
           <tbody id="stmt-payments-body"></tbody>
           <tfoot id="stmt-payments-foot"></tfoot>
+        </table>
+      </div>
+
+      <!-- Section 1b: Payments Pending but Pre-Approved (advances) -->
+      <div id="stmt-preapproved-section" style="margin-bottom:16px;display:none">
+        <div class="stmt-band">Payments Pending but Pre-Approved</div>
+        <table class="stmt-table">
+          <thead><tr>
+            <th class="l">Date</th><th class="l">Invoice</th><th class="l">Note</th><th class="r">Amount Pre-Approved</th>
+          </tr></thead>
+          <tbody id="stmt-preapproved-body"></tbody>
+          <tfoot id="stmt-preapproved-foot"></tfoot>
         </table>
       </div>
 
@@ -790,6 +815,27 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
   </div>
 </div>
 
+<!-- Batch: Generate all rep statements for a week -->
+<div class="modal-overlay" id="batchStmtModal" style="z-index:700">
+  <div class="modal-content" style="width:1200px;max-width:97%">
+    <div class="modal-header">
+      <h3>Generate All Rep Statements</h3>
+      <button class="btn-secondary" onclick="closeModal('batchStmtModal')">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <label style="font-size:13px;color:var(--muted)">Week Ending</label>
+      <select id="batch-week" style="min-width:180px"><option value="">-- Select week --</option></select>
+      <label style="font-size:13px;color:var(--muted)">Statement date</label>
+      <input type="date" id="batch-stmt-date">
+      <button class="btn-primary" style="width:auto;padding:8px 18px" onclick="generateAllStatements()">Generate All →</button>
+      <button class="btn-secondary" id="batchPdfAllBtn" style="padding:8px 14px;display:none" onclick="batchDownloadAll()">⬇ Download all as one PDF</button>
+      <span id="batch-status" style="font-size:13px;color:var(--muted)"></span>
+    </div>
+    <div id="batch-summary" style="margin-bottom:14px"></div>
+    <div id="batch-results"></div>
+  </div>
+</div>
+
 <div id="jobModal"><div class="modal-box"><button class="modal-close" onclick="closeModal()">✕</button><div class="modal-title" id="modalTitle">Job Detail</div><div class="modal-grid" id="modalGrid"></div></div></div>
 
 <script>
@@ -803,6 +849,18 @@ const fmt=n=>n==null||isNaN(n)?'$0':'$'+Math.round(Math.abs(n)).toLocaleString()
 const fmtD=n=>(n<0?'-':'')+fmt(n);
 const pct=n=>(n*100).toFixed(1)+'%';
 const monthLabel=s=>{if(!s)return'';const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',year:'numeric'})};
+
+// ── Light / dark theme ───────────────────────────────────────────
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  const b=$('themeToggle'); if(b) b.textContent = (t==='light') ? '🌙 Dark' : '☀ Light';
+  try{ localStorage.setItem('stfd-theme', t); }catch(e){}
+}
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme')||'light';
+  applyTheme(cur==='light'?'dark':'light');
+}
+(function initTheme(){ let t='light'; try{ const s=localStorage.getItem('stfd-theme'); if(s) t=s; }catch(e){} applyTheme(t); })();
 
 function handleFiles(files){
   let commCount=0;
@@ -884,7 +942,10 @@ async function buildDashboard(){
   // Use the frozen file parse (uploadedJobs), NOT DATA.jobs — loadSbJobs() above
   // merged the Supabase rows back in, which would make the prune think stale rows
   // are part of the upload and re-upsert them.
-  if(sb && uploadedJobs.length) syncToSupabase(uploadedJobs, DATA.excelPayments);
+  const syncP = (sb && uploadedJobs.length) ? syncToSupabase(uploadedJobs, DATA.excelPayments) : null;
+  // Once the sync lands (so historical_commission_entries has this week's rows),
+  // auto-open the batch generator for the latest uploaded week. Best-effort only.
+  if(syncP){ syncP.then(()=>{ try{ autoBatchAfterUpload(); }catch(e){ console.error('autoBatch', e); } }).catch(()=>{}); }
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm','fi-comm-paul','fi-comm-jeff','fi-comm-sherrell','fi-comm-taylor','fi-comm-jery','fi-conversion','fi-monthly'].forEach(id=>{const el=$(id);if(el){el.classList.remove('loaded');const st=el.querySelector('.fi-status');if(st)st.textContent='Not loaded';}});Object.keys(STATE).forEach(k=>STATE[k]=null)}
 
@@ -2638,25 +2699,26 @@ async function openGenerateStmt(){
   }
 }
 
-async function generateStatement(){
-  const rep = $('gen-rep').value;
+async function generateStatement(repArg, weekArg, opts){
+  opts = opts || {};
+  const rep = repArg || $('gen-rep').value;
   // Try dropdown first, then manual input
   const genWeekEl = $('gen-week');
-  const weekEnding = genWeekEl ? genWeekEl.value : '';
-  const stmtDate = $('gen-stmt-date').value || weekEnding;
+  const weekEnding = weekArg || (genWeekEl ? genWeekEl.value : '');
+  const stmtDate = opts.stmtDate || $('gen-stmt-date').value || weekEnding;
 
   console.log('generateStatement: rep=', rep, 'weekEnding=', weekEnding, 'options=', genWeekEl ? genWeekEl.options.length : 0);
 
   if(!rep){
-    alert('Please select a sales rep');
+    if(!opts.silent) alert('Please select a sales rep');
     return;
   }
   if(!weekEnding){
-    // Auto-select first available week if nothing selected
-    if(genWeekEl && genWeekEl.options.length > 1){
+    // Auto-select first available week if nothing selected (interactive only)
+    if(!weekArg && genWeekEl && genWeekEl.options.length > 1){
       genWeekEl.selectedIndex = 1;
     } else {
-      alert('Please select a week ending date');
+      if(!opts.silent) alert('Please select a week ending date');
       return;
     }
   }
@@ -2904,20 +2966,43 @@ async function generateStatement(){
   }
   advTotal = Math.round(advTotal*100)/100;
 
+  // ── Pre-approved advances → their own labeled section (matches Yvonne's layout) ──
+  (function renderPreApproved(){
+    const sec=$('stmt-preapproved-section'), body=$('stmt-preapproved-body'), foot=$('stmt-preapproved-foot');
+    if(!sec||!body||!foot) return;
+    if(advRows.length){
+      body.innerHTML = advRows.map(a=>{
+        const amt=parseFloat(a.amount)||0;
+        const d=a.advance_date ? new Date(a.advance_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+        return `<tr>
+          <td style="text-align:left">${d}</td>
+          <td style="text-align:left;font-family:monospace;font-size:11px">${a.invoice_number||'—'}</td>
+          <td style="text-align:left">${a.note||''}</td>
+          <td style="text-align:right;color:#22543d;font-weight:600">$${amt.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        </tr>`;
+      }).join('');
+      foot.innerHTML = `<tr><td colspan="3" style="text-align:right;font-weight:700">Total Pre-Approved</td><td style="text-align:right;font-weight:700;color:#22543d">$${advTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`;
+      sec.style.display='';
+    } else {
+      body.innerHTML=''; foot.innerHTML=''; sec.style.display='none';
+    }
+  })();
+
   // Totals
   const deduction = repData.deduction || 0;
   const netToRep = Math.max(0, Math.round((drawNet + advTotal - deduction)*100)/100);
   const advLines = advRows.map(a=>`<tr><td style="padding:4px 8px;color:#64748b">Commission advance${a.invoice_number?' &mdash; '+a.invoice_number:''}${a.note?' ('+a.note+')':''}</td><td style="padding:4px 8px;text-align:right;color:#22543d">+$${Number(parseFloat(a.amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('');
   $('stmt-totals-body').innerHTML = `
     <tr><td style="padding:4px 8px;color:#64748b">Weekly Draw Available</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:#1B3A6B">$${Number(drawNet).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
-    ${advLines}
+    ${advTotal > 0 ? `<tr><td style="padding:4px 8px;color:#64748b">Pre-Approved Advances</td><td style="padding:4px 8px;text-align:right;color:#22543d">+$${Number(advTotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>` : ''}
     ${deduction > 0 ? `<tr><td style="padding:4px 8px;color:#64748b">${repData.deductionLabel||'Deduction'}</td><td style="padding:4px 8px;text-align:right;color:#ef4444">-$${Number(deduction).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>` : ''}
     <tr style="border-top:2px solid #1B3A6B"><td style="padding:6px 8px;font-weight:700;font-size:15px">Pay to ${rep.split(' ')[0]}</td><td style="padding:6px 8px;text-align:right;font-weight:700;font-size:15px;color:#22543d">$${Number(netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>
     ${repData.bimonthly ? '<tr><td colspan="2" style="padding:4px 8px;font-size:10px;color:#64748b;font-style:italic">Note: Yvonne&#39;s commission accumulates &mdash; paid by wire on 15th of even months</td></tr>' : ''}
   `;
 
   closeModal('generateStmtModal');
-  openModal('commStatementModal');
+  if(!opts.silent) openModal('commStatementModal');
+  return { rep, drawNet, advTotal, netToRep };
 }
 function closeModal(id) { if(id) $(id).classList.remove('open'); }
 
@@ -3002,6 +3087,126 @@ function printStatement(){
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
 });
+
+// ── Batch statement generation ───────────────────────────────────
+// Reuses generateStatement(rep, week, {silent}) — the exact validated math/render path —
+// once per rep, snapshotting each rendered statement. Every rep gets one, even at $0.
+let BATCH = [];
+function repRoster(){ const s=$('gen-rep'); if(!s) return []; return [...s.options].map(o=>o.value).filter(v=>v); }
+
+async function loadAllWeeks(selId){
+  const sel=$(selId); if(!sel) return;
+  const weeks=new Set();
+  if(DATA.excelPayments) DATA.excelPayments.forEach(p=>{ if(p.week_ending) weeks.add(p.week_ending); });
+  if(sb){ try{ const {data}=await sb.from('historical_commission_entries').select('week_ending'); (data||[]).forEach(d=>{ if(d.week_ending) weeks.add(d.week_ending); }); }catch(e){} }
+  const arr=[...weeks].sort().reverse();
+  sel.innerHTML = arr.length ? '' : '<option value="">No weeks found — upload Job Costs first</option>';
+  arr.forEach(w=>{ const o=document.createElement('option'); o.value=w; o.textContent=new Date(w+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); sel.appendChild(o); });
+  if(arr.length) sel.value=arr[0];
+}
+
+async function openBatchStmt(preWeek){
+  $('batch-stmt-date').value = new Date().toISOString().split('T')[0];
+  await loadAllWeeks('batch-week');
+  const sel=$('batch-week');
+  if(preWeek && sel){
+    if(![...sel.options].some(o=>o.value===preWeek)){
+      const o=document.createElement('option'); o.value=preWeek;
+      o.textContent=new Date(preWeek+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      sel.insertBefore(o, sel.options[0]||null);
+    }
+    sel.value=preWeek;
+  }
+  $('batch-results').innerHTML=''; $('batch-summary').innerHTML=''; $('batch-status').textContent='';
+  $('batchPdfAllBtn').style.display='none';
+  openModal('batchStmtModal');
+}
+
+async function generateAllStatements(weekArg){
+  const wk = weekArg || $('batch-week').value;
+  if(!wk){ alert('Select a week ending date first'); return; }
+  const stmtDate = $('batch-stmt-date').value || wk;
+  const reps = repRoster();
+  const status=$('batch-status'), results=$('batch-results'), summary=$('batch-summary');
+  results.innerHTML=''; summary.innerHTML=''; BATCH=[]; $('batchPdfAllBtn').style.display='none';
+  if(!reps.length){ status.textContent='No reps found.'; return; }
+  for(let i=0;i<reps.length;i++){
+    const rep=reps[i];
+    status.textContent=`Generating ${i+1}/${reps.length}: ${rep}…`;
+    let res=null;
+    try{ res = await generateStatement(rep, wk, {silent:true, stmtDate}); }catch(e){ console.error('batch', rep, e); }
+    const snap = $('commStatementPrint').innerHTML;   // freshly rendered statement for this rep
+    const netToRep = res ? res.netToRep : 0;
+    BATCH.push({ rep, netToRep, html:snap });
+    const idx = BATCH.length-1;
+    const card=document.createElement('div');
+    card.style.cssText='margin-bottom:22px;border:1px solid #d7dde8;border-radius:8px;overflow:hidden';
+    card.innerHTML =
+      `<div style="display:flex;justify-content:space-between;align-items:center;background:#f3f6fb;padding:8px 14px;border-bottom:1px solid #e0e6ef">
+        <span style="font-weight:700;color:#14203a">${rep} &nbsp;·&nbsp; Pay: $${Number(netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+        <button class="btn-secondary" style="padding:6px 12px" onclick="batchDownloadOne(${idx})">⬇ PDF</button>
+      </div>
+      <div style="background:#ffffff;color:#1a2332;font-family:'IBM Plex Sans',Arial,Helvetica,sans-serif;padding:14px 20px">${snap}</div>`;
+    results.appendChild(card);
+  }
+  status.textContent=`Done — ${reps.length} statements for week ending ${new Date(wk+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}.`;
+  summary.innerHTML =
+    `<table class="stmt-table" style="max-width:560px"><thead><tr><th class="l">Rep</th><th class="r">Pay This Week</th></tr></thead><tbody>${
+      BATCH.map(b=>`<tr><td style="text-align:left">${b.rep}</td><td style="text-align:right;font-weight:600">$${Number(b.netToRep).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('')
+    }</tbody></table>`;
+  $('batchPdfAllBtn').style.display = BATCH.length ? '' : 'none';
+}
+
+// Auto-run after a Job Costs upload finishes syncing (best-effort; never blocks the dashboard).
+function latestUploadedWeek(){
+  if(!DATA.excelPayments || !DATA.excelPayments.length) return '';
+  return DATA.excelPayments.map(p=>p.week_ending).filter(Boolean).sort().pop() || '';
+}
+async function autoBatchAfterUpload(){
+  const wk=latestUploadedWeek(); if(!wk) return;
+  await openBatchStmt(wk);
+  await generateAllStatements(wk);
+}
+
+// ── Batch PDF helpers (mirror savePDF's off-screen 1240px render) ──
+async function _stmtHtmlToCanvas(html){
+  const wrap=document.createElement('div');
+  wrap.style.cssText="background:#ffffff;color:#1a2332;font-family:'IBM Plex Sans',Arial,Helvetica,sans-serif;width:1240px;max-width:none;margin:0;padding:18px 28px;box-sizing:border-box;position:fixed;left:-12000px;top:0";
+  wrap.innerHTML=html;
+  document.body.appendChild(wrap);
+  try{ return await html2canvas(wrap,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:1240}); }
+  finally{ document.body.removeChild(wrap); }
+}
+function _addCanvasPage(pdf, canvas, first){
+  const pageW=pdf.internal.pageSize.getWidth(), pageH=pdf.internal.pageSize.getHeight();
+  const margin=16, availW=pageW-margin*2, availH=pageH-margin*2;
+  const ratio=Math.min(availW/canvas.width, availH/canvas.height);
+  const w=canvas.width*ratio, h=canvas.height*ratio, x=(pageW-w)/2, y=margin;
+  if(!first) pdf.addPage();
+  pdf.addImage(canvas.toDataURL('image/jpeg',0.98),'JPEG',x,y,w,h);
+}
+async function batchDownloadOne(i){
+  const b=BATCH[i]; if(!b) return;
+  if(typeof html2canvas==='undefined' || !window.jspdf){ alert('PDF libraries not loaded — try again once online.'); return; }
+  try{
+    const canvas=await _stmtHtmlToCanvas(b.html);
+    const { jsPDF }=window.jspdf; const pdf=new jsPDF({orientation:'landscape',unit:'pt',format:'letter'});
+    _addCanvasPage(pdf, canvas, true);
+    pdf.save(`STFD_Commission_${b.rep.replace(/[^0-9A-Za-z]+/g,'_').replace(/^_+|_+$/g,'')}.pdf`);
+  }catch(e){ console.error('batch PDF one', e); alert('PDF export failed — see console.'); }
+}
+async function batchDownloadAll(){
+  if(!BATCH.length) return;
+  if(typeof html2canvas==='undefined' || !window.jspdf){ alert('PDF libraries not loaded — try again once online.'); return; }
+  const st=$('batch-status');
+  try{
+    const { jsPDF }=window.jspdf; const pdf=new jsPDF({orientation:'landscape',unit:'pt',format:'letter'});
+    for(let i=0;i<BATCH.length;i++){ st.textContent=`Building PDF ${i+1}/${BATCH.length}…`; const c=await _stmtHtmlToCanvas(BATCH[i].html); _addCanvasPage(pdf, c, i===0); }
+    const wk=$('batch-week').value||'';
+    pdf.save(`STFD_Commissions_AllReps_${wk}.pdf`);
+    st.textContent=`Downloaded ${BATCH.length} statements as one PDF.`;
+  }catch(e){ console.error('batch PDF all', e); st.textContent='PDF export failed — see console.'; }
+}
 
 // ── INVOICE FORM HELPERS ─────────────────────────────────────────
 function calcInvoiceComm(){
