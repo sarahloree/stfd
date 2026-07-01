@@ -354,7 +354,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01b</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01c</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -837,12 +837,14 @@ function readWB(file){return new Promise(res=>{const r=new FileReader();r.onload
 async function buildDashboard(){
   $('loadScreen').style.display='none';
   $('dashboard').style.display='block';
+  let uploadedJobs=[];  // the file's job set, frozen before the Supabase merge, for an accurate sync + prune
 
   // Parse all uploaded files
   if(STATE.outlook){const wb=await readWB(STATE.outlook);DATA.weeks=parseWeekly(wb);DATA.income=parseIncome(wb);DATA.monthly=parseMonthly(wb)}
   if(STATE.jobs){
     const wb=await readWB(STATE.jobs);
     DATA.jobs=parseJobs(wb);
+    uploadedJobs=DATA.jobs.slice();  // freeze BEFORE loadSbJobs() merges Supabase rows back in
     DATA.excelPayments=parsePaymentsFromJobs(wb);
   }
   if(STATE.schedule){const wb=await readWB(STATE.schedule);DATA.schedules=parseSched(wb)}
@@ -878,8 +880,11 @@ async function buildDashboard(){
   if(typeof renderPipeline==='function') renderPipeline();
   if(typeof renderAging==='function') renderAging();
 
-  // Auto-sync Excel data to Supabase in background (no await = non-blocking)
-  if(sb && DATA.jobs.length) syncToSupabase(DATA.jobs, DATA.excelPayments);
+  // Auto-sync Excel data to Supabase in background (no await = non-blocking).
+  // Use the frozen file parse (uploadedJobs), NOT DATA.jobs — loadSbJobs() above
+  // merged the Supabase rows back in, which would make the prune think stale rows
+  // are part of the upload and re-upsert them.
+  if(sb && uploadedJobs.length) syncToSupabase(uploadedJobs, DATA.excelPayments);
 }
 function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style.display='flex';$('btnLoad').classList.remove('visible');['fi-outlook','fi-jobs','fi-schedule','fi-comm','fi-comm-paul','fi-comm-jeff','fi-comm-sherrell','fi-comm-taylor','fi-comm-jery','fi-conversion','fi-monthly'].forEach(id=>{const el=$(id);if(el){el.classList.remove('loaded');const st=el.querySelector('.fi-status');if(st)st.textContent='Not loaded';}});Object.keys(STATE).forEach(k=>STATE[k]=null)}
 
