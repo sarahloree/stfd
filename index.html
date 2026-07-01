@@ -885,13 +885,17 @@ function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style
 
 function sheetArr(wb,name){const ws=wb.Sheets[name];if(!ws)return[];return XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true})}
 
+function dLocalStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
 function xlDateToStr(v){
   // SheetJS raw:true returns serial numbers for dates
   if(typeof v==='number'&&v>40000&&v<60000){
     const d=new Date(Math.round((v-25569)*86400*1000));
-    return d.toISOString().split('T')[0];
+    return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
   }
-  if(v instanceof Date) return v.toISOString().split('T')[0];
+  // SheetJS Date objects are at LOCAL midnight; read local components (NOT toISOString,
+  // which is UTC and rolls back a day for users east of UTC, e.g. Hong Kong).
+  if(v instanceof Date) return dLocalStr(v);
   return v?String(v).split('T')[0].split(' ')[0]:'';
 }
 function parseWeekly(wb){
@@ -1142,6 +1146,27 @@ async function syncToSupabase(jobs, payments){
     }
     console.log('✓ Synced', jobRows.length, 'jobs to Supabase');
 
+    // ── PRUNE removed jobs ───────────────────────────────────────
+    // Yvonne always uploads the complete job-cost file, so any job in Supabase
+    // absent from this upload was deleted in the master and should go too (fixes
+    // "removed from Excel but still showing"). Guard against a truncated/empty
+    // file wiping the table: only prune when the upload has a full-looking set.
+    try{
+      const importedInv = new Set(jobRows.map(r=>r.invoice_number));
+      if(importedInv.size >= 50){
+        const { data: existingJobs } = await sb.from('jobs').select('invoice_number');
+        const toDelete = (existingJobs||[]).map(r=>r.invoice_number).filter(inv => inv && !importedInv.has(inv));
+        for(let i=0;i<toDelete.length;i+=50){
+          const chunk = toDelete.slice(i,i+50);
+          const { error } = await sb.from('jobs').delete().in('invoice_number', chunk);
+          if(error) console.error('Job prune error:', error.message);
+        }
+        if(toDelete.length) console.log('✓ Pruned', toDelete.length, 'removed job(s):', toDelete.join(', '));
+      } else {
+        console.warn('Prune skipped — only', importedInv.size, 'jobs in upload (guard needs ≥50). Nothing deleted.');
+      }
+    }catch(e){ console.error('Job prune failed:', e); }
+
     // ── UPSERT PAYMENTS ──────────────────────────────────────────
     if(payments && payments.length){
       // Non-destructive import: the dashboard is now the source of truth, so ADD
@@ -1219,7 +1244,7 @@ function parsePaymentsFromJobs(wb){
           const d=new Date(Math.round((rawDate-25569)*86400*1000));
           dateStr=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
         }else if(rawDate instanceof Date){
-          dateStr=rawDate.toISOString().split('T')[0];
+          dateStr=dLocalStr(rawDate);
         }else{dateStr=String(rawDate).split('T')[0].split(' ')[0];}
         if(!dateStr)return;
         const pd=new Date(dateStr+'T12:00:00');
@@ -1273,7 +1298,7 @@ function parseJobs(wb){
   const iN=col(['notes','note']);
   const ymd=v=>{
     if(v==null||v==='')return'';
-    if(v instanceof Date)return v.toISOString().split('T')[0];
+    if(v instanceof Date)return dLocalStr(v);
     if(typeof v==='number'&&v>40000){const d=new Date(Math.round((v-25569)*86400*1000));return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');}
     return String(v).split('T')[0].split(' ')[0];
   };
