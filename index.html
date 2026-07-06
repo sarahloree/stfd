@@ -279,6 +279,32 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <label>Commercial Job?</label>
       <select id="nj-commercial"><option value="false">No — Residential</option><option value="true">Yes — Commercial</option></select>
     </div>
+
+    <!-- Multi-phase / progress-billed job -->
+    <div class="form-group" style="margin-top:4px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="nj-multiphase" onchange="njTogglePhases()" style="width:auto"> This is a multi-phase / progress-billed job</label>
+    </div>
+    <div id="nj-phase-wrap" style="display:none;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Each phase is billed &amp; paid separately and keeps its own balance. Enter each phase's amount below — the single "Invoice Total" above is ignored when this is on.</div>
+      <div id="nj-phase-rows"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <button type="button" class="btn-secondary" style="padding:5px 14px" onclick="njAddPhase()">+ Add phase</button>
+        <span style="font-size:13px;color:var(--muted)">Phases total: <strong id="nj-phase-sum" style="color:var(--text)">$0.00</strong></span>
+      </div>
+    </div>
+
+    <!-- Commercial commission split -->
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="nj-split" onchange="njToggleSplit()" style="width:auto"> Split commission with another rep (commercial)</label>
+    </div>
+    <div id="nj-split-wrap" style="display:none;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
+      <div class="form-row">
+        <div class="form-group"><label>Co-rep (does the work)</label><select id="nj-split-corep" onchange="njSplitPreview()"><option>Yvonne Chiang</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option></select></div>
+        <div class="form-group"><label>Co-rep share %</label><input type="number" id="nj-split-corate" placeholder="e.g. 4" step="0.5" min="0" oninput="njSplitPreview()"></div>
+      </div>
+      <div id="nj-split-preview" style="font-size:13px;color:var(--muted)">The selling rep (Sales Rep above) keeps the remaining share; the two shares sum to the job's commission rate. Applies to every phase.</div>
+    </div>
+
     <div class="form-group"><label>Notes</label><textarea id="nj-notes" rows="2" placeholder="Any additional notes..."></textarea></div>
     <div class="form-actions">
       <button class="btn-secondary" onclick="closeModal('newJobModal')">Cancel</button>
@@ -363,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01o</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01p</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -3348,61 +3374,113 @@ async function saveNewInvoice(){
 }
 
 // ── SAVE NEW JOB ──────────────────────────────────────────────────
+// ── Add-Job: phase grid + commercial split helpers ────────────────
+function njTogglePhases(){
+  const on=$('nj-multiphase').checked;
+  $('nj-phase-wrap').style.display = on?'':'none';
+  if(on && !$('nj-phase-rows').children.length){ njAddPhase(); njAddPhase(); }
+  njPhaseSum();
+}
+function njAddPhase(){
+  const wrap=$('nj-phase-rows');
+  const row=document.createElement('div');
+  row.className='nj-phase-row';
+  row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px';
+  row.innerHTML=`<span class="nj-phase-lbl" style="font-size:13px;color:var(--muted);min-width:64px">Phase</span>
+    <input type="number" class="nj-phase-amt" placeholder="Phase amount" step="0.01" style="flex:1" oninput="njPhaseSum()">
+    <button type="button" class="btn-secondary" style="padding:4px 10px" onclick="njRemovePhase(this)">✕</button>`;
+  wrap.appendChild(row);
+  njRenumberPhases(); njPhaseSum();
+}
+function njRemovePhase(btn){ const r=btn.closest('.nj-phase-row'); if(r) r.remove(); njRenumberPhases(); njPhaseSum(); }
+function njRenumberPhases(){ [...$('nj-phase-rows').children].forEach((r,i)=>{ const s=r.querySelector('.nj-phase-lbl'); if(s) s.textContent='Phase '+(i+1); }); }
+function njPhaseSum(){
+  let s=0; document.querySelectorAll('#nj-phase-rows .nj-phase-amt').forEach(inp=>{ s+=parseFloat(inp.value)||0; });
+  const el=$('nj-phase-sum'); if(el) el.textContent='$'+s.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function njToggleSplit(){ const w=$('nj-split-wrap'); if(w) w.style.display = $('nj-split').checked?'':'none'; njSplitPreview(); }
+function njSplitPreview(){
+  const el=$('nj-split-preview'); if(!el) return;
+  const total=parseFloat($('nj-rate').value)||0;
+  const co=(parseFloat($('nj-split-corate').value)||0)/100;
+  const primary=Math.round((total-co)*10000)/100;
+  const rep=$('nj-rep').value||'Selling rep';
+  el.innerHTML=`<strong>${rep}</strong> keeps ${primary}% &nbsp;·&nbsp; <strong>${$('nj-split-corep').value}</strong> gets ${(co*100).toFixed(1)}% &nbsp;·&nbsp; job rate ${(total*100).toFixed(0)}%${Math.abs((primary/100+co)-total)>0.0001?' <span style="color:var(--red)">(does not sum to job rate)</span>':''}`;
+}
+
 async function saveNewJob() {
   const invoice = $('nj-invoice').value.trim();
   const customer = $('nj-customer').value.trim();
   const rep = $('nj-rep').value;
-  const total = parseFloat($('nj-total').value) || 0;
   const rate = parseFloat($('nj-rate').value) || 0.06;
+  const multiphase = $('nj-multiphase').checked;
 
-  if (!invoice || !customer || !rep || total === 0) {
-    alert('Please fill in all required fields (Invoice #, Customer, Rep, Total)');
+  // Gather phase amounts (multiphase) or the single total (phase 1)
+  let phaseAmts = [];
+  if(multiphase){
+    phaseAmts = [...document.querySelectorAll('#nj-phase-rows .nj-phase-amt')].map(i=>parseFloat(i.value)||0).filter(a=>a>0);
+  } else {
+    const total = parseFloat($('nj-total').value) || 0;
+    if(total>0) phaseAmts = [total];
+  }
+
+  if (!invoice || !customer || !rep || !phaseAmts.length) {
+    alert('Please fill in Invoice #, Customer, Rep, and '+(multiphase?'at least one phase amount':'Invoice Total')+'.');
     return;
   }
 
-  const job = {
-    invoice_number: invoice,
-    customer_name: customer,
-    sales_rep: rep,
-    job_type: $('nj-type').value,
-    invoice_total: total,
-    material_cost: parseFloat($('nj-material').value) || 0,
-    field_labour_cost: parseFloat($('nj-labour').value) || 0,
-    estimated_material_cost: parseFloat($('nj-material').value) || 0,
-    actual_material_cost: parseFloat($('nj-material').value) || 0,
-    estimated_labour_cost: parseFloat($('nj-labour').value) || 0,
-    actual_labour_cost: parseFloat($('nj-labour').value) || 0,
-    warranty_basis: 'all',
-    commission_rate: rate,
-    start_date: $('nj-date').value || null,
-    status: $('nj-status').value,
-    is_commercial: $('nj-commercial').value === 'true',
-    notes: $('nj-notes').value
+  const material = parseFloat($('nj-material').value) || 0;
+  const labour = parseFloat($('nj-labour').value) || 0;
+  const baseFields = {
+    customer_name: customer, sales_rep: rep, job_type: $('nj-type').value || 'Custom Fence',
+    warranty_basis: 'all', commission_rate: rate,
+    start_date: $('nj-date').value || null, status: $('nj-status').value,
+    is_commercial: ($('nj-commercial').value === 'true') || $('nj-split').checked,
+    notes: $('nj-notes').value, source: 'manual'
   };
 
+  // One job row per phase — same invoice, distinct phase, own total & outstanding.
+  const jobRows = phaseAmts.map((amt,i)=>Object.assign({
+    invoice_number: invoice, phase: i+1, invoice_total: amt, outstanding: amt,
+    material_cost: i===0?material:0, actual_material_cost: i===0?material:0, estimated_material_cost: i===0?material:0,
+    field_labour_cost: i===0?labour:0, actual_labour_cost: i===0?labour:0, estimated_labour_cost: i===0?labour:0
+  }, baseFields));
+
   if (sb) {
-    const { error } = await sb.from('jobs').insert([job]);
+    const { error } = await sb.from('jobs').insert(jobRows);
     if (error) { alert('Error saving job: ' + error.message); return; }
+    // Commercial split → commission_splits (keyed on the base invoice, applies to all phases)
+    if($('nj-split').checked){
+      const coRate=Math.round(((parseFloat($('nj-split-corate').value)||0)/100)*10000)/10000;
+      const coRep=$('nj-split-corep').value;
+      const primaryRate=Math.round((rate-coRate)*10000)/10000;
+      const splitRows=[{invoice_number:normInv(invoice), rep_name:rep, rate:primaryRate},
+                       {invoice_number:normInv(invoice), rep_name:coRep, rate:coRate}];
+      const { error: se } = await sb.from('commission_splits').insert(splitRows);
+      if(se) alert('Job saved, but the split could not be saved: '+se.message);
+    }
   }
 
-  // Add to local DATA immediately
-  DATA.jobs.unshift({
-    invoice: job.invoice_number, customer: job.customer_name, rep: job.sales_rep,
-    total: job.invoice_total, mat: job.material_cost, fl: job.field_labour_cost,
-    comm: job.invoice_total * job.commission_rate, outstanding: job.invoice_total,
-    status: job.status, commRate: (job.commission_rate*100)+'%',
-    startDate: job.start_date || '', profit: job.invoice_total - job.material_cost - job.field_labour_cost - (job.invoice_total * job.commission_rate)
+  // Local DATA (one entry per phase) so it shows without a reload
+  jobRows.forEach(j=>{
+    DATA.jobs.unshift({ invoice:j.invoice_number, phase:j.phase, customer:j.customer_name, rep:j.sales_rep,
+      total:j.invoice_total, mat:j.material_cost, fl:j.field_labour_cost, comm:j.invoice_total*rate,
+      outstanding:j.invoice_total, status:j.status, commRate:(rate*100)+'%', startDate:j.start_date||'',
+      source:'manual', profit:j.invoice_total - j.material_cost - j.field_labour_cost - (j.invoice_total*rate) });
+    if(typeof sbJobs!=='undefined') sbJobs.unshift(j);
   });
-  sbJobs.unshift(job);
   renderJobs();
   closeModal('newJobModal');
 
   // Clear form
-  ['nj-invoice','nj-customer','nj-total','nj-material','nj-labour','nj-notes'].forEach(id => $(id).value = '');
-  $('nj-rep').value = ''; $('nj-date').value = ''; $('nj-status').value = 'Scheduled';
+  ['nj-invoice','nj-customer','nj-total','nj-material','nj-labour','nj-notes','nj-split-corate'].forEach(id => { if($(id)) $(id).value=''; });
+  $('nj-rep').value=''; $('nj-date').value=''; $('nj-status').value='Scheduled';
+  if($('nj-multiphase')){ $('nj-multiphase').checked=false; $('nj-phase-rows').innerHTML=''; njTogglePhases(); }
+  if($('nj-split')){ $('nj-split').checked=false; njToggleSplit(); }
 
-  alert(`✓ Job ${invoice} saved successfully!`);
+  alert(`✓ Job ${invoice} saved${jobRows.length>1?(' ('+jobRows.length+' phases)'):''}!`);
 }
+
 
 // ── SAVE PAYMENT ──────────────────────────────────────────────────
 async function lookupJob(invoiceNum) {
