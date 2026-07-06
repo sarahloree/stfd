@@ -363,7 +363,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01i</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01m</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -2855,6 +2855,11 @@ async function generateStatement(repArg, weekArg, opts){
   let drawNet = 0;               // net of pre-paid = what's actually drawable ("Weekly Draw Available")
   let payRows = '';
 
+  // Chronological order by payment date (Yvonne's request) — robust to ISO,
+  // ISO+time, and 'YYYY-MM-DD HH:MM' formats.
+  const _pdate = v => { if(!v) return 0; const s=String(v).split('T')[0].split(' ')[0]; const t=new Date(s+'T12:00:00').getTime(); return isNaN(t)?0:t; };
+  payments.sort((a,b)=> _pdate(a.payment_date||a.week_ending) - _pdate(b.payment_date||b.week_ending));
+
   if(payments.length > 0){
     // Find customer name from jobs list for each payment
     payments.forEach(entry => {
@@ -2869,7 +2874,7 @@ async function generateStatement(repArg, weekArg, opts){
             const payDateRaw = entry.payment_date || entry.week_ending;
             const payDateStr = payDateRaw ? new Date(payDateRaw+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
       payRows += `<tr>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${entry.invoice_number||'—'}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:14px">${entry.invoice_number||'—'}</td>
         <td style="padding:4px 8px;border:1px solid #ddd">${customerName}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${payDateStr}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.invoice_total||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
@@ -2888,6 +2893,24 @@ async function generateStatement(repArg, weekArg, opts){
   $('stmt-payments-body').innerHTML = payRows;
   $('stmt-payments-foot').innerHTML = '';
 
+  // Outstanding (unrecouped) advances per invoice, for the PRE-PAID column in the
+  // job-detail buckets. An advance can be pre-approved in an earlier week (e.g. S2177)
+  // and must keep showing as pre-paid until a payment's pre_paid amount recoups it.
+  const advOutstandingByInv = {};
+  if(sb){
+    try{
+      const { data: allAdv } = await sb.from('commission_advances').select('invoice_number,amount').eq('rep_name', rep);
+      const advByInv = {};
+      (allAdv||[]).forEach(a=>{ const k=normInv(a.invoice_number); if(k) advByInv[k]=(advByInv[k]||0)+(parseFloat(a.amount)||0); });
+      if(Object.keys(advByInv).length){
+        const { data: pays } = await sb.from('historical_commission_entries').select('invoice_number,pre_paid').eq('rep_name', rep);
+        const recoup = {};
+        (pays||[]).forEach(p=>{ const k=normInv(p.invoice_number); if(advByInv[k]!=null) recoup[k]=(recoup[k]||0)+(parseFloat(p.pre_paid)||0); });
+        Object.keys(advByInv).forEach(k=>{ advOutstandingByInv[k]=Math.max(0, Math.round((advByInv[k]-(recoup[k]||0))*100)/100); });
+      }
+    }catch(e){ console.error('advance prepaid map:', e); }
+  }
+
   // Helper to build a job detail row
   function jobDetailRow(j, color){
     const total = parseFloat(j.invoice_total||j.total||0);
@@ -2896,10 +2919,11 @@ async function generateStatement(repArg, weekArg, opts){
     const totalComm = Math.round(total * rate * 100)/100;
     const outstanding = parseFloat(j.outstanding||total);
     const outstandingComm = total>0 ? Math.round((outstanding/total)*totalComm*100)/100 : totalComm;
-    const prePaid = parseFloat(j.pre_paid||0);
+    const advForInv = advOutstandingByInv[normInv(j.invoice_number||j.invoice)]||0;
+    const prePaid = advForInv>0 ? Math.min(advForInv, outstandingComm) : parseFloat(j.pre_paid||0);
     const commAvail = Math.round((outstandingComm - prePaid)*100)/100;
     return `<tr>
-      <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:10px">${j.invoice_number||j.invoice||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:14px">${j.invoice_number||j.invoice||'—'}</td>
       <td style="padding:4px 8px;border:1px solid #ddd">${j.customer_name||j.customer||'—'}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(totalComm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
@@ -2976,7 +3000,7 @@ async function generateStatement(repArg, weekArg, opts){
         const d=a.advance_date ? new Date(a.advance_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
         return `<tr>
           <td style="text-align:left">${d}</td>
-          <td style="text-align:left;font-family:monospace;font-size:11px">${a.invoice_number||'—'}</td>
+          <td style="text-align:left;font-family:monospace;font-size:14px">${a.invoice_number||'—'}</td>
           <td style="text-align:left">${a.note||''}</td>
           <td style="text-align:right;color:#22543d;font-weight:600">$${amt.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         </tr>`;
@@ -3092,7 +3116,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 // Reuses generateStatement(rep, week, {silent}) — the exact validated math/render path —
 // once per rep, snapshotting each rendered statement. Every rep gets one, even at $0.
 let BATCH = [];
-function repRoster(){ const s=$('gen-rep'); if(!s) return []; return [...s.options].map(o=>o.value).filter(v=>v); }
+function repRoster(){ const s=$('gen-rep'); if(!s) return []; const skip=new Set(['Jery Edgett','Yvonne Chiang']); return [...s.options].map(o=>o.value).filter(v=>v && !skip.has(v)); }
 
 async function loadAllWeeks(selId){
   const sel=$(selId); if(!sel) return;
