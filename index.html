@@ -363,7 +363,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01m</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01n</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -1162,6 +1162,8 @@ async function syncToSupabase(jobs, payments){
     // ── UPSERT JOBS ──────────────────────────────────────────────
     const jobRows = jobs.map(j => ({
       invoice_number: String(j.invoice||'').trim(),
+      phase: j.phase||1,
+      source: j.source||'excel',
       customer_name: String(j.customer||'').trim().substring(0,200),
       sales_rep: String(j.rep||'').trim(),
       job_type: j.jobType || 'Custom Fence',
@@ -1195,19 +1197,13 @@ async function syncToSupabase(jobs, payments){
     })).filter(j => j.invoice_number && j.invoice_number.match(/[0-9]/));
 
     // Commercial jobs appear as several master rows sharing one invoice number
-    // (phased billing). A Postgres upsert can't touch the same conflict key twice
-    // in one batch, so make each phase unique: 1st = base, 2nd = base-2, 3rd = base-3…
-    // This also lets every phase keep its own construction date for bucketing.
-    const seenInv = {};
-    jobRows.forEach(r => {
-      seenInv[r.invoice_number] = (seenInv[r.invoice_number]||0) + 1;
-      if(seenInv[r.invoice_number] > 1) r.invoice_number = r.invoice_number + '-' + seenInv[r.invoice_number];
-    });
-
-    // Batch upsert in chunks of 50
+    // (phased billing). Each phase now keeps its REAL invoice number and is
+    // disambiguated by the `phase` column, so every phase retains its own
+    // outstanding balance and construction date (fixes paid phases showing as owed).
+    // Batch upsert in chunks of 50, keyed on (invoice_number, phase).
     for(let i=0; i<jobRows.length; i+=50){
       const batch = jobRows.slice(i, i+50);
-      const {error} = await sb.from('jobs').upsert(batch, {onConflict:'invoice_number'});
+      const {error} = await sb.from('jobs').upsert(batch, {onConflict:'invoice_number,phase'});
       if(error) console.error('Job upsert error:', error.message);
     }
     console.log('✓ Synced', jobRows.length, 'jobs to Supabase');
@@ -1219,21 +1215,24 @@ async function syncToSupabase(jobs, payments){
     // an old "2160" left behind when the master invoice became "S2160"). Guard
     // against a truncated/empty file wiping the table: only prune on a full upload.
     try{
-      const importedInv = new Set(jobRows.map(r=>r.invoice_number));
-      const { data: existingJobs, error: selErr } = await sb.from('jobs').select('invoice_number');
+      const importedKeys = new Set(jobRows.map(r=>r.invoice_number+'|'+(r.phase||1)));
+      const { data: existingJobs, error: selErr } = await sb.from('jobs').select('id,invoice_number,phase,source');
       if(selErr) throw selErr;
       const inDB = (existingJobs||[]).length;
-      const toDelete = (existingJobs||[]).map(r=>r.invoice_number).filter(inv => inv && !importedInv.has(inv));
-      const diag = `Import diagnostics:\n• jobs in upload: ${importedInv.size}\n• jobs in database: ${inDB}\n• stale rows to remove: ${toDelete.length}${toDelete.length?'\n   → '+toDelete.slice(0,12).join(', ')+(toDelete.length>12?' …':''):''}`;
-      if(importedInv.size < 50){
-        alert(diag+'\n\n⚠ Prune SKIPPED — the upload has fewer than 50 jobs, so the safety guard held off deleting anything. If this file really is the full list, tell me and I\'ll lower the guard.');
+      // Only prune excel-sourced rows; manually-entered jobs (source='manual') are never touched.
+      const staleRows = (existingJobs||[]).filter(r => (r.source||'excel')==='excel' && !importedKeys.has(String(r.invoice_number)+'|'+(r.phase||1)));
+      const toDelete = staleRows.map(r=>r.id);
+      const staleLabels = staleRows.map(r=>r.invoice_number+((r.phase>1)?(' ·ph'+r.phase):''));
+      const diag = `Import diagnostics:\n• job rows in upload: ${jobRows.length}\n• job rows in database: ${inDB}\n• stale rows to remove: ${toDelete.length}${toDelete.length?'\n   → '+staleLabels.slice(0,12).join(', ')+(toDelete.length>12?' …':''):''}`;
+      if(jobRows.length < 50){
+        alert(diag+'\n\n⚠ Prune SKIPPED — the upload has fewer than 50 job rows, so the safety guard held off deleting anything. If this file really is the full list, tell me and I\'ll lower the guard.');
       } else if(!toDelete.length){
-        alert(diag+'\n\nNothing to prune — every database row is present in this upload.');
+        alert(diag+'\n\nNothing to prune — every excel-sourced row is present in this upload.');
       } else {
         let deleted=0, delErr=null;
         for(let i=0;i<toDelete.length && !delErr;i+=50){
           const chunk = toDelete.slice(i,i+50);
-          const { error } = await sb.from('jobs').delete().in('invoice_number', chunk);
+          const { error } = await sb.from('jobs').delete().in('id', chunk);
           if(error){ delErr=error; } else { deleted += chunk.length; }
         }
         if(delErr){
@@ -1241,9 +1240,8 @@ async function syncToSupabase(jobs, payments){
           alert(diag+'\n\n⚠ Could NOT delete them: '+delErr.message+'\n\nThe jobs table is blocking DELETE (row-level security). Run:  alter table jobs disable row level security;  then re-import.');
         } else {
           // verify the delete actually took (RLS can silently delete 0 rows)
-          const { data: after } = await sb.from('jobs').select('invoice_number');
-          const stillThere = (after||[]).map(r=>r.invoice_number).filter(inv => toDelete.includes(inv));
-          if(stillThere.length){
+          const { data: after } = await sb.from('jobs').select('id').in('id', toDelete);
+          if((after||[]).length){
             alert(diag+'\n\n⚠ Delete reported success but the rows are STILL there (row-level security silently blocked it). Run:  alter table jobs disable row level security;  then re-import.');
           } else {
             alert(diag+'\n\n✓ Cleaned up '+deleted+' stale/removed row(s). Regenerate the statements.');
@@ -1387,11 +1385,13 @@ function parseJobs(wb){
     if(typeof v==='number'&&v>40000){const d=new Date(Math.round((v-25569)*86400*1000));return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');}
     return String(v).split('T')[0].split(' ')[0];
   };
+  const _phase={};
   return rows.slice(1).map(r=>{
     const inv=String(r[iI]||'').trim();if(!inv||inv==='null')return null;
+    _phase[inv]=(_phase[inv]||0)+1;
     const ma=+r[iMa]||0, mp=(iMp>=0?+r[iMp]:0)||ma;
     const fa=+r[iFa]||0, fp=(iFp>=0?+r[iFp]:0)||fa;
-    const j={invoice:inv,customer:String(r[iC]||'').trim(),rep:String(r[iR]||'').trim(),total:+r[iT]||0,
+    const j={invoice:inv,phase:_phase[inv],source:'excel',customer:String(r[iC]||'').trim(),rep:String(r[iR]||'').trim(),total:+r[iT]||0,
       matAct:ma,matPred:mp,flAct:fa,flPred:fp,mat:ma,fl:fa,
       sub:0,warrantyBasis:'all',warrantyManual:0,fuel:0,days:(iDays>=0?+r[iDays]:0)||0,comm:+r[iCm]||0,
       outstanding:+r[iO]||0,status:String(r[iS]||'Pending').trim(),commRate:String(r[iCr]||'').trim(),
@@ -2934,6 +2934,29 @@ async function generateStatement(repArg, weekArg, opts){
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:${color};font-weight:600">$${Number(commAvail).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
     </tr>`;
   }
+
+  // Collapse multiple phases of one invoice (sharing a base number) into a single
+  // consolidated line — sums invoice total & outstanding, strips the "(N-…)" phase
+  // label from the customer name. Applied within each bucket.
+  function consolidatePhases(list){
+    const groups={};
+    list.forEach(j=>{ const k=normInv(j.invoice_number||j.invoice); (groups[k]=groups[k]||[]).push(j); });
+    return Object.keys(groups).map(k=>{
+      const g=groups[k];
+      if(g.length===1) return g[0];
+      const first=g[0];
+      const total=g.reduce((s,j)=>s+parseFloat(j.invoice_total||j.total||0),0);
+      const outstanding=g.reduce((s,j)=>s+parseFloat(j.outstanding||0),0);
+      const name=String(first.customer_name||first.customer||'')
+        .replace(/\s*\(\s*\d+\s*-[^)]*\)\s*$/,'')   // "(2-20%)"
+        .replace(/\s*\(\s*\d+\s*\)\s*$/,'').trim();  // "(3)"
+      return { invoice_number:k, invoice:k, customer_name:name, customer:name,
+        invoice_total:total, total:total, outstanding:outstanding,
+        commission_rate:first.commission_rate, status:first.status, pipeline_status:first.pipeline_status,
+        construction_date_1:first.construction_date_1, constructionDate1:first.constructionDate1 };
+    });
+  }
+
   // ── Yvonne's rules for Other Job Details ────────────────────────
   const today = new Date(); today.setHours(0,0,0,0);
 
@@ -2952,7 +2975,7 @@ async function generateStatement(repArg, weekArg, opts){
   });
 
   $('stmt-pending-body').innerHTML = pendingJobs.length
-    ? pendingJobs.map(j => jobDetailRow(j,'#f5a623')).join('')
+    ? consolidatePhases(pendingJobs).map(j => jobDetailRow(j,'#f5a623')).join('')
     : '<tr><td colspan="9" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No completed jobs pending payment</td></tr>';
 
   // Section 3: Scheduled Jobs
@@ -2964,7 +2987,7 @@ async function generateStatement(repArg, weekArg, opts){
     return !!(j.construction_date_1||j.constructionDate1);
   });
   $('stmt-scheduled-body').innerHTML = scheduledJobs.length
-    ? scheduledJobs.map(j => jobDetailRow(j,'#60a5fa')).join('')
+    ? consolidatePhases(scheduledJobs).map(j => jobDetailRow(j,'#60a5fa')).join('')
     : '<tr><td colspan="9" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No scheduled jobs</td></tr>';
 
   // Section 4: Unscheduled Jobs
@@ -2976,7 +2999,7 @@ async function generateStatement(repArg, weekArg, opts){
     return !(j.construction_date_1||j.constructionDate1);
   });
   $('stmt-unscheduled-body').innerHTML = unscheduledJobs.length
-    ? unscheduledJobs.map(j => jobDetailRow(j,'#94a3b8')).join('')
+    ? consolidatePhases(unscheduledJobs).map(j => jobDetailRow(j,'#94a3b8')).join('')
     : '<tr><td colspan="9" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No unscheduled jobs</td></tr>';
 
   // Commission advances paid out this week — early pay-outs that add to the draw.
