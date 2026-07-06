@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="STFD CRM">
+<meta name="theme-color" content="#9a7016">
+<title>STFD CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;--border:#2a2f45;--accent:#c8922a;--green:#22c55e;--red:#ef4444;--blue:#60a5fa;--text:#ffffff;--muted:#94a3b8;--dim:#4a5070}
+html[data-theme="light"]{--bg:#f4f6fb;--s1:#ffffff;--s2:#eef2f8;--s3:#e4e9f2;--border:#d3dbe8;--accent:#9a7016;--green:#15803d;--red:#dc2626;--blue:#2563eb;--text:#14203a;--muted:#5a6a86;--dim:#9aa6bb}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding:0 14px 40px}
+/* header */
+.hdr{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr .brand{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--accent);letter-spacing:1px;font-size:16px;white-space:nowrap}
+.hdr .spacer{flex:1}
+.hdr select,.hdr button{font-family:inherit;font-size:14px}
+.rep-pick{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.rep-pick select{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;max-width:150px}
+.icon-btn{background:none;border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:16px;line-height:1}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* buttons */
+.btn{font-family:inherit;font-size:15px;font-weight:500;border-radius:8px;cursor:pointer;padding:11px 16px;border:none;transition:opacity .15s,border-color .15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.88}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-green{background:var(--green);color:#fff}
+.btn-block{width:100%}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+/* toolbar */
+.toolbar{display:flex;gap:10px;align-items:center;margin:14px 0;flex-wrap:wrap}
+.search{flex:1;min-width:160px;background:var(--s1);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-family:inherit;font-size:15px;outline:none}
+.search:focus{border-color:var(--accent)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.chip{background:var(--s2);border:1px solid var(--border);color:var(--muted);padding:7px 12px;border-radius:20px;font-size:13px;cursor:pointer;user-select:none}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.filters select{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:20px;font-family:inherit;font-size:13px}
+/* cards */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--accent)}
+.card .top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.card .name{font-weight:600;font-size:16px}
+.card .sub{color:var(--muted);font-size:13px;line-height:1.5}
+.badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:12px}
+.badge.lead{background:rgba(37,99,235,.14);color:var(--blue)}
+.badge.customer{background:rgba(21,128,61,.16);color:var(--green)}
+.rep-tag{margin-left:auto;font-size:12px;color:var(--dim)}
+.empty{text-align:center;color:var(--muted);padding:48px 20px;font-size:15px}
+/* forms */
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.form-group label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.form-group input,.form-group select,.form-group textarea{background:var(--s1);border:1px solid var(--border);color:var(--text);padding:11px 13px;border-radius:8px;font-family:inherit;font-size:16px;outline:none;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{min-height:80px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{flex-direction:row;align-items:center;gap:10px}
+.check input{width:auto}
+.check label{text-transform:none;letter-spacing:0;font-size:15px;color:var(--text)}
+.screen-title{display:flex;align-items:center;gap:10px;margin:16px 0}
+.screen-title h2{font-size:20px;font-weight:600}
+.back{background:none;border:none;color:var(--accent);font-family:inherit;font-size:15px;cursor:pointer;padding:4px 0}
+/* notes */
+.notes-h{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:20px 0 10px}
+.note{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px}
+.note .meta{font-size:12px;color:var(--dim);margin-bottom:4px}
+.note .body{font-size:15px;white-space:pre-wrap}
+.add-note{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+/* toast */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--s3);border:1px solid var(--border);color:var(--text);padding:12px 18px;border-radius:10px;font-size:14px;z-index:200;transition:transform .25s;max-width:90%;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.err{border-color:var(--red);color:var(--red)}
+.hide{display:none!important}
+.stamp{text-align:center;color:var(--dim);font-size:11px;margin-top:24px;font-family:'IBM Plex Mono',monospace}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <span class="brand">STFD CRM</span>
+  <div class="spacer"></div>
+  <div class="rep-pick">
+    <span>I am:</span>
+    <select id="repPicker" onchange="setCurrentRep(this.value)"></select>
+  </div>
+  <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Theme">🌙</button>
+</div>
+
+<div class="wrap">
+
+  <!-- LIST SCREEN -->
+  <div id="screenList">
+    <div class="toolbar">
+      <input class="search" id="search" placeholder="Search name, phone, or email…" oninput="renderList()">
+      <button class="btn btn-primary" onclick="showAdd()">+ New Lead</button>
+    </div>
+    <div class="filters">
+      <span class="chip on" data-status="all" onclick="setStatusFilter('all',this)">All</span>
+      <span class="chip" data-status="lead" onclick="setStatusFilter('lead',this)">Leads</span>
+      <span class="chip" data-status="customer" onclick="setStatusFilter('customer',this)">Customers</span>
+      <select id="repFilter" onchange="renderList()"><option value="all">All reps</option></select>
+    </div>
+    <div id="list"></div>
+  </div>
+
+  <!-- ADD LEAD SCREEN -->
+  <div id="screenAdd" class="hide">
+    <div class="screen-title"><button class="back" onclick="showList()">← Back</button><h2>New lead</h2></div>
+    <div class="form-group"><label>Full name *</label><input id="a_full_name" placeholder="Customer or contact name"></div>
+    <div class="form-group"><label>Company (optional)</label><input id="a_company_name"></div>
+    <div class="row2">
+      <div class="form-group"><label>Phone</label><input id="a_phone" inputmode="tel"></div>
+      <div class="form-group"><label>Email</label><input id="a_email" inputmode="email"></div>
+    </div>
+    <div class="form-group"><label>Street address</label><input id="a_street_address"></div>
+    <div class="row2">
+      <div class="form-group"><label>City</label><input id="a_city"></div>
+      <div class="form-group"><label>State</label><input id="a_state" value="TX"></div>
+    </div>
+    <div class="row2">
+      <div class="form-group"><label>ZIP</label><input id="a_zip_code" inputmode="numeric"></div>
+      <div class="form-group"><label>Type</label><select id="a_customer_type"><option value="residential">Residential</option><option value="commercial">Commercial</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="form-group"><label>Lead source</label><select id="a_lead_source"><option value="">—</option><option>Website</option><option>Referral</option><option>Walk-in</option><option>Social Media</option><option>Repeat customer</option><option>Other</option></select></div>
+      <div class="form-group"><label>Preferred contact</label><select id="a_preferred_contact_method"><option value="">—</option><option>Phone</option><option>Email</option><option>Text</option></select></div>
+    </div>
+    <div class="form-group"><label>Assigned rep</label><select id="a_assigned_rep"></select></div>
+    <div class="form-group"><label>Invoice2Go # (optional)</label><input id="a_invoice2go_ref" placeholder="Legacy reference"></div>
+    <div class="form-group check"><input type="checkbox" id="a_do_not_contact"><label for="a_do_not_contact">Do not contact</label></div>
+    <div class="form-group"><label>First note (optional)</label><textarea id="a_note" placeholder="Anything worth remembering about this lead…"></textarea></div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-block" onclick="saveLead()">Save lead</button>
+    </div>
+  </div>
+
+  <!-- DETAIL SCREEN -->
+  <div id="screenDetail" class="hide">
+    <div class="screen-title"><button class="back" onclick="showList()">← Back</button><h2 id="d_title">Customer</h2><span id="d_badge"></span></div>
+    <div class="form-group"><label>Full name *</label><input id="d_full_name"></div>
+    <div class="form-group"><label>Company</label><input id="d_company_name"></div>
+    <div class="row2">
+      <div class="form-group"><label>Phone</label><input id="d_phone" inputmode="tel"></div>
+      <div class="form-group"><label>Email</label><input id="d_email" inputmode="email"></div>
+    </div>
+    <div class="form-group"><label>Street address</label><input id="d_street_address"></div>
+    <div class="row2">
+      <div class="form-group"><label>City</label><input id="d_city"></div>
+      <div class="form-group"><label>State</label><input id="d_state"></div>
+    </div>
+    <div class="row2">
+      <div class="form-group"><label>ZIP</label><input id="d_zip_code" inputmode="numeric"></div>
+      <div class="form-group"><label>Type</label><select id="d_customer_type"><option value="residential">Residential</option><option value="commercial">Commercial</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="form-group"><label>Lead source</label><select id="d_lead_source"><option value="">—</option><option>Website</option><option>Referral</option><option>Walk-in</option><option>Social Media</option><option>Repeat customer</option><option>Other</option></select></div>
+      <div class="form-group"><label>Preferred contact</label><select id="d_preferred_contact_method"><option value="">—</option><option>Phone</option><option>Email</option><option>Text</option></select></div>
+    </div>
+    <div class="form-group"><label>Assigned rep</label><select id="d_assigned_rep"></select></div>
+    <div class="form-group"><label>Invoice2Go #</label><input id="d_invoice2go_ref"></div>
+    <div class="form-group check"><input type="checkbox" id="d_do_not_contact"><label for="d_do_not_contact">Do not contact</label></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveCustomer()">Save changes</button>
+      <button class="btn btn-green" id="convertBtn" onclick="convertToCustomer()">Convert to customer</button>
+    </div>
+
+    <div class="notes-h">Notes</div>
+    <div id="notesList"></div>
+    <div class="add-note">
+      <textarea class="search" id="newNote" placeholder="Add a note…" style="min-height:70px;resize:vertical"></textarea>
+      <button class="btn btn-ghost" onclick="addNote()">Add note</button>
+    </div>
+  </div>
+
+  <div class="stamp">build 2026-07-06a</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ---- config ----
+var SB_URL = 'https://qdfwovnhlaaocgawukto.supabase.co';
+var SB_KEY = 'sb_publishable_PPhYAvIRNnzv7E86s8yw-g_ltVx0Gvk';
+var sb = supabase.createClient(SB_URL, SB_KEY);
+
+// ---- state ----
+var reps = [];
+var repMap = {};
+var customers = [];
+var currentRepId = null;
+var currentCustomerId = null;
+var statusFilter = 'all';
+
+var $ = function(id){ return document.getElementById(id); };
+
+function toast(msg, isErr){
+  var t = $('toast'); t.textContent = msg;
+  t.className = 'show' + (isErr ? ' err' : '');
+  clearTimeout(t._h); t._h = setTimeout(function(){ t.className = ''; }, 2600);
+}
+
+// ---- theme ----
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  $('themeBtn').textContent = (t === 'light') ? '🌙' : '☀';
+  try{ localStorage.setItem('stfd-crm-theme', t); }catch(e){}
+}
+function toggleTheme(){
+  var cur = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(cur === 'light' ? 'dark' : 'light');
+}
+(function(){ var t='light'; try{ var s=localStorage.getItem('stfd-crm-theme'); if(s) t=s; }catch(e){} applyTheme(t); })();
+
+// ---- screens ----
+function showList(){ $('screenList').classList.remove('hide'); $('screenAdd').classList.add('hide'); $('screenDetail').classList.add('hide'); window.scrollTo(0,0); }
+function showAdd(){ $('screenList').classList.add('hide'); $('screenAdd').classList.remove('hide'); $('screenDetail').classList.add('hide'); clearAddForm(); window.scrollTo(0,0); }
+function showDetail(){ $('screenList').classList.add('hide'); $('screenAdd').classList.add('hide'); $('screenDetail').classList.remove('hide'); window.scrollTo(0,0); }
+
+// ---- reps ----
+function repName(id){ return repMap[id] || '—'; }
+
+function fillRepSelect(sel, includeAll){
+  var html = includeAll ? '<option value="all">All reps</option>' : '<option value="">— select —</option>';
+  for(var i=0;i<reps.length;i++){ html += '<option value="'+reps[i].rep_id+'">'+esc(reps[i].name)+'</option>'; }
+  sel.innerHTML = html;
+}
+
+function setCurrentRep(id){
+  currentRepId = id || null;
+  try{ if(id) localStorage.setItem('stfd-crm-rep', id); }catch(e){}
+}
+
+async function loadReps(){
+  var res = await sb.from('reps').select('rep_id,name,is_active').eq('is_active', true).order('name');
+  if(res.error){ toast('Could not load reps: '+res.error.message, true); return; }
+  reps = res.data || [];
+  repMap = {};
+  reps.forEach(function(r){ repMap[r.rep_id] = r.name; });
+  $('repPicker').innerHTML = '<option value="">—</option>' + reps.map(function(r){ return '<option value="'+r.rep_id+'">'+esc(r.name)+'</option>'; }).join('');
+  fillRepSelect($('a_assigned_rep'), false);
+  fillRepSelect($('d_assigned_rep'), false);
+  fillRepSelect($('repFilter'), true);
+  // restore saved rep
+  try{ var saved = localStorage.getItem('stfd-crm-rep'); if(saved && repMap[saved]){ currentRepId = saved; $('repPicker').value = saved; } }catch(e){}
+}
+
+// ---- customers ----
+async function loadCustomers(){
+  var res = await sb.from('customers').select('*').order('created_at', { ascending:false });
+  if(res.error){ toast('Could not load customers: '+res.error.message, true); return; }
+  customers = res.data || [];
+  renderList();
+}
+
+function setStatusFilter(s, el){
+  statusFilter = s;
+  var chips = document.querySelectorAll('.chip[data-status]');
+  chips.forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+  renderList();
+}
+
+function renderList(){
+  var q = ($('search').value || '').toLowerCase().trim();
+  var repF = $('repFilter').value;
+  var rows = customers.filter(function(c){
+    if(statusFilter !== 'all' && c.status !== statusFilter) return false;
+    if(repF !== 'all' && c.assigned_rep !== repF) return false;
+    if(q){
+      var hay = ((c.full_name||'')+' '+(c.company_name||'')+' '+(c.phone||'')+' '+(c.email||'')).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  var el = $('list');
+  if(!rows.length){ el.innerHTML = '<div class="empty">No matching records.<br>Tap “+ New Lead” to add one.</div>'; return; }
+  el.innerHTML = rows.map(function(c){
+    var sub = [c.company_name, c.phone, c.email].filter(Boolean).join(' · ');
+    return '<div class="card" onclick="openCustomer(\''+c.id+'\')">'
+      + '<div class="top"><span class="name">'+esc(c.full_name||'(no name)')+'</span>'
+      + '<span class="badge '+(c.status||'lead')+'">'+(c.status||'lead')+'</span>'
+      + '<span class="rep-tag">'+esc(repName(c.assigned_rep))+'</span></div>'
+      + (sub ? '<div class="sub">'+esc(sub)+'</div>' : '')
+      + '</div>';
+  }).join('');
+}
+
+function clearAddForm(){
+  ['a_full_name','a_company_name','a_phone','a_email','a_street_address','a_city','a_zip_code','a_invoice2go_ref','a_note'].forEach(function(id){ $(id).value=''; });
+  $('a_state').value = 'TX';
+  $('a_customer_type').value = 'residential';
+  $('a_lead_source').value = '';
+  $('a_preferred_contact_method').value = '';
+  $('a_do_not_contact').checked = false;
+  $('a_assigned_rep').value = currentRepId || '';
+}
+
+async function saveLead(){
+  var name = $('a_full_name').value.trim();
+  if(!name){ toast('Full name is required', true); return; }
+  var payload = {
+    full_name: name,
+    company_name: val('a_company_name'),
+    phone: val('a_phone'),
+    email: val('a_email'),
+    street_address: val('a_street_address'),
+    city: val('a_city'),
+    state: val('a_state'),
+    zip_code: val('a_zip_code'),
+    customer_type: $('a_customer_type').value,
+    lead_source: val('a_lead_source'),
+    preferred_contact_method: val('a_preferred_contact_method'),
+    invoice2go_ref: val('a_invoice2go_ref'),
+    do_not_contact: $('a_do_not_contact').checked,
+    assigned_rep: $('a_assigned_rep').value || null,
+    status: 'lead'
+  };
+  var res = await sb.from('customers').insert(payload).select().single();
+  if(res.error){ toast('Save failed: '+res.error.message, true); return; }
+  var newId = res.data.id;
+  var noteBody = $('a_note').value.trim();
+  if(noteBody){
+    await sb.from('notes').insert({ customer_id:newId, author: currentRepId || null, body: noteBody });
+  }
+  toast('Lead saved');
+  await loadCustomers();
+  openCustomer(newId);
+}
+
+// ---- detail ----
+async function openCustomer(id){
+  currentCustomerId = id;
+  var c = customers.filter(function(x){ return x.id === id; })[0];
+  if(!c){ var r = await sb.from('customers').select('*').eq('id',id).single(); if(r.error){ toast('Not found', true); return; } c = r.data; }
+  $('d_title').textContent = c.full_name || 'Customer';
+  $('d_badge').innerHTML = '<span class="badge '+(c.status||'lead')+'">'+(c.status||'lead')+'</span>';
+  setVal('d_full_name', c.full_name); setVal('d_company_name', c.company_name);
+  setVal('d_phone', c.phone); setVal('d_email', c.email);
+  setVal('d_street_address', c.street_address); setVal('d_city', c.city);
+  setVal('d_state', c.state); setVal('d_zip_code', c.zip_code);
+  $('d_customer_type').value = c.customer_type || 'residential';
+  $('d_lead_source').value = c.lead_source || '';
+  $('d_preferred_contact_method').value = c.preferred_contact_method || '';
+  $('d_assigned_rep').value = c.assigned_rep || '';
+  setVal('d_invoice2go_ref', c.invoice2go_ref);
+  $('d_do_not_contact').checked = !!c.do_not_contact;
+  $('convertBtn').classList.toggle('hide', c.status === 'customer');
+  showDetail();
+  loadNotes(id);
+}
+
+async function saveCustomer(){
+  var name = $('d_full_name').value.trim();
+  if(!name){ toast('Full name is required', true); return; }
+  var payload = {
+    full_name: name,
+    company_name: val('d_company_name'),
+    phone: val('d_phone'), email: val('d_email'),
+    street_address: val('d_street_address'), city: val('d_city'),
+    state: val('d_state'), zip_code: val('d_zip_code'),
+    customer_type: $('d_customer_type').value,
+    lead_source: val('d_lead_source'),
+    preferred_contact_method: val('d_preferred_contact_method'),
+    invoice2go_ref: val('d_invoice2go_ref'),
+    do_not_contact: $('d_do_not_contact').checked,
+    assigned_rep: $('d_assigned_rep').value || null,
+    updated_at: new Date().toISOString()
+  };
+  var res = await sb.from('customers').update(payload).eq('id', currentCustomerId);
+  if(res.error){ toast('Save failed: '+res.error.message, true); return; }
+  toast('Saved');
+  await loadCustomers();
+}
+
+async function convertToCustomer(){
+  var res = await sb.from('customers').update({ status:'customer', updated_at:new Date().toISOString() }).eq('id', currentCustomerId);
+  if(res.error){ toast('Convert failed: '+res.error.message, true); return; }
+  toast('Converted to customer');
+  $('d_badge').innerHTML = '<span class="badge customer">customer</span>';
+  $('convertBtn').classList.add('hide');
+  await loadCustomers();
+}
+
+// ---- notes ----
+async function loadNotes(customerId){
+  var res = await sb.from('notes').select('*').eq('customer_id', customerId).order('created_at', { ascending:false });
+  var el = $('notesList');
+  if(res.error){ el.innerHTML = '<div class="empty">Could not load notes.</div>'; return; }
+  var rows = res.data || [];
+  if(!rows.length){ el.innerHTML = '<div class="sub" style="color:var(--dim)">No notes yet.</div>'; return; }
+  el.innerHTML = rows.map(function(n){
+    return '<div class="note"><div class="meta">'+esc(repName(n.author))+' · '+fmtDate(n.created_at)+'</div><div class="body">'+esc(n.body||'')+'</div></div>';
+  }).join('');
+}
+
+async function addNote(){
+  var body = $('newNote').value.trim();
+  if(!body){ toast('Note is empty', true); return; }
+  var res = await sb.from('notes').insert({ customer_id: currentCustomerId, author: currentRepId || null, body: body });
+  if(res.error){ toast('Note failed: '+res.error.message, true); return; }
+  $('newNote').value = '';
+  toast('Note added');
+  loadNotes(currentCustomerId);
+}
+
+// ---- helpers ----
+function val(id){ var v = $(id).value.trim(); return v === '' ? null : v; }
+function setVal(id, v){ $(id).value = v == null ? '' : v; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
+function fmtDate(s){ if(!s) return ''; var d = new Date(s); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+
+// ---- init ----
+(async function init(){
+  try{
+    await loadReps();
+    await loadCustomers();
+  }catch(e){
+    toast('Startup error: ' + (e && e.message ? e.message : e), true);
+  }
+})();
+</script>
+</body>
+</html>
