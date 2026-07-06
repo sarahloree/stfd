@@ -363,7 +363,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01n</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01o</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -1216,33 +1216,33 @@ async function syncToSupabase(jobs, payments){
     // against a truncated/empty file wiping the table: only prune on a full upload.
     try{
       const importedKeys = new Set(jobRows.map(r=>r.invoice_number+'|'+(r.phase||1)));
-      const { data: existingJobs, error: selErr } = await sb.from('jobs').select('id,invoice_number,phase,source');
+      const { data: existingJobs, error: selErr } = await sb.from('jobs').select('invoice_number,phase,source');
       if(selErr) throw selErr;
       const inDB = (existingJobs||[]).length;
       // Only prune excel-sourced rows; manually-entered jobs (source='manual') are never touched.
       const staleRows = (existingJobs||[]).filter(r => (r.source||'excel')==='excel' && !importedKeys.has(String(r.invoice_number)+'|'+(r.phase||1)));
-      const toDelete = staleRows.map(r=>r.id);
       const staleLabels = staleRows.map(r=>r.invoice_number+((r.phase>1)?(' ·ph'+r.phase):''));
-      const diag = `Import diagnostics:\n• job rows in upload: ${jobRows.length}\n• job rows in database: ${inDB}\n• stale rows to remove: ${toDelete.length}${toDelete.length?'\n   → '+staleLabels.slice(0,12).join(', ')+(toDelete.length>12?' …':''):''}`;
+      const diag = `Import diagnostics:\n• job rows in upload: ${jobRows.length}\n• job rows in database: ${inDB}\n• stale rows to remove: ${staleRows.length}${staleRows.length?'\n   → '+staleLabels.slice(0,12).join(', ')+(staleRows.length>12?' …':''):''}`;
       if(jobRows.length < 50){
         alert(diag+'\n\n⚠ Prune SKIPPED — the upload has fewer than 50 job rows, so the safety guard held off deleting anything. If this file really is the full list, tell me and I\'ll lower the guard.');
-      } else if(!toDelete.length){
+      } else if(!staleRows.length){
         alert(diag+'\n\nNothing to prune — every excel-sourced row is present in this upload.');
       } else {
         let deleted=0, delErr=null;
-        for(let i=0;i<toDelete.length && !delErr;i+=50){
-          const chunk = toDelete.slice(i,i+50);
-          const { error } = await sb.from('jobs').delete().in('id', chunk);
-          if(error){ delErr=error; } else { deleted += chunk.length; }
+        for(const r of staleRows){
+          if(delErr) break;
+          const { error } = await sb.from('jobs').delete().eq('invoice_number', r.invoice_number).eq('phase', r.phase==null?1:r.phase);
+          if(error){ delErr=error; } else { deleted++; }
         }
         if(delErr){
           console.error('Job prune delete blocked:', delErr.message);
           alert(diag+'\n\n⚠ Could NOT delete them: '+delErr.message+'\n\nThe jobs table is blocking DELETE (row-level security). Run:  alter table jobs disable row level security;  then re-import.');
         } else {
           // verify the delete actually took (RLS can silently delete 0 rows)
-          const { data: after } = await sb.from('jobs').select('id').in('id', toDelete);
-          if((after||[]).length){
-            alert(diag+'\n\n⚠ Delete reported success but the rows are STILL there (row-level security silently blocked it). Run:  alter table jobs disable row level security;  then re-import.');
+          const { data: after } = await sb.from('jobs').select('invoice_number,phase,source');
+          const stillStale = (after||[]).filter(r => (r.source||'excel')==='excel' && !importedKeys.has(String(r.invoice_number)+'|'+(r.phase||1)));
+          if(stillStale.length){
+            alert(diag+'\n\n⚠ Delete reported success but rows are STILL there (row-level security silently blocked it). Run:  alter table jobs disable row level security;  then re-import.');
           } else {
             alert(diag+'\n\n✓ Cleaned up '+deleted+' stale/removed row(s). Regenerate the statements.');
           }
