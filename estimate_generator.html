@@ -143,6 +143,7 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
       <div class="pull-row">
         <div class="fg"><label>Customer's fence diagrams</label><select id="quotePick"><option value="">— none loaded —</option></select></div>
         <button class="btn btn-ghost" onclick="pullFromDiagram()">Pull materials →</button>
+        <button class="btn btn-ghost" onclick="loadQuotes(true)" style="font-size:12px">Show all unlinked</button>
       </div>
     </div>
 
@@ -175,7 +176,7 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07a</div>
+  <div class="stamp">build 2026-07-07b</div>
 </div>
 
 <div id="toast"></div>
@@ -190,6 +191,7 @@ var customerId=params.get('customer_id')||null;
 var quotes=[];         // customer's fence_quotes
 var lines=[];          // line items
 var linkedQuoteId=null;
+var customerName='';
 
 var $=function(id){return document.getElementById(id);};
 function toast(m,e){var t=$('toast');t.textContent=m;t.className='show'+(e?' err':'');clearTimeout(t._h);t._h=setTimeout(function(){t.className='';},2600);}
@@ -255,6 +257,7 @@ function pullFromDiagram(){
     lines.push({description:desc,unit:(m.unit||'ea'),quantity:qty,rate:rate,amount:round2(qty*rate),sku:(m.sku||''),source:'material'});
     added++;
   });
+  if(customerId && q.customer_id!==customerId){ sb.from('fence_quotes').update({customer_id:customerId}).eq('id',q.id).then(function(){},function(){}); q.customer_id=customerId; }
   linkedQuoteId=q.id;
   renderLines();
   toast(added+' materials pulled from diagram');
@@ -306,21 +309,24 @@ async function loadCustomer(){
   var r=await sb.from('customers').select('*').eq('id',customerId).single();
   if(r.error){ toast('Customer: '+r.error.message,true); return; }
   var c=r.data;
+  customerName=c.full_name||'';
   $('c_name').value=c.full_name||''; $('c_company').value=c.company_name||'';
   $('c_address').value=c.street_address||''; $('c_city').value=c.city||'';
   $('c_state').value=c.state||'TX'; $('c_zip').value=c.zip_code||'';
   $('c_phone').value=c.phone||''; $('c_email').value=c.email||'';
 }
-async function loadQuotes(){
-  if(!customerId){ return; }
-  var r=await sb.from('fence_quotes').select('id,drawing_no,created_at,total,bom').eq('customer_id',customerId).order('created_at',{ascending:false});
-  if(r.error){ return; }
-  quotes=r.data||[];
-  var sel=$('quotePick');
-  if(!quotes.length){ sel.innerHTML='<option value="">— no diagrams for this customer yet —</option>'; return; }
+async function loadQuotes(showAll){
+  var sel=$('quotePick'); var rows=[];
+  var cols='id,drawing_no,client_name,created_at,total,bom,customer_id';
+  if(customerId){ var a=await sb.from('fence_quotes').select(cols).eq('customer_id',customerId).order('created_at',{ascending:false}); if(!a.error&&a.data) rows=rows.concat(a.data); }
+  if(customerName){ var b=await sb.from('fence_quotes').select(cols).is('customer_id',null).ilike('client_name','%'+customerName+'%').order('created_at',{ascending:false}); if(!b.error&&b.data) rows=rows.concat(b.data); }
+  if(showAll){ var c=await sb.from('fence_quotes').select(cols).is('customer_id',null).order('created_at',{ascending:false}).limit(50); if(!c.error&&c.data) rows=rows.concat(c.data); }
+  var seen={}; quotes=[]; rows.forEach(function(q){ if(!seen[q.id]){ seen[q.id]=1; quotes.push(q); } });
+  if(!quotes.length){ sel.innerHTML='<option value="">— none found — try “Show all unlinked” —</option>'; return; }
   sel.innerHTML='<option value="">— pick a diagram —</option>'+quotes.map(function(q){
     var d=q.created_at?new Date(q.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
-    return '<option value="'+q.id+'">'+esc(q.drawing_no||'Diagram')+' · '+d+' · '+money(q.total)+'</option>';
+    var tag=q.customer_id?'':(' · unlinked'+(q.client_name?(' ('+q.client_name+')'):''));
+    return '<option value="'+q.id+'">'+esc(q.drawing_no||'Diagram')+' · '+d+' · '+money(q.total)+esc(tag)+'</option>';
   }).join('');
 }
 (async function init(){
