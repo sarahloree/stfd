@@ -1,555 +1,2177 @@
 {
   "weeks": [
     {
-      "week": 1,
-      "startDate": "2026-01-01",
-      "endDate": "2026-01-03",
+      "week": "1",
+      "start": "2026-01-01",
       "inv": 0,
       "mat": 0,
       "fl": 0,
       "comm": 0,
-      "oh": 39570.09,
+      "oh": 0,
       "sp": 0,
       "ohPct": 0,
       "spPct": 0,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 39570.090000000004,
+      "outSP": 52859.7,
       "wp": 0,
-      "mp": 0,
-      "label": "Jan 1"
+      "mp": 0
     },
     {
-      "week": 2,
-      "startDate": "2026-01-04",
-      "endDate": "2026-01-10",
+      "week": "2",
+      "start": "2026-01-04",
       "inv": 56750,
-      "mat": 23345.45,
-      "fl": 6363.58,
+      "mat": 23345.454999999998,
+      "fl": 6363.575000000001,
       "comm": 3509,
-      "oh": 39570.09,
-      "sp": 0,
-      "ohPct": 0.697270308370044,
-      "spPct": 0,
-      "wp": 23531.97,
-      "mp": 23531.97,
-      "label": "Jan 4"
+      "oh": 10074.264701643267,
+      "sp": 13457.705298356726,
+      "ohPct": 0.25459291858176886,
+      "spPct": 0.25459291858176886,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 39570.090000000004,
+      "outSP": 52859.7,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 3,
-      "startDate": "2026-01-11",
-      "endDate": "2026-01-17",
+      "week": "3",
+      "start": "2026-01-11",
       "inv": 84825,
-      "mat": 34181.62,
-      "fl": 11473.32,
+      "mat": 34181.615000000005,
+      "fl": 11473.324999999999,
       "comm": 5677.5,
-      "oh": 39570.09,
-      "sp": 0,
-      "ohPct": 0.4664908930150309,
-      "spPct": 0,
-      "wp": 33492.56,
-      "mp": 33492.56,
-      "label": "Jan 11"
+      "oh": 14338.489934147854,
+      "sp": 19154.070065852142,
+      "ohPct": 0.6169496868920722,
+      "spPct": 0.6169496868920722,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 29495.825298356736,
+      "outSP": 39401.99470164327,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 4,
-      "startDate": "2026-01-18",
-      "endDate": "2026-01-24",
+      "week": "4",
+      "start": "2026-01-18",
       "inv": 78424,
-      "mat": 32352.92,
+      "mat": 32352.924,
       "fl": 10804.36,
       "comm": 5392.94,
-      "oh": 39570.09,
-      "sp": 0,
-      "ohPct": 0.5045660767112108,
-      "spPct": 0,
-      "wp": 29873.78,
-      "mp": 29873.78,
-      "label": "Jan 18"
+      "oh": 12789.25338854324,
+      "sp": 17084.52261145676,
+      "ohPct": 0.9401547488098804,
+      "spPct": 0.9401547488098804,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 15157.335364208884,
+      "outSP": 20247.92463579113,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 5,
-      "startDate": "2026-01-25",
-      "endDate": "2026-01-31",
+      "week": "5",
+      "start": "2026-01-25",
       "inv": 51821,
-      "mat": 23479.43,
+      "mat": 23479.426,
       "fl": 9380.34,
-      "comm": 3463.26,
-      "oh": 39570.09,
-      "sp": 0,
-      "ohPct": 0.7635917871133324,
-      "spPct": 0,
-      "wp": 15497.97,
-      "mp": 15497.97,
-      "label": "Jan 25"
+      "comm": 3463.2599999999998,
+      "oh": 2368.081975665642,
+      "sp": 3163.4020243343693,
+      "ohPct": 1,
+      "spPct": 1,
+      "monthOH": 39570.090000000004,
+      "monthSP": 52859.7,
+      "outOH": 2368.081975665642,
+      "outSP": 3163.4020243343693,
+      "wp": 9966.489999999989,
+      "mp": 9966.489999999989
     },
     {
-      "week": 6,
-      "startDate": "2026-02-01",
-      "endDate": "2026-02-07",
+      "week": "6",
+      "start": "2026-02-01",
       "inv": 30136,
-      "mat": 12126.26,
+      "mat": 12126.256,
       "fl": 7118,
       "comm": 1838,
-      "oh": 47719.97,
-      "sp": 0,
-      "ohPct": 1.5834871913989912,
-      "spPct": 0,
-      "wp": 9053.74,
-      "mp": 9053.74,
-      "label": "Feb 1"
+      "oh": 4104.699674381411,
+      "sp": 4949.044325618589,
+      "ohPct": 0.0860163926000249,
+      "spPct": 0.08601639260002492,
+      "monthOH": 47719.97,
+      "monthSP": 57536.06,
+      "outOH": 47719.97,
+      "outSP": 57536.06,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 7,
-      "startDate": "2026-02-08",
-      "endDate": "2026-02-14",
+      "week": "7",
+      "start": "2026-02-08",
       "inv": 99478.85,
-      "mat": 47516.05,
+      "mat": 47516.05125,
       "fl": 24061.92,
-      "comm": 6938.21,
-      "oh": 47719.97,
-      "sp": 0,
-      "ohPct": 0.47969965475073345,
-      "spPct": 0,
-      "wp": 20962.67,
-      "mp": 20962.67,
-      "label": "Feb 8"
+      "comm": 7279.26,
+      "oh": 9349.231850198397,
+      "sp": 11272.386899801611,
+      "ohPct": 0.2819350373560547,
+      "spPct": 0.28193503735605463,
+      "monthOH": 47719.97,
+      "monthSP": 57536.06,
+      "outOH": 43615.27032561859,
+      "outSP": 52587.01567438141,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 8,
-      "startDate": "2026-02-15",
-      "endDate": "2026-02-21",
+      "week": "8",
+      "start": "2026-02-15",
       "inv": 115495.2,
-      "mat": 46870.54,
+      "mat": 46870.538,
       "fl": 19457.4,
-      "comm": 7906.37,
-      "oh": 47719.97,
-      "sp": 0,
-      "ohPct": 0.4131770844156294,
-      "spPct": 0,
-      "wp": 41260.89,
-      "mp": 41260.89,
-      "label": "Feb 15"
+      "comm": 7991.634000000001,
+      "oh": 18667.811553325355,
+      "sp": 22507.816446674646,
+      "ohPct": 0.6731299931224844,
+      "spPct": 0.6731299931224843,
+      "monthOH": 47719.97,
+      "monthSP": 57536.06,
+      "outOH": 34266.038475420195,
+      "outSP": 41314.628774579796,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 9,
-      "startDate": "2026-02-22",
-      "endDate": "2026-02-28",
+      "week": "9",
+      "start": "2026-02-22",
       "inv": 61244.65,
-      "mat": 20414.1,
+      "mat": 20414.09525,
       "fl": 12048.75,
-      "comm": 4327.01,
-      "oh": 47719.97,
-      "sp": 0,
-      "ohPct": 0.77916960910055,
-      "spPct": 0,
-      "wp": 24454.8,
-      "mp": 24454.8,
-      "label": "Feb 22"
+      "comm": 4327.008,
+      "oh": 11087.081350741591,
+      "sp": 13367.715399258408,
+      "ohPct": 0.9054662949001592,
+      "spPct": 0.9054662949001592,
+      "monthOH": 47719.97,
+      "monthSP": 57536.06,
+      "outOH": 15598.226922094836,
+      "outSP": 18806.81232790515,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 10,
-      "startDate": "2026-03-01",
-      "endDate": "2026-03-07",
+      "week": "10",
+      "start": "2026-03-01",
       "inv": 88553,
-      "mat": 35734.21,
-      "fl": 12073.27,
+      "mat": 35734.21000000001,
+      "fl": 12073.269999999999,
       "comm": 6099.26,
-      "oh": 48323.69,
-      "sp": 0,
-      "ohPct": 0.5457035899404876,
-      "spPct": 0,
-      "wp": 34646.26,
-      "mp": 34646.26,
-      "label": "Mar 1"
+      "oh": 15292.437087623677,
+      "sp": 19353.822912376316,
+      "ohPct": 0.31645838899354906,
+      "spPct": 0.31645838899354906,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": 48323.69,
+      "outSP": 61157.56,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 11,
-      "startDate": "2026-03-08",
-      "endDate": "2026-03-14",
+      "week": "11",
+      "start": "2026-03-08",
       "inv": 100072.4,
-      "mat": 48696.82,
+      "mat": 48696.823,
       "fl": 19927.46,
-      "comm": 7764.79,
-      "oh": 48323.69,
-      "sp": 0,
-      "ohPct": 0.48288728960232796,
-      "spPct": 0,
-      "wp": 23683.32,
-      "mp": 23683.32,
-      "label": "Mar 8"
+      "comm": 7764.7919999999995,
+      "oh": 10453.531134045783,
+      "sp": 13229.793865954214,
+      "ohPct": 0.5327815036821373,
+      "spPct": 0.5327815036821373,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": 33031.25291237632,
+      "outSP": 41803.73708762368,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 12,
-      "startDate": "2026-03-15",
-      "endDate": "2026-03-21",
+      "week": "12",
+      "start": "2026-03-15",
       "inv": 106439.9,
-      "mat": 37773.08,
-      "fl": 16259.51,
-      "comm": 7906.04,
-      "oh": 48323.69,
-      "sp": 0,
-      "ohPct": 0.45399976888366117,
-      "spPct": 0,
-      "wp": 44501.26,
-      "mp": 44501.26,
-      "label": "Mar 15"
+      "mat": 37773.08499999999,
+      "fl": 16259.514,
+      "comm": 7906.0419999999995,
+      "oh": 19642.31358817798,
+      "sp": 24858.945411822024,
+      "ohPct": 0.9392552971399212,
+      "spPct": 0.9392552971399211,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": 22577.721778330542,
+      "outSP": 28573.94322166947,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 13,
-      "startDate": "2026-03-22",
-      "endDate": "2026-03-28",
+      "week": "13",
+      "start": "2026-03-22",
       "inv": 91863.9,
-      "mat": 25362.85,
-      "fl": 24882.11,
-      "comm": 6166.03,
-      "oh": 48323.69,
-      "sp": 0,
-      "ohPct": 0.5260356897540819,
-      "spPct": 0,
-      "wp": 35452.91,
-      "mp": 35452.91,
-      "label": "Mar 22"
+      "mat": 25362.845999999998,
+      "fl": 24882.1108,
+      "comm": 6166.034,
+      "oh": 2935.408190152564,
+      "sp": 3714.9978098474458,
+      "ohPct": 1,
+      "spPct": 1,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": 2935.408190152564,
+      "outSP": 3714.9978098474458,
+      "wp": 28802.5032,
+      "mp": 28802.5032
     },
     {
-      "week": 15,
-      "startDate": "2026-04-05",
-      "endDate": "2026-04-11",
+      "week": "14A",
+      "start": "2026-03-29",
+      "inv": 44470.700000000004,
+      "mat": 15177.025999999998,
+      "fl": 8467.410800000001,
+      "comm": 2762.042,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 1,
+      "spPct": 1,
+      "monthOH": 48323.69,
+      "monthSP": 61157.56,
+      "outOH": -12713.074027386501,
+      "outSP": -16089.429172613498,
+      "wp": 18064.221200000004,
+      "mp": 46866.72440000001
+    },
+    {
+      "week": "14B",
+      "start": "2026-04-01",
+      "inv": 59465,
+      "mat": 20375.193999999996,
+      "fl": 9321.9,
+      "comm": 3733.5999999999995,
+      "oh": 15069.252196919186,
+      "sp": 10965.053803080817,
+      "ohPct": 0.2602682328830462,
+      "spPct": 0.2602682328830462,
+      "monthOH": 57898.92999999999,
+      "monthSP": 42129.82,
+      "outOH": 57898.92999999999,
+      "outSP": 42129.82,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "15",
+      "start": "2026-04-05",
       "inv": 52117.9,
-      "mat": 16898.78,
-      "fl": 8111.78,
-      "comm": 3299.07,
-      "oh": 57898.93,
-      "sp": 0,
-      "ohPct": 1.1109221591813945,
-      "spPct": 0,
-      "wp": 23808.26,
-      "mp": 23808.26,
-      "label": "Apr 5"
+      "mat": 16898.785,
+      "fl": 8111.784399999999,
+      "comm": 3299.074,
+      "oh": 13780.763853446517,
+      "sp": 10027.49274655349,
+      "ohPct": 0.49828236981867724,
+      "spPct": 0.4982823698186773,
+      "monthOH": 57898.92999999999,
+      "monthSP": 42129.82,
+      "outOH": 57898.92999999999,
+      "outSP": 42129.82,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 16,
-      "startDate": "2026-04-12",
-      "endDate": "2026-04-18",
+      "week": "16",
+      "start": "2026-04-12",
       "inv": 38562.58,
-      "mat": 13116,
+      "mat": 13116.000999999998,
       "fl": 4844.16,
-      "comm": 2487.55,
-      "oh": 57898.93,
-      "sp": 0,
-      "ohPct": 1.5014278090314497,
-      "spPct": 0,
-      "wp": 18114.86,
-      "mp": 18114.86,
-      "label": "Apr 12"
+      "comm": 2487.5548,
+      "oh": 10485.298019572434,
+      "sp": 7629.566180427568,
+      "ohPct": 0.6793789465528661,
+      "spPct": 0.6793789465528662,
+      "monthOH": 57898.92999999999,
+      "monthSP": 42129.82,
+      "outOH": 29048.91394963429,
+      "outSP": 21137.273450365694,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 17,
-      "startDate": "2026-04-19",
-      "endDate": "2026-04-25",
+      "week": "17",
+      "start": "2026-04-19",
       "inv": 51625.5,
       "mat": 17265.29,
       "fl": 4712.52,
       "comm": 3860.04,
-      "oh": 57898.93,
-      "sp": 0,
-      "ohPct": 1.1215180482513487,
-      "spPct": 0,
-      "wp": 25787.65,
-      "mp": 25787.65,
-      "label": "Apr 19"
+      "oh": 14926.482058553163,
+      "sp": 10861.167941446833,
+      "ohPct": 0.9371813283680942,
+      "spPct": 0.9371813283680943,
+      "monthOH": 57898.92999999999,
+      "monthSP": 42129.82,
+      "outOH": 18563.61593006186,
+      "outSP": 13507.707269938124,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 19,
-      "startDate": "2026-05-03",
-      "endDate": "2026-05-09",
-      "inv": 56205.4,
-      "mat": 20465.59,
-      "fl": 11627.97,
-      "comm": 3908.32,
-      "oh": 40000,
-      "sp": 0,
-      "ohPct": 0.71167539062083,
-      "spPct": 0,
-      "wp": 20203.52,
-      "mp": 20203.52,
-      "label": "May 3"
+      "week": "18A",
+      "start": "2026-04-26",
+      "inv": 52987.6,
+      "mat": 10590.934000000001,
+      "fl": 21191.919,
+      "comm": 3413.256,
+      "oh": 3637.1338715086968,
+      "sp": 2646.5393284912934,
+      "ohPct": 1,
+      "spPct": 1,
+      "monthOH": 57898.92999999999,
+      "monthSP": 42129.82,
+      "outOH": 3637.1338715086968,
+      "outSP": 2646.5393284912934,
+      "wp": 11507.817800000004,
+      "mp": 11507.817800000004
     },
     {
-      "week": 20,
-      "startDate": "2026-05-10",
-      "endDate": "2026-05-16",
+      "week": "18B",
+      "start": "2026-05-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 64775.979999999996,
+      "monthSP": 49142.25,
+      "outOH": 64775.979999999996,
+      "outSP": 49142.25,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "19",
+      "start": "2026-05-03",
+      "inv": 41405.4,
+      "mat": 15282.209000000003,
+      "fl": 11068.021,
+      "comm": 3020.324,
+      "oh": 6843.232587085314,
+      "sp": 5191.613412914684,
+      "ohPct": 0.10564460139522883,
+      "spPct": 0.10564460139522883,
+      "monthOH": 64775.979999999996,
+      "monthSP": 49142.25,
+      "outOH": 64775.979999999996,
+      "outSP": 49142.25,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "20",
+      "start": "2026-05-10",
       "inv": 11169.86,
-      "mat": 3248.56,
-      "fl": 4424.5,
-      "comm": 787.59,
-      "oh": 40000,
-      "sp": 0,
-      "ohPct": 3.581065474410601,
-      "spPct": 0,
-      "wp": 2709.21,
-      "mp": 2709.21,
-      "label": "May 10"
+      "mat": 5759.588,
+      "fl": 3787.4399999999996,
+      "comm": 787.5888,
+      "oh": 474.93449308627845,
+      "sp": 360.30870691372274,
+      "ohPct": 0.112976555201042,
+      "spPct": 0.11297655520104201,
+      "monthOH": 64775.979999999996,
+      "monthSP": 49142.25,
+      "outOH": 57932.74741291468,
+      "outSP": 43950.63658708532,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 21,
-      "startDate": "2026-05-17",
-      "endDate": "2026-05-23",
+      "week": "21",
+      "start": "2026-05-17",
       "inv": 43658.24,
-      "mat": 9347.87,
-      "fl": 14322.87,
-      "comm": 2910.66,
-      "oh": 40000,
-      "sp": 0,
-      "ohPct": 0.9162073413861851,
-      "spPct": 0,
-      "wp": 17076.84,
-      "mp": 17076.84,
-      "label": "May 17"
+      "mat": 11989.774,
+      "fl": 15156.95,
+      "comm": 2910.6592,
+      "oh": 7733.694844623761,
+      "sp": 5867.161955376238,
+      "ohPct": 0.2323679537506859,
+      "spPct": 0.23236795375068595,
+      "monthOH": 64775.979999999996,
+      "monthSP": 49142.25,
+      "outOH": 57457.8129198284,
+      "outSP": 43590.32788017159,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 22,
-      "startDate": "2026-05-24",
-      "endDate": "2026-05-30",
+      "week": "22",
+      "start": "2026-05-24",
       "inv": 67033.45,
-      "mat": 24612.93,
-      "fl": 14086.55,
-      "comm": 4854.71,
-      "oh": 40000,
-      "sp": 0,
-      "ohPct": 0.5967170121782484,
-      "spPct": 0,
-      "wp": 23479.27,
-      "mp": 23479.27,
-      "label": "May 24"
+      "mat": 24789.603000000003,
+      "fl": 15026.54,
+      "comm": 4854.707,
+      "oh": 12715.781577259402,
+      "sp": 9646.818422740589,
+      "ohPct": 0.42867191668971677,
+      "spPct": 0.4286719166897168,
+      "monthOH": 64775.979999999996,
+      "monthSP": 49142.25,
+      "outOH": 49724.11807520464,
+      "outSP": 37723.16592479535,
+      "wp": 0,
+      "mp": 0
     },
     {
-      "week": 24,
-      "startDate": "2026-06-07",
-      "endDate": "2026-06-13",
-      "inv": 73461.73,
-      "mat": 27148.58,
-      "fl": 9729.18,
-      "comm": 4717.7,
-      "oh": 40000,
-      "sp": 0,
-      "ohPct": 0.5445011981068238,
-      "spPct": 0,
-      "wp": 31866.27,
-      "mp": 31866.27,
-      "label": "Jun 7"
-    },
-    {
-      "week": 25,
-      "startDate": "2026-06-14",
-      "endDate": "2026-06-20",
+      "week": "23A",
+      "start": "2026-05-31",
       "inv": 0,
       "mat": 0,
       "fl": 0,
       "comm": 0,
-      "oh": 40000,
+      "oh": 0,
       "sp": 0,
-      "ohPct": 0,
-      "spPct": 0,
+      "ohPct": 0.42867191668971677,
+      "spPct": 0.4286719166897168,
+      "monthOH": 64775.979999999996,
+      "monthSP": 49142.25,
+      "outOH": 37008.33649794524,
+      "outSP": 28076.347502054763,
       "wp": 0,
-      "mp": 0,
-      "label": "Jun 14"
+      "mp": 0
     },
     {
-      "week": 26,
-      "startDate": "2026-06-21",
-      "endDate": "2026-06-27",
+      "week": "23B",
+      "start": "2026-06-01",
+      "inv": 37347.5,
+      "mat": 12650.585000000001,
+      "fl": 6746.455,
+      "comm": 2658.5499999999997,
+      "oh": 6486.4941675503715,
+      "sp": 8805.41583244963,
+      "ohPct": 0.1621623541887593,
+      "spPct": 0.1621623541887593,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "24",
+      "start": "2026-06-07",
+      "inv": 84214.23000000001,
+      "mat": 28317.5905,
+      "fl": 13024.155,
+      "comm": 5483.9038,
+      "oh": 15859.419172852604,
+      "sp": 21529.16152714741,
+      "ohPct": 0.5586478335100744,
+      "spPct": 0.5586478335100744,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "25",
+      "start": "2026-06-14",
+      "inv": 40049,
+      "mat": 14717.1135,
+      "fl": 8428.55,
+      "comm": 2824.67,
+      "oh": 5971.862778366914,
+      "sp": 8106.803721633087,
+      "ohPct": 0.7079444029692472,
+      "spPct": 0.7079444029692472,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 17654.086659597026,
+      "outSP": 23965.42264040296,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "26",
+      "start": "2026-06-21",
+      "inv": 48015,
+      "mat": 18518.36,
+      "fl": 9372.6,
+      "comm": 3647.7,
+      "oh": 6988.903499469778,
+      "sp": 9487.436500530222,
+      "ohPct": 0.8826669904559916,
+      "spPct": 0.8826669904559916,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 11682.223881230111,
+      "outSP": 15858.618918769876,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "27A",
+      "start": "2026-06-28",
+      "inv": 22994.25,
+      "mat": 5755.096,
+      "fl": 6078.3,
+      "comm": 1534.5549999999998,
+      "oh": 4083.2657476139993,
+      "sp": 5543.033252386004,
+      "ohPct": 0.9847486341463416,
+      "spPct": 0.9847486341463417,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 4693.320381760335,
+      "outSP": 6371.182418239652,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "27B",
+      "start": "2026-07-01",
+      "inv": 22583.800000000003,
+      "mat": 6130.26,
+      "fl": 4037.5,
+      "comm": 1397.0279999999998,
+      "oh": 4674.024178154825,
+      "sp": 6344.987821845175,
+      "ohPct": 0.11685060445387062,
+      "spPct": 0.11685060445387062,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "28",
+      "start": "2026-07-05",
       "inv": 0,
       "mat": 0,
       "fl": 0,
       "comm": 0,
-      "oh": 40000,
+      "oh": 0,
       "sp": 0,
-      "ohPct": 0,
-      "spPct": 0,
+      "ohPct": 0.11685060445387062,
+      "spPct": 0.11685060445387062,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
       "wp": 0,
-      "mp": 0,
-      "label": "Jun 21"
+      "mp": 0
     },
     {
-      "week": 27,
-      "startDate": "2026-06-28",
-      "endDate": "2026-06-30",
+      "week": "29",
+      "start": "2026-07-12",
       "inv": 0,
       "mat": 0,
       "fl": 0,
       "comm": 0,
-      "oh": 40000,
+      "oh": 0,
       "sp": 0,
-      "ohPct": 0,
-      "spPct": 0,
+      "ohPct": 0.11685060445387062,
+      "spPct": 0.11685060445387062,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 35325.975821845175,
+      "outSP": 47955.01217815482,
       "wp": 0,
-      "mp": 0,
-      "label": "Jun 28"
+      "mp": 0
     },
     {
-      "week": 27,
-      "startDate": "2026-07-01",
-      "endDate": "2026-07-04",
+      "week": "30",
+      "start": "2026-07-19",
       "inv": 0,
       "mat": 0,
       "fl": 0,
       "comm": 0,
-      "oh": 40000,
+      "oh": 0,
       "sp": 0,
-      "ohPct": 0,
-      "spPct": 0,
+      "ohPct": 0.11685060445387062,
+      "spPct": 0.11685060445387062,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 35325.975821845175,
+      "outSP": 47955.01217815482,
       "wp": 0,
-      "mp": 0,
-      "label": "Jul 1"
+      "mp": 0
     },
     {
-      "week": 28,
-      "startDate": "2026-07-05",
-      "endDate": "2026-07-11",
+      "week": "31",
+      "start": "2026-07-26",
       "inv": 0,
       "mat": 0,
       "fl": 0,
       "comm": 0,
-      "oh": 40000,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0.11685060445387062,
+      "spPct": 0.11685060445387062,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 35325.975821845175,
+      "outSP": 47955.01217815482,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "31",
+      "start": "2026-08-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
       "sp": 0,
       "ohPct": 0,
       "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
       "wp": 0,
-      "mp": 0,
-      "label": "Jul 5"
+      "mp": 0
+    },
+    {
+      "week": "32",
+      "start": "2026-08-02",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "33",
+      "start": "2026-08-09",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "34",
+      "start": "2026-08-16",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "35",
+      "start": "2026-08-23",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "36",
+      "start": "2026-08-30",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "36",
+      "start": "2026-09-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "37",
+      "start": "2026-09-06",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "38",
+      "start": "2026-09-13",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "39",
+      "start": "2026-09-20",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "40",
+      "start": "2026-09-27",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "40",
+      "start": "2026-10-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "41",
+      "start": "2026-10-04",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "42",
+      "start": "2026-10-11",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "43",
+      "start": "2026-10-18",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "44",
+      "start": "2026-10-25",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "45",
+      "start": "2026-11-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "46",
+      "start": "2026-11-08",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "47",
+      "start": "2026-11-15",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "48",
+      "start": "2026-11-22",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "49",
+      "start": "2026-11-29",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "49",
+      "start": "2026-12-01",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "50",
+      "start": "2026-12-06",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "51",
+      "start": "2026-12-13",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "52",
+      "start": "2026-12-20",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
+    },
+    {
+      "week": "53",
+      "start": "2026-12-27",
+      "inv": 0,
+      "mat": 0,
+      "fl": 0,
+      "comm": 0,
+      "oh": 0,
+      "sp": 0,
+      "ohPct": 0,
+      "spPct": 0,
+      "monthOH": 40000,
+      "monthSP": 54300,
+      "outOH": 40000,
+      "outSP": 54300,
+      "wp": 0,
+      "mp": 0
     }
   ],
-  "income": {},
+  "income": {
+    "2": [
+      {
+        "name": "Amy Irving",
+        "amount": 2900,
+        "pct": 1
+      },
+      {
+        "name": "Don Mikulenka Custom Builder, Inc.",
+        "amount": 18850,
+        "pct": 1
+      },
+      {
+        "name": "Tambra Hubbard",
+        "amount": 11400,
+        "pct": 1
+      },
+      {
+        "name": "5D - POC - Brianne Dlugosch",
+        "amount": 4500,
+        "pct": 1
+      },
+      {
+        "name": "SL Commercial Services/TSC - Edna",
+        "amount": 2300,
+        "pct": 1
+      },
+      {
+        "name": "Sandra and Don May",
+        "amount": 8700,
+        "pct": 1
+      },
+      {
+        "name": "Justin Guzman",
+        "amount": 8100,
+        "pct": 0.75
+      }
+    ],
+    "3": [
+      {
+        "name": "Justin Guzman",
+        "amount": 2700,
+        "pct": 0.25
+      },
+      {
+        "name": "Karnes County Residential Center - Jesus Fernandez",
+        "amount": 25625,
+        "pct": 1
+      },
+      {
+        "name": "Marcie Garcia",
+        "amount": 2300,
+        "pct": 1
+      },
+      {
+        "name": "Gwen Hall",
+        "amount": 3500,
+        "pct": 1
+      },
+      {
+        "name": "Lucas Johnson",
+        "amount": 19800,
+        "pct": 1
+      },
+      {
+        "name": "Don Mikulenka Custom Builder, Inc.",
+        "amount": 5000,
+        "pct": 1
+      },
+      {
+        "name": "Zoe Davis",
+        "amount": 5000,
+        "pct": 1
+      },
+      {
+        "name": "Kelly & Kyle Flessner",
+        "amount": 17500,
+        "pct": 1
+      },
+      {
+        "name": "Eddy Foods (Kristin McKinney)",
+        "amount": 3400,
+        "pct": 1
+      }
+    ],
+    "4": [
+      {
+        "name": "Elizabeth Smith",
+        "amount": 27500,
+        "pct": 1
+      },
+      {
+        "name": "Wayne Condra",
+        "amount": 8700,
+        "pct": 1
+      },
+      {
+        "name": "Laura Stuart",
+        "amount": 1000,
+        "pct": 1
+      },
+      {
+        "name": "Carol Tally",
+        "amount": 5525,
+        "pct": 1
+      },
+      {
+        "name": "Pawnee ISD - Danny Field (1-70%)",
+        "amount": 34349,
+        "pct": 0.7
+      },
+      {
+        "name": "Ryan Haycock",
+        "amount": 1350,
+        "pct": 1
+      }
+    ],
+    "5": [
+      {
+        "name": "Pawnee ISD - Danny Field (1-70%)",
+        "amount": 14721,
+        "pct": 0.3
+      },
+      {
+        "name": "Jan Hill",
+        "amount": 4450,
+        "pct": 1
+      },
+      {
+        "name": "Pete Guajardo",
+        "amount": 5750,
+        "pct": 1
+      },
+      {
+        "name": "Adelina Garza",
+        "amount": 9800,
+        "pct": 1
+      },
+      {
+        "name": "Dustin Kenne, Westhoff ISD",
+        "amount": 6500,
+        "pct": 1
+      },
+      {
+        "name": "Don Mikulenka Custom Builder, Inc.",
+        "amount": 1400,
+        "pct": 1
+      },
+      {
+        "name": "Kathleen Storz",
+        "amount": 9200,
+        "pct": 1
+      }
+    ],
+    "6": [
+      {
+        "name": "Richard Jones",
+        "amount": 4500,
+        "pct": 1
+      },
+      {
+        "name": "Kenneth Allen",
+        "amount": 4800,
+        "pct": 1
+      },
+      {
+        "name": "Allen Baas",
+        "amount": 2000,
+        "pct": 1
+      },
+      {
+        "name": "Pawnee ISD - Danny Field Add-on",
+        "amount": 14500,
+        "pct": 1
+      },
+      {
+        "name": "Robert Hopkins",
+        "amount": 4336,
+        "pct": 0.8
+      }
+    ],
+    "7": [
+      {
+        "name": "Jim Winne (1-50%)",
+        "amount": 2931.25,
+        "pct": 0.25
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (1-20%)",
+        "amount": 39132.4,
+        "pct": 1
+      },
+      {
+        "name": "Larry Heckman",
+        "amount": 9500,
+        "pct": 1
+      },
+      {
+        "name": "McKenzie Interceptor Upgrade (Cash Construction) (1-25%)",
+        "amount": 34104.8,
+        "pct": 0.8
+      },
+      {
+        "name": "McKenzie Interceptor Upgrade Add-On (Cash Construction)",
+        "amount": 6410.4,
+        "pct": 0.8
+      },
+      {
+        "name": "Christine Harbin",
+        "amount": 4900,
+        "pct": 1
+      },
+      {
+        "name": "Jessica Wise",
+        "amount": 2500,
+        "pct": 1
+      }
+    ],
+    "8": [
+      {
+        "name": "Robert Hopkins",
+        "amount": 1084,
+        "pct": 0.2
+      },
+      {
+        "name": "McKenzie Interceptor Upgrade (Cash Construction) (1-25%)",
+        "amount": 8526.2,
+        "pct": 0.2
+      },
+      {
+        "name": "McKenzie Interceptor Upgrade Add-On (Cash Construction)",
+        "amount": 1602.6,
+        "pct": 0.2
+      },
+      {
+        "name": "Nicole Collins",
+        "amount": 13300,
+        "pct": 1
+      },
+      {
+        "name": "Jesse McLane",
+        "amount": 5450,
+        "pct": 1
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (2-20%)",
+        "amount": 39132.4,
+        "pct": 1
+      },
+      {
+        "name": "Luis Delapena",
+        "amount": 7050,
+        "pct": 1
+      },
+      {
+        "name": "Melissa Proctor",
+        "amount": 11950,
+        "pct": 1
+      },
+      {
+        "name": "Port O'Connor Improvement District - Oscar Pena",
+        "amount": 3800,
+        "pct": 1
+      },
+      {
+        "name": "QRV - Madelyn Sanchez",
+        "amount": 13800,
+        "pct": 1
+      },
+      {
+        "name": "Christine Kidd",
+        "amount": 2100,
+        "pct": 1
+      },
+      {
+        "name": "Mike & Ashley Uresti",
+        "amount": 7700,
+        "pct": 1
+      }
+    ],
+    "9": [
+      {
+        "name": "Jim Winne (1-50%)",
+        "amount": 2931.25,
+        "pct": 0.25
+      },
+      {
+        "name": "Raymond Myers",
+        "amount": 2600,
+        "pct": 1
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (3-15%)",
+        "amount": 29349.3,
+        "pct": 1
+      },
+      {
+        "name": "Edgar Hinojosa",
+        "amount": 4200,
+        "pct": 1
+      },
+      {
+        "name": "Trey Sewalt",
+        "amount": 6400,
+        "pct": 1
+      },
+      {
+        "name": "David Ebert",
+        "amount": 8100,
+        "pct": 1
+      },
+      {
+        "name": "National Conductor - Joshua Dixon (2-10%)",
+        "amount": 6064.1,
+        "pct": 1
+      },
+      {
+        "name": "Carla Gonzalez",
+        "amount": 1600,
+        "pct": 1
+      }
+    ],
+    "10": [
+      {
+        "name": "Chris & Robert Handy",
+        "amount": 25650,
+        "pct": 0.95
+      },
+      {
+        "name": "HSL Family LTD",
+        "amount": 7699,
+        "pct": 1
+      },
+      {
+        "name": "Lisa Garrett",
+        "amount": 1800,
+        "pct": 1
+      },
+      {
+        "name": "Gary Morgan",
+        "amount": 3500,
+        "pct": 1
+      },
+      {
+        "name": "Doris Brown",
+        "amount": 3400,
+        "pct": 1
+      },
+      {
+        "name": "Martino Travino - Republic Services",
+        "amount": 10600,
+        "pct": 1
+      },
+      {
+        "name": "Texas Aqua Store - Travis Courange (1-50%)",
+        "amount": 3225,
+        "pct": 1
+      },
+      {
+        "name": "City of Corpus Christi Williams Lift Station Force Main (1-30%)",
+        "amount": 32679,
+        "pct": 1
+      }
+    ],
+    "11": [
+      {
+        "name": "Chris & Robert Handy",
+        "amount": 1350,
+        "pct": 0.05
+      },
+      {
+        "name": "Lisa Garrett",
+        "amount": 4100,
+        "pct": 1
+      },
+      {
+        "name": "Lauger Companies Inc",
+        "amount": 22190,
+        "pct": 0.7
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (4-20%)",
+        "amount": 39132.4,
+        "pct": 1
+      },
+      {
+        "name": "Jennifer Perez",
+        "amount": 3100,
+        "pct": 1
+      },
+      {
+        "name": "Martha Salazar",
+        "amount": 6600,
+        "pct": 1
+      },
+      {
+        "name": "John Smart",
+        "amount": 7600,
+        "pct": 1
+      },
+      {
+        "name": "Lewis and Henry Glover",
+        "amount": 11700,
+        "pct": 1
+      },
+      {
+        "name": "Mark Boname",
+        "amount": 4300,
+        "pct": 1
+      }
+    ],
+    "12": [
+      {
+        "name": "Lauger Companies Inc",
+        "amount": 9510,
+        "pct": 0.3
+      },
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (5-20%)",
+        "amount": 39132.4,
+        "pct": 1
+      },
+      {
+        "name": "Sarah Miller",
+        "amount": 5092.5,
+        "pct": 0.7
+      },
+      {
+        "name": "Donna & Wade Debolt",
+        "amount": 6200,
+        "pct": 1
+      },
+      {
+        "name": "Michael Hahn",
+        "amount": 8650,
+        "pct": 1
+      },
+      {
+        "name": "Ferguson Land Management - Zac Ferguson",
+        "amount": 18440,
+        "pct": 1
+      },
+      {
+        "name": "Jay Bonano",
+        "amount": 8900,
+        "pct": 0.5
+      },
+      {
+        "name": "Pawnee ISD - Danny Field (2-30%)",
+        "amount": 10515,
+        "pct": 0.5
+      }
+    ],
+    "13": [
+      {
+        "name": "Sarah Miller",
+        "amount": 2182.5,
+        "pct": 0.3
+      },
+      {
+        "name": "Jay Bonano",
+        "amount": 8900,
+        "pct": 0.5
+      },
+      {
+        "name": "Pawnee ISD - Danny Field (2-30%)",
+        "amount": 10094.4,
+        "pct": 0.48
+      },
+      {
+        "name": "Yonh John Du",
+        "amount": 16727,
+        "pct": 0.2
+      },
+      {
+        "name": "Joseph Garza",
+        "amount": 4000,
+        "pct": 1
+      },
+      {
+        "name": "Tammy Harger",
+        "amount": 30150,
+        "pct": 1
+      },
+      {
+        "name": "Ferguson Land Management - Zac Ferguson",
+        "amount": 19810,
+        "pct": 1
+      }
+    ],
+    "15": [
+      {
+        "name": "Yonh John Du",
+        "amount": 3345.4,
+        "pct": 0.04
+      },
+      {
+        "name": "Sharon & Ray Zaiontz",
+        "amount": 672.5,
+        "pct": 0.05
+      },
+      {
+        "name": "Nicole Collins",
+        "amount": 8600,
+        "pct": 1
+      },
+      {
+        "name": "Equalizer Inc. | Doug Stevens",
+        "amount": 25000,
+        "pct": 1
+      },
+      {
+        "name": "Ferdinand Siegel",
+        "amount": 14500,
+        "pct": 1
+      }
+    ],
+    "16": [
+      {
+        "name": "Donna & Wade Debolt",
+        "amount": 14705,
+        "pct": 0.85
+      },
+      {
+        "name": "Elizabeth Martinez",
+        "amount": 2850,
+        "pct": 1
+      },
+      {
+        "name": "Lauger Companies Inc",
+        "amount": 1500,
+        "pct": 1
+      },
+      {
+        "name": "Vickie Johnson",
+        "amount": 8600,
+        "pct": 1
+      },
+      {
+        "name": "DeAngela Nava/Pet Resort on Main",
+        "amount": 2100,
+        "pct": 1
+      },
+      {
+        "name": "Ron Janysek",
+        "amount": 4340,
+        "pct": 1
+      },
+      {
+        "name": "Felicia Beltz",
+        "amount": 2850,
+        "pct": 1
+      },
+      {
+        "name": "JoAnne Settles",
+        "amount": 1617.58,
+        "pct": 1
+      }
+    ],
+    "17": [
+      {
+        "name": "City of Corpus Christi Williams Lift Station Force Main (2-35%)",
+        "amount": 38125.5,
+        "pct": 1
+      },
+      {
+        "name": "Patty Boldt",
+        "amount": 3700,
+        "pct": 1
+      },
+      {
+        "name": "Cindy Fitzgerald",
+        "amount": 9800,
+        "pct": 1
+      }
+    ],
+    "19": [
+      {
+        "name": "Adam Pustka",
+        "amount": 1090.4,
+        "pct": 0.05
+      },
+      {
+        "name": "General Zarzgoza Society - Susie",
+        "amount": 1375,
+        "pct": 0.5
+      },
+      {
+        "name": "Everett Johnson",
+        "amount": 11800,
+        "pct": 1
+      },
+      {
+        "name": "Gloria Zapata",
+        "amount": 4800,
+        "pct": 1
+      },
+      {
+        "name": "Everett Johnson",
+        "amount": 13200,
+        "pct": 1
+      },
+      {
+        "name": "Christopher Anderson | B-W Custom Construction, LLC",
+        "amount": 2700,
+        "pct": 1
+      },
+      {
+        "name": "Debbie Escalante",
+        "amount": 1800,
+        "pct": 1
+      },
+      {
+        "name": "Robert Hopkins",
+        "amount": 4640,
+        "pct": 1
+      }
+    ],
+    "20": [
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (6-5%)",
+        "amount": 5869.86,
+        "pct": 0.6
+      },
+      {
+        "name": "Bobby McClure",
+        "amount": 5300,
+        "pct": 1
+      }
+    ],
+    "21": [
+      {
+        "name": "Construction of Unit 1 & 2 Detention Pond (Stout) (6-5%)",
+        "amount": 3913.24,
+        "pct": 0.4
+      },
+      {
+        "name": "Nancy Currier",
+        "amount": 1700,
+        "pct": 1
+      },
+      {
+        "name": "Jill Erskine",
+        "amount": 10800,
+        "pct": 0.8
+      },
+      {
+        "name": "Patty Boldt",
+        "amount": 1850,
+        "pct": 1
+      },
+      {
+        "name": "Randy Boone",
+        "amount": 4900,
+        "pct": 1
+      },
+      {
+        "name": "Christopher Anderson | B-W Custom Construction, LLC (1)",
+        "amount": 5000,
+        "pct": 1
+      },
+      {
+        "name": "PMI - Martin Sorola",
+        "amount": 3895,
+        "pct": 0.1
+      },
+      {
+        "name": "Peregrin Stimulation Services-  John Pheil",
+        "amount": 11600,
+        "pct": 1
+      }
+    ],
+    "22": [
+      {
+        "name": "Jill Erskine",
+        "amount": 2700,
+        "pct": 0.2
+      },
+      {
+        "name": "PMI - Martin Sorola",
+        "amount": 31160,
+        "pct": 0.8
+      },
+      {
+        "name": "Murphy Carriere",
+        "amount": 10475,
+        "pct": 1
+      },
+      {
+        "name": "Tiffany Pappillion",
+        "amount": 9500,
+        "pct": 1
+      },
+      {
+        "name": "Paulette Clay",
+        "amount": 6988.45,
+        "pct": 1
+      },
+      {
+        "name": "Ben Speers",
+        "amount": 800,
+        "pct": 1
+      },
+      {
+        "name": "Ben Speers & Ryan Galvan",
+        "amount": 1910,
+        "pct": 1
+      },
+      {
+        "name": "Christopher Anderson | B-W Custom Construction, LLC (2)",
+        "amount": 3500,
+        "pct": 1
+      }
+    ],
+    "24": [
+      {
+        "name": "Ezzell School District, Shelby Barton",
+        "amount": 36161.73,
+        "pct": 1
+      },
+      {
+        "name": "Kaspar Properties Inc",
+        "amount": 4700,
+        "pct": 1
+      },
+      {
+        "name": "Jennifer Saenz",
+        "amount": 5800,
+        "pct": 1
+      },
+      {
+        "name": "Dale Whisnant",
+        "amount": 8202.5,
+        "pct": 0.85
+      },
+      {
+        "name": "QRV - Madelyn Sanchez",
+        "amount": 1350,
+        "pct": 1
+      },
+      {
+        "name": "Dianne Appelt",
+        "amount": 13100,
+        "pct": 1
+      },
+      {
+        "name": "Michael Cain",
+        "amount": 1600,
+        "pct": 1
+      },
+      {
+        "name": "Victor Mendoza",
+        "amount": 2900,
+        "pct": 1
+      },
+      {
+        "name": "Dianne Appelt",
+        "amount": 10400,
+        "pct": 0.8
+      }
+    ],
+    "25": [
+      {
+        "name": "Paul Bunnell",
+        "amount": 3087.5,
+        "pct": 0.65
+      },
+      {
+        "name": "Dale Whisnant",
+        "amount": 1447.5,
+        "pct": 0.15
+      },
+      {
+        "name": "Jennifer Meaux/Elizabeth Massoletti",
+        "amount": 13450,
+        "pct": 1
+      },
+      {
+        "name": "Chris Camacho -  Tres City Power",
+        "amount": 9999,
+        "pct": 1
+      },
+      {
+        "name": "Yunsung Soong",
+        "amount": 7925,
+        "pct": 0.25
+      },
+      {
+        "name": "Linda Anzaldua",
+        "amount": 1715,
+        "pct": 0.2
+      },
+      {
+        "name": "Randy Mahoney",
+        "amount": 2425,
+        "pct": 0.5
+      }
+    ],
+    "26": [
+      {
+        "name": "Yunsung Soong",
+        "amount": 23775,
+        "pct": 0.75
+      },
+      {
+        "name": "Linda Anzaldua",
+        "amount": 1715,
+        "pct": 0.2
+      },
+      {
+        "name": "Randy Mahoney",
+        "amount": 2425,
+        "pct": 0.5
+      },
+      {
+        "name": "David Pollock",
+        "amount": 3500,
+        "pct": 1
+      },
+      {
+        "name": "Patty Arbetters",
+        "amount": 7250,
+        "pct": 1
+      },
+      {
+        "name": "Lauger Companies Inc. - Corbin Lauger",
+        "amount": 9350,
+        "pct": 1
+      }
+    ],
+    "14A": [
+      {
+        "name": "Pawnee ISD - Danny Field (2-30%)",
+        "amount": 420.6,
+        "pct": 0.02
+      },
+      {
+        "name": "Yonh John Du",
+        "amount": 21745.1,
+        "pct": 0.26
+      },
+      {
+        "name": "Sharon & Ray Zaiontz",
+        "amount": 9415,
+        "pct": 0.7
+      },
+      {
+        "name": "Billie Hanke",
+        "amount": 8200,
+        "pct": 1
+      },
+      {
+        "name": "Jim Winne (2-50%)",
+        "amount": 4690,
+        "pct": 0.4
+      }
+    ],
+    "14B": [
+      {
+        "name": "Yonh John Du",
+        "amount": 41817.5,
+        "pct": 0.5
+      },
+      {
+        "name": "Sharon & Ray Zaiontz",
+        "amount": 3362.5,
+        "pct": 0.25
+      },
+      {
+        "name": "Jim Winne (2-50%)",
+        "amount": 7035,
+        "pct": 0.6
+      },
+      {
+        "name": "Roger Huehlefeld",
+        "amount": 3800,
+        "pct": 1
+      },
+      {
+        "name": "James Maikoetter",
+        "amount": 2200,
+        "pct": 1
+      },
+      {
+        "name": "Leonard Robinson",
+        "amount": 1250,
+        "pct": 1
+      }
+    ],
+    "18A": [
+      {
+        "name": "Donna & Wade Debolt",
+        "amount": 2595,
+        "pct": 0.15
+      },
+      {
+        "name": "James Ken",
+        "amount": 16600,
+        "pct": 1
+      },
+      {
+        "name": "Adam Pustka",
+        "amount": 20717.6,
+        "pct": 0.95
+      },
+      {
+        "name": "Joe Narez",
+        "amount": 11700,
+        "pct": 1
+      },
+      {
+        "name": "General Zarzgoza Society - Susie",
+        "amount": 1375,
+        "pct": 0.5
+      }
+    ],
+    "23B": [
+      {
+        "name": "PMI - Martin Sorola",
+        "amount": 3895,
+        "pct": 0.1
+      },
+      {
+        "name": "Amy Emigh",
+        "amount": 3000,
+        "pct": 1
+      },
+      {
+        "name": "Gonzales Industrial Insulation Inc.-Abel Flores",
+        "amount": 4800,
+        "pct": 1
+      },
+      {
+        "name": "Paul Bunnell",
+        "amount": 1662.5,
+        "pct": 0.35
+      },
+      {
+        "name": "Melvin Spinks",
+        "amount": 2800,
+        "pct": 1
+      },
+      {
+        "name": "Christopher Anderson | B-W Custom Construction, LLC (3)",
+        "amount": 5000,
+        "pct": 1
+      },
+      {
+        "name": "Don Valis",
+        "amount": 6800,
+        "pct": 1
+      },
+      {
+        "name": "Tanner McKibbon",
+        "amount": 8425,
+        "pct": 1
+      },
+      {
+        "name": "Jim Winne",
+        "amount": 965,
+        "pct": 1
+      }
+    ],
+    "27A": [
+      {
+        "name": "Dianne Appelt",
+        "amount": 2600,
+        "pct": 0.2
+      },
+      {
+        "name": "Linda Anzaldua",
+        "amount": 5145,
+        "pct": 0.6
+      },
+      {
+        "name": "Becky Hensley & Mike McCoid",
+        "amount": 8724.25,
+        "pct": 0.25
+      },
+      {
+        "name": "Nancy Ladshaw",
+        "amount": 6525,
+        "pct": 0.5
+      }
+    ],
+    "27B": [
+      {
+        "name": "Becky Hensley & Mike McCoid",
+        "amount": 13958.8,
+        "pct": 0.4
+      },
+      {
+        "name": "Nancy Ladshaw",
+        "amount": 6525,
+        "pct": 0.5
+      },
+      {
+        "name": "City of Corpus Christi Williams Lift Station Force Main",
+        "amount": 2100,
+        "pct": 1
+      }
+    ]
+  },
   "monthly": [
     {
-      "month": "Jan",
-      "monthNumber": 1,
-      "y2022": 178211,
-      "y2023": 166015,
-      "y2024": 266654,
-      "y2025": 250590,
-      "y2026": 449340,
-      "min": 166015,
-      "max": 449340
+      "start": "2026-01-01",
+      "inv": 271820,
+      "mat": 113359.42000000001,
+      "fl": 38021.600000000006,
+      "oh": 39570.090000000004,
+      "sp": 52859.7,
+      "comm": 18042.699999999997,
+      "profit": 9966.489999999989
     },
     {
-      "month": "Feb",
-      "monthNumber": 2,
-      "y2022": 104240,
-      "y2023": 265023,
-      "y2024": 231517.4,
-      "y2025": 322030,
-      "y2026": 327909,
-      "min": 231517.4,
-      "max": 327909
+      "start": "2026-02-01",
+      "inv": 306354.7,
+      "mat": 126926.9405,
+      "fl": 62686.07,
+      "oh": 43208.82442864675,
+      "sp": 52096.96307135325,
+      "comm": 21435.902000000002,
+      "profit": 0
     },
     {
-      "month": "Mar",
-      "monthNumber": 3,
-      "y2022": 262760,
-      "y2023": 235695.06,
-      "y2024": 326342,
-      "y2025": 430969,
-      "y2026": 338943.62,
-      "min": 235695.06,
-      "max": 430969
+      "start": "2026-03-01",
+      "inv": 431399.89999999997,
+      "mat": 162743.99,
+      "fl": 81609.76559999998,
+      "oh": 48323.69,
+      "sp": 61157.56,
+      "comm": 30698.17,
+      "profit": 46866.72440000001
     },
     {
-      "month": "Apr",
-      "monthNumber": 4,
-      "y2022": 182975,
-      "y2023": 157044.31,
-      "y2024": 200947,
-      "y2025": 234668.16,
-      "y2026": 163264.03,
-      "min": 157044.31,
-      "max": 234668.16
+      "start": "2026-04-01",
+      "inv": 254758.58,
+      "mat": 78246.204,
+      "fl": 48182.2834,
+      "oh": 57898.92999999999,
+      "sp": 42129.82,
+      "comm": 16793.5248,
+      "profit": 11507.817800000004
     },
     {
-      "month": "May",
-      "monthNumber": 5,
-      "y2022": 236350,
-      "y2023": 210062,
-      "y2024": 284829,
-      "y2025": 129661.75,
-      "y2026": 386653.73,
-      "min": 129661.75,
-      "max": 284829
+      "start": "2026-05-01",
+      "inv": 163266.95,
+      "mat": 57821.174000000006,
+      "fl": 45038.951,
+      "oh": 27767.643502054758,
+      "sp": 21065.902497945237,
+      "comm": 11573.279,
+      "profit": 0
     },
     {
-      "month": "Jun",
-      "monthNumber": 6,
-      "y2022": 190833.67,
-      "y2023": 373425.75,
-      "y2024": 502090,
-      "y2025": 204680,
-      "y2026": 0,
-      "min": 190833.67,
-      "max": 502090
+      "start": "2026-06-01",
+      "inv": 232619.98,
+      "mat": 79958.74500000001,
+      "fl": 43650.060000000005,
+      "oh": 39389.945365853666,
+      "sp": 53471.85083414635,
+      "comm": 16149.378799999999,
+      "profit": 0
     },
     {
-      "month": "Jul",
-      "monthNumber": 7,
-      "y2022": 192650.14,
-      "y2023": 192552.75,
-      "y2024": 303505,
-      "y2025": 291154.25,
-      "y2026": 0,
-      "min": 192552.75,
-      "max": 303505
-    },
-    {
-      "month": "Aug",
-      "monthNumber": 8,
-      "y2022": 299893.18,
-      "y2023": 194204.56,
-      "y2024": 171165,
-      "y2025": 233079,
-      "y2026": 0,
-      "min": 171165,
-      "max": 299893.18
-    },
-    {
-      "month": "Sep",
-      "monthNumber": 9,
-      "y2022": 147780,
-      "y2023": 206007.79,
-      "y2024": 311269.36,
-      "y2025": 229290,
-      "y2026": 0,
-      "min": 147780,
-      "max": 311269.36
-    },
-    {
-      "month": "Oct",
-      "monthNumber": 10,
-      "y2022": 182192,
-      "y2023": 135196.81,
-      "y2024": 561856,
-      "y2025": 218915.65,
-      "y2026": 0,
-      "min": 135196.81,
-      "max": 561856
-    },
-    {
-      "month": "Nov",
-      "monthNumber": 11,
-      "y2022": 227220.6,
-      "y2023": 79470,
-      "y2024": 280753.93,
-      "y2025": 208774,
-      "y2026": 0,
-      "min": 79470,
-      "max": 280753.93
-    },
-    {
-      "month": "Dec",
-      "monthNumber": 12,
-      "y2022": 44512.5,
-      "y2023": 25200,
-      "y2024": 179923,
-      "y2025": 122200,
-      "y2026": 0,
-      "min": 25200,
-      "max": 179923
+      "start": "2026-07-01",
+      "inv": 22583.800000000003,
+      "mat": 6130.26,
+      "fl": 4037.5,
+      "oh": 4674.024178154825,
+      "sp": 6344.987821845175,
+      "comm": 1397.0279999999998,
+      "profit": 0
     }
   ],
   "jobs": [
@@ -5774,6 +7396,6 @@
       "profit": 35485
     }
   ],
-  "publishedAt": "2026-07-07T14:47:56.708Z",
+  "publishedAt": "2026-07-07T14:50:14.185Z",
   "publishedBy": "Yvonne"
 }
