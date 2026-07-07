@@ -77,6 +77,13 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .tool-card.soon .tc-tag{color:var(--dim)}
 .tools-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .tools-row .tool-soon{opacity:.55}
+.est-badge{margin-top:6px;display:inline-block;font-size:12px;color:var(--accent);background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:2px 9px}
+.est-item{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.est-item:hover{border-color:var(--accent)}
+.est-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.est-name{font-weight:600;font-size:14px}
+.est-total{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600}
+.est-sub{font-size:12px;color:var(--muted);margin-top:2px}
 .note{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px}
 .note .meta{font-size:12px;color:var(--dim);margin-bottom:4px}
 .note .body{font-size:15px;white-space:pre-wrap}
@@ -190,6 +197,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
       <button class="btn btn-ghost tool-soon" onclick="openTool('invoice', currentCustomerId, currentCustomerName)">Invoice · soon</button>
     </div>
 
+    <div class="notes-h">Estimates</div>
+    <div id="estList"></div>
+
     <div class="notes-h">Notes</div>
     <div id="notesList"></div>
     <div class="add-note">
@@ -198,7 +208,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07d</div>
+  <div class="stamp">build 2026-07-07e</div>
 </div>
 
 <div id="toast"></div>
@@ -231,6 +241,7 @@ var currentRepId = null;
 var currentCustomerId = null;
 var currentCustomerName = '';
 var statusFilter = 'all';
+var estimateStats = {};
 
 var $ = function(id){ return document.getElementById(id); };
 
@@ -290,6 +301,7 @@ async function loadCustomers(){
   var res = await sb.from('customers').select('*').order('created_at', { ascending:false });
   if(res.error){ toast('Could not load customers: '+res.error.message, true); return; }
   customers = res.data || [];
+  try{ var er = await sb.from('estimates').select('customer_id,total'); estimateStats={}; (er.data||[]).forEach(function(e){ if(!e.customer_id) return; var s=estimateStats[e.customer_id]||(estimateStats[e.customer_id]={n:0,total:0}); s.n++; s.total+=(parseFloat(e.total)||0); }); }catch(e){}
   renderList();
 }
 
@@ -322,6 +334,7 @@ function renderList(){
       + '<span class="badge '+(c.status||'lead')+'">'+(c.status||'lead')+'</span>'
       + '<span class="rep-tag">'+esc(repName(c.assigned_rep))+'</span></div>'
       + (sub ? '<div class="sub">'+esc(sub)+'</div>' : '')
+      + (estimateStats[c.id] ? '<div class="est-badge">'+estimateStats[c.id].n+' estimate'+(estimateStats[c.id].n>1?'s':'')+' · '+money(estimateStats[c.id].total)+'</div>' : '')
       + '</div>';
   }).join('');
 }
@@ -389,6 +402,7 @@ async function openCustomer(id){
   $('convertBtn').classList.toggle('hide', c.status === 'customer');
   showDetail();
   loadNotes(id);
+  loadEstimatesList(id);
 }
 
 async function saveCustomer(){
@@ -446,9 +460,30 @@ async function addNote(){
 }
 
 // ---- helpers ----
+async function loadEstimatesList(cid){
+  var el=$('estList'); if(!el) return;
+  var r=await sb.from('estimates').select('estimate_id,estimate_number,job_type,total,pipeline_status,estimate_date,created_at').eq('customer_id',cid).order('created_at',{ascending:false});
+  if(r.error){ el.innerHTML='<div class="sub" style="color:var(--dim)">Could not load estimates.</div>'; return; }
+  var rows=r.data||[];
+  if(!rows.length){ el.innerHTML='<div class="sub" style="color:var(--dim)">No estimates yet. Tap “Create estimate” above.</div>'; return; }
+  el.innerHTML=rows.map(function(e){
+    var d=e.estimate_date||(e.created_at?e.created_at.slice(0,10):'');
+    var when=d?new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+    var label=(e.job_type||'Estimate')+(e.estimate_number?(' #'+e.estimate_number):'');
+    return '<div class="est-item" onclick="openEstimate(\''+e.estimate_id+'\')">'
+      +'<div class="est-top"><span class="est-name">'+esc(label)+'</span><span class="est-total">'+money(e.total)+'</span></div>'
+      +'<div class="est-sub">'+esc(when)+(e.pipeline_status?(' · '+esc(e.pipeline_status)):'')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function openEstimate(eid){
+  var url=TOOLS.estimate.url+'?estimate_id='+encodeURIComponent(eid)+(currentCustomerId?('&customer_id='+encodeURIComponent(currentCustomerId)):'');
+  window.open(url,'_blank','noopener');
+}
 function val(id){ var v = $(id).value.trim(); return v === '' ? null : v; }
 function setVal(id, v){ $(id).value = v == null ? '' : v; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
+function money(n){ n=parseFloat(n)||0; return '$'+n.toLocaleString(undefined,{maximumFractionDigits:0}); }
 function fmtDate(s){ if(!s) return ''; var d = new Date(s); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
 
 // ---- init ----
