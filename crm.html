@@ -78,6 +78,8 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .tools-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .tools-row .tool-soon{opacity:.55}
 .est-badge{margin-top:6px;display:inline-block;font-size:12px;color:var(--accent);background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:2px 9px}
+.inv-badge{color:var(--green)}
+.est-badge+.inv-badge{margin-left:6px}
 .est-item{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
 .est-item:hover{border-color:var(--accent)}
 .est-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -200,6 +202,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     <div class="notes-h">Estimates</div>
     <div id="estList"></div>
 
+    <div class="notes-h">Invoices</div>
+    <div id="invList"></div>
+
     <div class="notes-h">Notes</div>
     <div id="notesList"></div>
     <div class="add-note">
@@ -208,7 +213,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07e</div>
+  <div class="stamp">build 2026-07-07f</div>
 </div>
 
 <div id="toast"></div>
@@ -227,6 +232,7 @@ var TOOLS = {
 };
 function openTool(key, cid, cname){
   var t = TOOLS[key]; if(!t) return;
+  if(key==='invoice' && (!t.live||!t.url)){ toast('Invoices are created from an estimate — open an estimate and tap Convert to invoice'); return; }
   if(!t.live || !t.url){ toast(t.label + ' — coming soon'); return; }
   var url = t.url;
   if(cid){ url += (url.indexOf('?')>-1?'&':'?') + 'customer_id=' + encodeURIComponent(cid) + '&customer_name=' + encodeURIComponent(cname||''); }
@@ -242,6 +248,7 @@ var currentCustomerId = null;
 var currentCustomerName = '';
 var statusFilter = 'all';
 var estimateStats = {};
+var invoiceStats = {};
 
 var $ = function(id){ return document.getElementById(id); };
 
@@ -302,6 +309,7 @@ async function loadCustomers(){
   if(res.error){ toast('Could not load customers: '+res.error.message, true); return; }
   customers = res.data || [];
   try{ var er = await sb.from('estimates').select('customer_id,total'); estimateStats={}; (er.data||[]).forEach(function(e){ if(!e.customer_id) return; var s=estimateStats[e.customer_id]||(estimateStats[e.customer_id]={n:0,total:0}); s.n++; s.total+=(parseFloat(e.total)||0); }); }catch(e){}
+  try{ var ir = await sb.from('invoices').select('customer_id,total,amount_paid'); invoiceStats={}; (ir.data||[]).forEach(function(v){ if(!v.customer_id) return; var s=invoiceStats[v.customer_id]||(invoiceStats[v.customer_id]={n:0,total:0}); s.n++; s.total+=(parseFloat(v.total)||0); }); }catch(e){}
   renderList();
 }
 
@@ -335,6 +343,7 @@ function renderList(){
       + '<span class="rep-tag">'+esc(repName(c.assigned_rep))+'</span></div>'
       + (sub ? '<div class="sub">'+esc(sub)+'</div>' : '')
       + (estimateStats[c.id] ? '<div class="est-badge">'+estimateStats[c.id].n+' estimate'+(estimateStats[c.id].n>1?'s':'')+' · '+money(estimateStats[c.id].total)+'</div>' : '')
+      + (invoiceStats[c.id] ? '<div class="est-badge inv-badge">'+invoiceStats[c.id].n+' invoice'+(invoiceStats[c.id].n>1?'s':'')+' · '+money(invoiceStats[c.id].total)+'</div>' : '')
       + '</div>';
   }).join('');
 }
@@ -403,6 +412,7 @@ async function openCustomer(id){
   showDetail();
   loadNotes(id);
   loadEstimatesList(id);
+  loadInvoicesList(id);
 }
 
 async function saveCustomer(){
@@ -478,6 +488,27 @@ async function loadEstimatesList(cid){
 }
 function openEstimate(eid){
   var url=TOOLS.estimate.url+'?estimate_id='+encodeURIComponent(eid)+(currentCustomerId?('&customer_id='+encodeURIComponent(currentCustomerId)):'');
+  window.open(url,'_blank','noopener');
+}
+async function loadInvoicesList(cid){
+  var el=$('invList'); if(!el) return;
+  var r=await sb.from('invoices').select('id,invoice_number,job_type,total,amount_paid,status,invoice_date,created_at').eq('customer_id',cid).order('created_at',{ascending:false});
+  if(r.error){ el.innerHTML='<div class="sub" style="color:var(--dim)">Could not load invoices.</div>'; return; }
+  var rows=r.data||[];
+  if(!rows.length){ el.innerHTML='<div class="sub" style="color:var(--dim)">No invoices yet. Open an estimate and tap Convert to invoice.</div>'; return; }
+  el.innerHTML=rows.map(function(v){
+    var d=v.invoice_date||(v.created_at?v.created_at.slice(0,10):'');
+    var when=d?new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+    var bal=(parseFloat(v.total)||0)-(parseFloat(v.amount_paid)||0);
+    var label=(v.job_type||'Invoice')+(v.invoice_number?(' #'+v.invoice_number):'');
+    return '<div class="est-item" onclick="openInvoice(\''+v.id+'\')">'
+      +'<div class="est-top"><span class="est-name">'+esc(label)+'</span><span class="est-total">'+money(v.total)+'</span></div>'
+      +'<div class="est-sub">'+esc(when)+' · '+esc(v.status||'draft')+(bal>0.005?(' · '+money(bal)+' due'):' · paid')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function openInvoice(iid){
+  var url='https://stfd.netlify.app/invoice.html?invoice_id='+encodeURIComponent(iid)+(currentCustomerId?('&customer_id='+encodeURIComponent(currentCustomerId)):'');
   window.open(url,'_blank','noopener');
 }
 function val(id){ var v = $(id).value.trim(); return v === '' ? null : v; }

@@ -89,6 +89,7 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
   <div class="spacer"></div>
   <button class="btn btn-ghost no-print" onclick="printDoc()">Print / PDF</button>
   <button class="btn btn-primary no-print" id="saveBtn" onclick="saveEstimate()">Save estimate</button>
+  <button class="btn btn-green no-print" id="convBtn" style="display:none" onclick="convertToInvoice()">Convert to invoice</button>
   <button class="icon-btn no-print" onclick="toggleTheme()" id="themeBtn">🌙</button>
 </div>
 
@@ -187,7 +188,7 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07e</div>
+  <div class="stamp">build 2026-07-07f</div>
 </div>
 
 <div id="toast"></div>
@@ -341,6 +342,24 @@ async function loadCustomer(){
   $('c_state').value=c.state||'TX'; $('c_zip').value=c.zip_code||'';
   $('c_phone').value=c.phone||''; $('c_email').value=c.email||'';
 }
+async function convertToInvoice(){
+  if(loadedEstimate&&loadedEstimate.converted_to_invoice){ window.open('https://stfd.netlify.app/invoice.html?invoice_id='+encodeURIComponent(loadedEstimate.converted_to_invoice)+(customerId?('&customer_id='+encodeURIComponent(customerId)):''),'_blank','noopener'); return; }
+  if(!editingId){ toast('Save the estimate first',true); return; }
+  var sub=0; lines.forEach(function(l){ sub+=num(l.amount); }); var tax=round2(sub*(num($('t_taxrate').value)/100)); var total=round2(sub+tax);
+  var today=new Date(); var due=new Date(today.getTime()+30*86400000);
+  var inv={ invoice_number:'INV'+today.getFullYear().toString().slice(2)+(today.getMonth()+1<10?'0':'')+(today.getMonth()+1)+(today.getDate()<10?'0':'')+today.getDate()+'-'+Math.floor(Math.random()*9000+1000),
+    customer_id:customerId, estimate_id:editingId, customer_name:$('c_name').value.trim()||null, customer_address:$('c_address').value.trim()||null,
+    customer_city:$('c_city').value.trim()||null, customer_state:$('c_state').value.trim()||null, customer_zip:$('c_zip').value.trim()||null,
+    customer_phone:$('c_phone').value.trim()||null, customer_email:$('c_email').value.trim()||null, sales_rep:$('e_rep').value||null, job_type:$('e_jobtype').value||null,
+    line_items:lines, subtotal:round2(sub), tax_amount:tax, total:total, amount_paid:0, status:'draft', invoice_date:today.toISOString().slice(0,10), due_date:due.toISOString().slice(0,10), notes:$('e_notes').value.trim()||null };
+  var r=await sb.from('invoices').insert(inv).select('id').single();
+  if(r.error){ toast('Convert failed: '+r.error.message,true); return; }
+  var invId=r.data.id;
+  await sb.from('estimates').update({converted_to_invoice:invId,pipeline_status:'accepted'}).eq('estimate_id',editingId);
+  if(loadedEstimate)loadedEstimate.converted_to_invoice=invId; if($('convBtn'))$('convBtn').textContent='View invoice';
+  toast('Converted to invoice');
+  window.open('https://stfd.netlify.app/invoice.html?invoice_id='+encodeURIComponent(invId)+(customerId?('&customer_id='+encodeURIComponent(customerId)):''),'_blank','noopener');
+}
 async function loadEstimate(){
   if(!editingId){ return; }
   var r=await sb.from('estimates').select('*').eq('estimate_id',editingId).single();
@@ -364,6 +383,7 @@ async function loadEstimate(){
   $('changeOrderSec').style.display=''; $('changeNoteWrap').style.display='';
   renderRevisions(e.revisions||[]);
   if($('saveBtn'))$('saveBtn').textContent='Update estimate';
+  if($('convBtn')){ $('convBtn').style.display=''; $('convBtn').textContent=e.converted_to_invoice?'View invoice':'Convert to invoice'; }
   var dt=document.querySelector('.doc-title'); if(dt&&e.estimate_number)dt.textContent='ESTIMATE · '+e.estimate_number;
 }
 function renderRevisions(revs){
