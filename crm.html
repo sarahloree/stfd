@@ -116,7 +116,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     <div class="tools-strip">
       <div class="tool-card live" onclick="openTool('diagram')"><span class="tc-name">Fence Diagram</span><span class="tc-tag">Open ↗</span></div>
       <div class="tool-card live" onclick="openTool('estimate')"><span class="tc-name">Estimate</span><span class="tc-tag">Open ↗</span></div>
-      <div class="tool-card soon" onclick="openTool('invoice')"><span class="tc-name">Invoice</span><span class="tc-tag">Soon</span></div>
+      <div class="tool-card live" onclick="openTool('invoice')"><span class="tc-name">Invoice</span><span class="tc-tag">Open</span></div>
     </div>
     <div class="toolbar">
       <input class="search" id="search" placeholder="Search name, phone, or email…" oninput="renderList()">
@@ -196,7 +196,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     <div class="tools-row">
       <button class="btn btn-ghost" onclick="openTool('diagram', currentCustomerId, currentCustomerName)">Draw fence ↗</button>
       <button class="btn btn-ghost" onclick="openTool('estimate', currentCustomerId, currentCustomerName)">Create estimate ↗</button>
-      <button class="btn btn-ghost tool-soon" onclick="openTool('invoice', currentCustomerId, currentCustomerName)">Invoice · soon</button>
+      <button class="btn btn-ghost" onclick="openTool('invoice', currentCustomerId, currentCustomerName)">Invoice</button>
     </div>
 
     <div class="notes-h">Estimates</div>
@@ -213,7 +213,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07f</div>
+  <div class="stamp">build 2026-07-07g</div>
 </div>
 
 <div id="toast"></div>

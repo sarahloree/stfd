@@ -157,10 +157,9 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
     </div>
 
     <div class="sec no-print">
-      <div class="sec-h">Payments</div>
+      <div class="sec-h">Record a payment</div>
       <div class="pay-box">
-        <div id="payList"></div>
-        <div class="pay-form" style="margin-top:10px">
+        <div class="pay-form">
           <div class="fg"><label>Amount</label><input id="p_amount" type="number" step="any" placeholder="0.00"></div>
           <div class="fg"><label>Method</label><select id="p_method"><option value="check">Check</option><option value="card_in_person">Card (in person)</option><option value="cash">Cash</option></select></div>
           <div class="fg"><label>Date</label><input id="p_date" type="date"></div>
@@ -174,8 +173,13 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
       <div class="sec-h">Notes</div>
       <div class="fg"><textarea id="i_notes" placeholder="Payment terms, notes…"></textarea></div>
     </div>
+
+    <div class="sec">
+      <div class="sec-h">Payments received</div>
+      <div class="pay-box"><div id="payList"></div></div>
+    </div>
   </div>
-  <div class="stamp">build 2026-07-07a</div>
+  <div class="stamp">build 2026-07-07b</div>
 </div>
 
 <div id="toast"></div>
