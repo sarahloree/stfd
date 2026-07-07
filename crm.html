@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
   <div id="screenList">
     <div class="tools-strip">
       <div class="tool-card live" onclick="openTool('diagram')"><span class="tc-name">Fence Diagram</span><span class="tc-tag">Open ↗</span></div>
-      <div class="tool-card soon" onclick="openTool('estimate')"><span class="tc-name">Estimate</span><span class="tc-tag">Soon</span></div>
+      <div class="tool-card live" onclick="openTool('estimate')"><span class="tc-name">Estimate</span><span class="tc-tag">Open ↗</span></div>
       <div class="tool-card soon" onclick="openTool('invoice')"><span class="tc-name">Invoice</span><span class="tc-tag">Soon</span></div>
     </div>
     <div class="toolbar">
@@ -186,7 +186,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     <div class="notes-h">Tools</div>
     <div class="tools-row">
       <button class="btn btn-ghost" onclick="openTool('diagram', currentCustomerId, currentCustomerName)">Draw fence ↗</button>
-      <button class="btn btn-ghost tool-soon" onclick="openTool('estimate', currentCustomerId, currentCustomerName)">Estimate · soon</button>
+      <button class="btn btn-ghost" onclick="openTool('estimate', currentCustomerId, currentCustomerName)">Create estimate ↗</button>
       <button class="btn btn-ghost tool-soon" onclick="openTool('invoice', currentCustomerId, currentCustomerName)">Invoice · soon</button>
     </div>
 
@@ -198,7 +198,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07c</div>
+  <div class="stamp">build 2026-07-07d</div>
 </div>
 
 <div id="toast"></div>
@@ -212,7 +212,7 @@ var sb = supabase.createClient(SB_URL, SB_KEY);
 // External rep tools — each URL is a single swap point (replace when a tool goes live or changes)
 var TOOLS = {
   diagram:  { label:'Fence Diagram', url:'https://stfdfencediagramgenerator.netlify.app/', live:true },
-  estimate: { label:'Estimate',      url:'', live:false },
+  estimate: { label:'Estimate',      url:'https://stfd.netlify.app/estimate_generator.html', live:true },
   invoice:  { label:'Invoice',       url:'', live:false }
 };
 function openTool(key, cid, cname){
