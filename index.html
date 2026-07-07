@@ -389,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-07a</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-07b</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -820,13 +820,8 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <option value="Sherrell Ezzell">Sherrell Ezzell</option>
         <option value="Taylor Bassett">Taylor Bassett</option>
         <option value="Yvonne Chiang">Yvonne Chiang</option>
-        <optgroup label="Inactive — past statements only">
-        <option value="Jery Edgett">Jery Edgett</option>
-        </optgroup>
-        
-        
-        
       </select>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--muted);font-weight:400"><input type="checkbox" id="show-inactive-reps" onchange="toggleInactiveReps()" style="width:auto;margin:0"> Show inactive reps</label>
     </div>
     <div class="form-group">
       <label>Week Ending Date *</label>
@@ -3168,6 +3163,21 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 // once per rep, snapshotting each rendered statement. Every rep gets one, even at $0.
 let BATCH = [];
 function repRoster(){ const s=$('gen-rep'); if(!s) return []; const skip=new Set(['Jery Edgett','Yvonne Chiang']); return [...s.options].map(o=>o.value).filter(v=>v && !skip.has(v)); }
+function toggleInactiveReps(){
+  const s=$('gen-rep'), cb=$('show-inactive-reps'); if(!s||!cb) return;
+  const INACTIVE_REPS=['Jery Edgett'];
+  let og=s.querySelector('optgroup[data-inactive]');
+  if(cb.checked){
+    if(!og){
+      og=document.createElement('optgroup'); og.label='Inactive — past statements only'; og.setAttribute('data-inactive','1');
+      INACTIVE_REPS.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; og.appendChild(o); });
+      s.appendChild(og);
+    }
+  } else if(og){
+    if(INACTIVE_REPS.includes(s.value)){ s.value=''; loadAvailableWeeks(''); }
+    og.remove();
+  }
+}
 
 async function loadAllWeeks(selId){
   const sel=$(selId); if(!sel) return;
