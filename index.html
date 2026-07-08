@@ -389,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01x</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01y</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -3259,6 +3259,12 @@ async function generateAllStatements(weekArg){
     status.textContent=`Generating ${i+1}/${reps.length}: ${rep}…`;
     let res=null;
     try{ res = await generateStatement(rep, wk, {silent:true, stmtDate, applyDeduction: applyDed}); }catch(e){ console.error('batch', rep, e); }
+    const renderedRep = $('stmt-rep-name') ? $('stmt-rep-name').textContent.trim() : '';
+    if(renderedRep && renderedRep !== rep){
+      console.warn(`BATCH MISMATCH: expected "${rep}" but statement rendered "${renderedRep}"`);
+      status.textContent = `⚠ Mismatch on ${rep} (rendered ${renderedRep}) — you may be on a cached build; hard-refresh.`;
+    }
+    console.log(`batch ${i+1}/${reps.length}: expected=${rep}, rendered=${renderedRep}, pay=${res?res.netToRep:'n/a'}`);
     const snap = $('commStatementPrint').innerHTML;   // freshly rendered statement for this rep
     const netToRep = res ? res.netToRep : 0;
     BATCH.push({ rep, netToRep, html:snap });
