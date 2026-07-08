@@ -218,7 +218,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <div class="form-group"><label>Customer Name *</label><input type="text" id="ni-customer" placeholder="Full customer name"></div>
     <div class="form-group"><label>Customer Address</label><input type="text" id="ni-address" placeholder="Job site address"></div>
     <div class="form-row">
-      <div class="form-group"><label>Sales Rep *</label><select id="ni-rep"><option value="">-- Select --</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option><option>Yvonne Chiang</option></select></div>
+      <div class="form-group"><label>Sales Rep *</label><select id="ni-rep"><option value="">-- Select --</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option><option>Jery Edgett</option><option>Yvonne Chiang</option></select></div>
       <div class="form-group"><label>Job Type</label><select id="ni-type"><option value="">-- Select --</option><option>Wood Privacy</option><option>Chain Link</option><option>Decorative Metal</option><option>Vinyl</option><option>Ranch/Field Fence</option><option>Custom Fence</option><option>Deck &amp; Covers</option><option>Repair &amp; Others</option></select></div>
     </div>
     <div class="form-row">
@@ -260,7 +260,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <div class="form-group"><label>Customer Name *</label><input type="text" id="nj-customer" placeholder="Customer full name"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Sales Rep *</label><select id="nj-rep"><option value="">-- Select Rep --</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option><option>Yvonne Chiang</option></select></div>
+      <div class="form-group"><label>Sales Rep *</label><select id="nj-rep"><option value="">-- Select Rep --</option><option>Paul Vincent</option><option>Jeff Yates</option><option>Sherrell Ezzell</option><option>Taylor Bassett</option><option>Jery Edgett</option><option>Yvonne Chiang</option></select></div>
       <div class="form-group"><label>Job Type</label><select id="nj-type"><option value="">-- Select Type --</option><option>Wood Privacy</option><option>Chain Link</option><option>Decorative Metal</option><option>Vinyl</option><option>Ranch/Field Fence</option><option>Custom Fence</option><option>Deck &amp; Covers</option><option>Repair &amp; Others</option></select></div>
     </div>
     <div class="form-row">
@@ -389,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-07b</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01q</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -819,9 +819,12 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <option value="Jeff Yates">Jeff Yates</option>
         <option value="Sherrell Ezzell">Sherrell Ezzell</option>
         <option value="Taylor Bassett">Taylor Bassett</option>
+        <option value="Jery Edgett">Jery Edgett</option>
         <option value="Yvonne Chiang">Yvonne Chiang</option>
+        
+        
+        
       </select>
-      <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--muted);font-weight:400"><input type="checkbox" id="show-inactive-reps" onchange="toggleInactiveReps()" style="width:auto;margin:0"> Show inactive reps</label>
     </div>
     <div class="form-group">
       <label>Week Ending Date *</label>
@@ -2958,26 +2961,20 @@ async function generateStatement(repArg, weekArg, opts){
     </tr>`;
   }
 
-  // Collapse multiple phases of one invoice (sharing a base number) into a single
-  // consolidated line — sums invoice total & outstanding, strips the "(N-…)" phase
-  // label from the customer name. Applied within each bucket.
-  function consolidatePhases(list){
-    const groups={};
-    list.forEach(j=>{ const k=normInv(j.invoice_number||j.invoice); (groups[k]=groups[k]||[]).push(j); });
-    return Object.keys(groups).map(k=>{
-      const g=groups[k];
-      if(g.length===1) return g[0];
-      const first=g[0];
-      const total=g.reduce((s,j)=>s+parseFloat(j.invoice_total||j.total||0),0);
-      const outstanding=g.reduce((s,j)=>s+parseFloat(j.outstanding||0),0);
-      const name=String(first.customer_name||first.customer||'')
-        .replace(/\s*\(\s*\d+\s*-[^)]*\)\s*$/,'')   // "(2-20%)"
-        .replace(/\s*\(\s*\d+\s*\)\s*$/,'').trim();  // "(3)"
-      return { invoice_number:k, invoice:k, customer_name:name, customer:name,
-        invoice_total:total, total:total, outstanding:outstanding,
-        commission_rate:first.commission_rate, status:first.status, pipeline_status:first.pipeline_status,
-        construction_date_1:first.construction_date_1, constructionDate1:first.constructionDate1 };
-    });
+  // Merge the phases of ONE commercial job (already grouped by real invoice number)
+  // into a single line — sums total & outstanding, strips the "(N-…)" phase label.
+  function consolidateGroup(g){
+    const first=g[0];
+    const total=g.reduce((s,j)=>s+parseFloat(j.invoice_total||j.total||0),0);
+    const outstanding=g.reduce((s,j)=>s+parseFloat(j.outstanding||0),0);
+    const name=String(first.customer_name||first.customer||'')
+      .replace(/\s*\(\s*\d+\s*-[^)]*\)\s*$/,'')   // "(2-20%)"
+      .replace(/\s*\(\s*\d+\s*\)\s*$/,'').trim();  // "(3)"
+    const k=String(first.invoice_number||first.invoice||'');
+    return { invoice_number:k, invoice:k, customer_name:name, customer:name,
+      invoice_total:total, total:total, outstanding:outstanding,
+      commission_rate:first.commission_rate, status:first.status, pipeline_status:first.pipeline_status,
+      construction_date_1:first.construction_date_1, constructionDate1:first.constructionDate1 };
   }
 
   // ── Yvonne's rules for Other Job Details ────────────────────────
@@ -2991,38 +2988,45 @@ async function generateStatement(repArg, weekArg, opts){
     return true;
   });
 
-  // Completed construction, payment still owed → Completed Jobs – Pending Payment
-  const pendingJobs = eligibleJobs.filter(j => {
-    const s = (j.status||j.pipeline_status||'').toLowerCase();
-    return s === 'completed';
+  // Group eligible jobs by their REAL invoice number: the phases of one commercial
+  // job share a number and collapse into one line, while a distinct invoice (e.g. the
+  // change-order C2083-2) stays separate.
+  const _groups = {};
+  eligibleJobs.forEach(j => { const k = String(j.invoice_number||j.invoice||''); (_groups[k]=_groups[k]||[]).push(j); });
+
+  const isCompleted = j => (String(j.status||j.pipeline_status||'').toLowerCase()==='completed');
+  const jobDate = j => j.construction_date_1||j.constructionDate1||'';
+  const inThisWeek = d => { if(!d) return false; const s=String(d).split('T')[0].split(' ')[0]; return s>=wStartStr && s<=weekEnding; };
+
+  const pendingJobs=[], scheduledJobs=[], unscheduledJobs=[];
+  Object.keys(_groups).forEach(k => {
+    const g = _groups[k];
+    if(g.length > 1){
+      // Consolidated commercial job — one line, bucketed by Yvonne's aggregate rule:
+      //   all parts completed → Completed–Pending; any part scheduled THIS week → In Progress; else Un-scheduled.
+      const merged = consolidateGroup(g);
+      if(g.every(isCompleted)) pendingJobs.push(merged);
+      else if(g.some(j => inThisWeek(jobDate(j)))) scheduledJobs.push(merged);
+      else unscheduledJobs.push(merged);
+    } else {
+      // Single invoice (residential, or a standalone commercial billing) — per-job rule.
+      const j = g[0];
+      if(isCompleted(j)) pendingJobs.push(j);
+      else if(jobDate(j)) scheduledJobs.push(j);
+      else unscheduledJobs.push(j);
+    }
   });
 
   $('stmt-pending-body').innerHTML = pendingJobs.length
-    ? consolidatePhases(pendingJobs).map(j => jobDetailRow(j,'#f5a623')).join('')
+    ? pendingJobs.map(j => jobDetailRow(j,'#f5a623')).join('')
     : '<tr><td colspan="9" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No completed jobs pending payment</td></tr>';
 
-  // Section 3: Scheduled Jobs
-  // Construction not complete, start date in the past
-  const scheduledJobs = eligibleJobs.filter(j => {
-    const s = (j.status||j.pipeline_status||'').toLowerCase();
-    if(s === 'completed') return false;
-    // Scheduled = incomplete job with a concrete construction date set
-    return !!(j.construction_date_1||j.constructionDate1);
-  });
   $('stmt-scheduled-body').innerHTML = scheduledJobs.length
-    ? consolidatePhases(scheduledJobs).map(j => jobDetailRow(j,'#60a5fa')).join('')
+    ? scheduledJobs.map(j => jobDetailRow(j,'#60a5fa')).join('')
     : '<tr><td colspan="9" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No scheduled jobs</td></tr>';
 
-  // Section 4: Unscheduled Jobs
-  // Construction not complete, start date in the future (or no date)
-  const unscheduledJobs = eligibleJobs.filter(j => {
-    const s = (j.status||j.pipeline_status||'').toLowerCase();
-    if(s === 'completed') return false;
-    // Un-scheduled = incomplete job with no concrete construction date yet
-    return !(j.construction_date_1||j.constructionDate1);
-  });
   $('stmt-unscheduled-body').innerHTML = unscheduledJobs.length
-    ? consolidatePhases(unscheduledJobs).map(j => jobDetailRow(j,'#94a3b8')).join('')
+    ? unscheduledJobs.map(j => jobDetailRow(j,'#94a3b8')).join('')
     : '<tr><td colspan="9" style="padding:8px;border:1px solid #ddd;color:#64748b;text-align:center">No unscheduled jobs</td></tr>';
 
   // Commission advances paid out this week — early pay-outs that add to the draw.
@@ -3163,21 +3167,6 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 // once per rep, snapshotting each rendered statement. Every rep gets one, even at $0.
 let BATCH = [];
 function repRoster(){ const s=$('gen-rep'); if(!s) return []; const skip=new Set(['Jery Edgett','Yvonne Chiang']); return [...s.options].map(o=>o.value).filter(v=>v && !skip.has(v)); }
-function toggleInactiveReps(){
-  const s=$('gen-rep'), cb=$('show-inactive-reps'); if(!s||!cb) return;
-  const INACTIVE_REPS=['Jery Edgett'];
-  let og=s.querySelector('optgroup[data-inactive]');
-  if(cb.checked){
-    if(!og){
-      og=document.createElement('optgroup'); og.label='Inactive — past statements only'; og.setAttribute('data-inactive','1');
-      INACTIVE_REPS.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; og.appendChild(o); });
-      s.appendChild(og);
-    }
-  } else if(og){
-    if(INACTIVE_REPS.includes(s.value)){ s.value=''; loadAvailableWeeks(''); }
-    og.remove();
-  }
-}
 
 async function loadAllWeeks(selId){
   const sel=$(selId); if(!sel) return;
