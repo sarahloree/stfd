@@ -389,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01v</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01x</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -539,6 +539,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <select id="commWeekSel" onchange="onCommWeekChange()"><option value="">-- Select Week --</option></select>
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Sales Rep</span>
     <select id="commRepSel" onchange="onCommRepChange()"><option value="">-- Select Rep --</option></select>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;margin-left:6px"><input type="checkbox" id="comm-apply-deduction" checked onchange="updateCommission()" style="width:auto"> Apply repayment</label>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-secondary" style="width:auto;padding:6px 16px;font-size:15px" onclick="openBatchStmt()">📑 Generate All Reps</button>
@@ -1574,7 +1575,8 @@ async function updateCommission(){
   const token=++_commRenderToken;
   inline.innerHTML='<div style="color:var(--muted);font-size:15px;padding:24px 4px;text-align:center">Generating statement…</div>';
   try{
-    await generateStatement(rep, week, {silent:true, applyDeduction:true});
+    const applyDed = $('comm-apply-deduction') ? $('comm-apply-deduction').checked : true;
+    await generateStatement(rep, week, {silent:true, applyDeduction:applyDed});
   }catch(e){
     console.error('inline statement', e);
     if(token===_commRenderToken) inline.innerHTML='<div style="color:var(--red);font-size:14px;padding:16px 4px">Could not generate this statement — see console.</div>';
@@ -2723,20 +2725,30 @@ async function loadAvailableWeeks(rep){
 async function openGenerateStmt(){
   $('gen-stmt-date').value = new Date().toISOString().split('T')[0];
 
-  // Auto-select rep from commissions tab or default to Paul Vincent
+  // Inherit rep, week, and the repayment toggle from the Commissions tab so the
+  // generated statement matches the inline preview the user is looking at.
   const currentRep = $('commRepSel').value || 'Paul Vincent';
   const genRep = $('gen-rep');
   if(genRep) genRep.value = currentRep;
+
+  const tabDed = $('comm-apply-deduction');
+  const genDed = $('gen-apply-deduction');
+  if(genDed) genDed.checked = tabDed ? tabDed.checked : true;
 
   openModal('generateStmtModal');
 
   // Immediately load weeks from Supabase for selected rep
   await loadAvailableWeeks(currentRep);
 
-  // Auto-select most recent week after loading
+  // Prefer the week currently shown in the tab; otherwise most recent
   const sel = $('gen-week');
-  if(sel && sel.options.length > 1 && !sel.value){
-    sel.selectedIndex = 1;
+  const tabWeek = $('commWeekSel') ? $('commWeekSel').value : '';
+  if(sel){
+    if(tabWeek && [...sel.options].some(o => o.value === tabWeek)){
+      sel.value = tabWeek;
+    } else if(sel.options.length > 1 && !sel.value){
+      sel.selectedIndex = 1;
+    }
   }
 }
 
