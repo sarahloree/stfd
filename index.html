@@ -389,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01q</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01s</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -2876,14 +2876,46 @@ async function generateStatement(repArg, weekArg, opts){
     });
   }
 
+  // Robust date parser (ISO, ISO+time, or 'YYYY-MM-DD HH:MM').
+  const _pdate = v => { if(!v) return 0; const s=String(v).split('T')[0].split(' ')[0]; const t=new Date(s+'T12:00:00').getTime(); return isNaN(t)?0:t; };
+
+  // ── Advance recoup model ──────────────────────────────────────────
+  // For any invoice with a logged advance (commission_advances), the rep was already
+  // paid that commission up front. So each collection's commission is recouped against
+  // the advance, chronologically, up to the advance total. Strictly bounded to invoices
+  // that HAVE an advance — every other payment/bucket is byte-for-byte unchanged.
+  //   recoupRemaining[inv]     = advance still recoupable by THIS week's collections (advance − earned before this week)
+  //   advOutstandingByInv[inv] = advance not yet recouped at all (advance − all earned) → bucket PRE-PAID column
+  const advTotalByInv = {}, recoupRemaining = {}, advOutstandingByInv = {};
+  if(sb){
+    try{
+      const { data: allAdv } = await sb.from('commission_advances').select('invoice_number,amount').eq('rep_name', rep);
+      (allAdv||[]).forEach(a=>{ const k=normInv(a.invoice_number); if(k) advTotalByInv[k]=(advTotalByInv[k]||0)+(parseFloat(a.amount)||0); });
+      if(Object.keys(advTotalByInv).length){
+        const wkStartMs = _pdate(wStartStr);
+        const { data: pays } = await sb.from('historical_commission_entries')
+          .select('invoice_number,commission_on_payment,payment_date,week_ending').eq('rep_name', rep);
+        const earnedPrior = {}, earnedTotal = {};
+        (pays||[]).forEach(p=>{
+          const k=normInv(p.invoice_number); if(advTotalByInv[k]==null) return;
+          const c=parseFloat(p.commission_on_payment)||0;
+          earnedTotal[k]=(earnedTotal[k]||0)+c;
+          if(_pdate(p.payment_date||p.week_ending) < wkStartMs) earnedPrior[k]=(earnedPrior[k]||0)+c;
+        });
+        Object.keys(advTotalByInv).forEach(k=>{
+          recoupRemaining[k]     = Math.max(0, Math.round((advTotalByInv[k]-(earnedPrior[k]||0))*100)/100);
+          advOutstandingByInv[k] = Math.max(0, Math.round((advTotalByInv[k]-(earnedTotal[k]||0))*100)/100);
+        });
+      }
+    }catch(e){ console.error('advance recoup/map:', e); }
+  }
+
   // Build payments section from historical_commission_entries
   let totalCommOnPayments = 0;   // gross commission earned this week ("Total Commission This Week")
   let drawNet = 0;               // net of pre-paid = what's actually drawable ("Weekly Draw Available")
   let payRows = '';
 
-  // Chronological order by payment date (Yvonne's request) — robust to ISO,
-  // ISO+time, and 'YYYY-MM-DD HH:MM' formats.
-  const _pdate = v => { if(!v) return 0; const s=String(v).split('T')[0].split(' ')[0]; const t=new Date(s+'T12:00:00').getTime(); return isNaN(t)?0:t; };
+  // Chronological order by payment date (Yvonne's request).
   payments.sort((a,b)=> _pdate(a.payment_date||a.week_ending) - _pdate(b.payment_date||b.week_ending));
 
   if(payments.length > 0){
@@ -2893,7 +2925,13 @@ async function generateStatement(repArg, weekArg, opts){
       const customerName = entry.customer_name || job.customer_name || job.customer || '—';
       const commPct = (entry.commission_rate * 100).toFixed(0) + '%';
       const onPay = parseFloat(entry.commission_on_payment) || 0;
-      const prePaidPay = parseFloat(entry.pre_paid) || 0;
+      let prePaidPay = parseFloat(entry.pre_paid) || 0;
+      const _invK = normInv(entry.invoice_number);
+      if(advTotalByInv[_invK]!=null){
+        // Pre-paid job: this collection's commission was already advanced → recoup it.
+        const rec = Math.min(onPay, recoupRemaining[_invK]||0);
+        if(rec>0){ prePaidPay = Math.round(rec*100)/100; recoupRemaining[_invK] = Math.round(((recoupRemaining[_invK]||0)-rec)*100)/100; }
+      }
       const availPay = Math.round((onPay - prePaidPay) * 100) / 100;
       totalCommOnPayments += onPay;
       drawNet += availPay;
@@ -2908,7 +2946,7 @@ async function generateStatement(repArg, weekArg, opts){
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.total_commission||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.payment_received||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#22543d;font-weight:600">$${Number(entry.commission_on_payment||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(entry.pre_paid||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(prePaidPay||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#1B3A6B;font-weight:600">$${Number(availPay).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       </tr>`;
     });
@@ -2918,24 +2956,6 @@ async function generateStatement(repArg, weekArg, opts){
 
   $('stmt-payments-body').innerHTML = payRows;
   $('stmt-payments-foot').innerHTML = '';
-
-  // Outstanding (unrecouped) advances per invoice, for the PRE-PAID column in the
-  // job-detail buckets. An advance can be pre-approved in an earlier week (e.g. S2177)
-  // and must keep showing as pre-paid until a payment's pre_paid amount recoups it.
-  const advOutstandingByInv = {};
-  if(sb){
-    try{
-      const { data: allAdv } = await sb.from('commission_advances').select('invoice_number,amount').eq('rep_name', rep);
-      const advByInv = {};
-      (allAdv||[]).forEach(a=>{ const k=normInv(a.invoice_number); if(k) advByInv[k]=(advByInv[k]||0)+(parseFloat(a.amount)||0); });
-      if(Object.keys(advByInv).length){
-        const { data: pays } = await sb.from('historical_commission_entries').select('invoice_number,pre_paid').eq('rep_name', rep);
-        const recoup = {};
-        (pays||[]).forEach(p=>{ const k=normInv(p.invoice_number); if(advByInv[k]!=null) recoup[k]=(recoup[k]||0)+(parseFloat(p.pre_paid)||0); });
-        Object.keys(advByInv).forEach(k=>{ advOutstandingByInv[k]=Math.max(0, Math.round((advByInv[k]-(recoup[k]||0))*100)/100); });
-      }
-    }catch(e){ console.error('advance prepaid map:', e); }
-  }
 
   // Helper to build a job detail row
   function jobDetailRow(j, color){
@@ -2950,7 +2970,7 @@ async function generateStatement(repArg, weekArg, opts){
     const commAvail = Math.round((outstandingComm - prePaid)*100)/100;
     return `<tr>
       <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;font-size:14px">${j.invoice_number||j.invoice||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd">${j.customer_name||j.customer||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd">${(String(j.customer_name||j.customer||'—')).replace(/\s*\(\s*\d+\s*-[^)]*\)\s*$/,'').replace(/\s*\(\s*\d+\s*\)\s*$/,'').trim()||'—'}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(totalComm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">${ratePct}</td>
