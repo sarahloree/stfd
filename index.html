@@ -170,8 +170,8 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 /* ── Commission statement (light mode, print/PDF) ─────────────── */
 .stmt-modal{color:#1a2332}
-.stmt-band{background:#dbe7f7;color:#1B3A6B;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;border-radius:5px;margin-bottom:8px}
-.stmt-band-major{background:#cdddf2;color:#13203a;font-weight:700;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 14px;border-radius:6px;margin:16px 0 10px;text-align:center}
+.stmt-band{background:#1B3A6B;color:#ffffff;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-radius:5px;margin-bottom:8px}
+.stmt-band-major{background:#334155;color:#ffffff;font-weight:700;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;padding:11px 14px;border-radius:6px;margin:26px 0 12px;text-align:center}
 .stmt-table{width:100%;border-collapse:collapse;font-size:14px;color:#1a2332}
 .stmt-table thead th{background:#eef3fb;color:#1B3A6B;font-weight:700;font-size:13px;line-height:1.2;padding:7px 10px;border:1px solid #d4dded;vertical-align:bottom;white-space:normal}
 .stmt-table thead th.l{text-align:left}
@@ -389,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01s</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01v</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -545,9 +545,11 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <button class="btn-primary" style="width:auto;padding:6px 16px;font-size:15px" onclick="openGenerateStmt()">📋 Generate Statement</button>
     </div>
   </div>
-  <div class="grid g2">
-    <div class="card"><div class="ct" id="comm-rep-title">Commission Statement</div><div id="comm-payments-section"></div></div>
-    <div class="card"><div class="ct">Other Job Details</div><div id="comm-other-section"></div></div>
+  <div class="card" style="overflow:hidden">
+    <div class="ct" id="comm-rep-title">Commission Statement</div>
+    <div id="comm-statement-inline" style="overflow-x:auto">
+      <div style="color:var(--muted);font-size:15px;padding:24px 4px;text-align:center">Select a rep and a week to view the statement.</div>
+    </div>
   </div>
 </div>
 
@@ -702,13 +704,6 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
         <div style="flex:0 0 210px"></div>
       </div>
 
-      <!-- Payout summary (top, most prominent) -->
-      <div style="margin:4px 0 18px;display:flex;justify-content:center">
-        <div style="min-width:430px;background:#f1f6fd;border:1px solid #cdd8ea;border-radius:10px;padding:10px 24px">
-          <table class="stmt-totals" style="width:100%"><tbody id="stmt-totals-body"></tbody></table>
-        </div>
-      </div>
-
       <!-- Section 1: Payments Received -->
       <div style="margin-bottom:16px">
         <div class="stmt-band">Payments Received This Week</div>
@@ -742,6 +737,13 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
           <tbody id="stmt-preapproved-body"></tbody>
           <tfoot id="stmt-preapproved-foot"></tfoot>
         </table>
+      </div>
+
+      <!-- This-week payout: the bottom line for what happened this week -->
+      <div style="margin:2px 0 4px;display:flex;justify-content:flex-end">
+        <div style="min-width:430px;background:#eef4fd;border:1px solid #cdd8ea;border-radius:10px;padding:10px 24px">
+          <table class="stmt-totals" style="width:100%"><tbody id="stmt-totals-body"></tbody></table>
+        </div>
       </div>
 
       <!-- Other Job Details -->
@@ -834,6 +836,10 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <label>Statement Date (shown on statement)</label>
       <input type="date" id="gen-stmt-date">
     </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="gen-apply-deduction" checked style="width:auto"> Apply weekly repayment/deduction (e.g. Paul's $100 to PJ&amp;CJ)</label>
+      <div style="font-size:12px;color:var(--muted)">Uncheck to skip the repayment for this week. Only affects reps that have a repayment configured.</div>
+    </div>
     <div class="form-actions">
       <button class="btn-secondary" onclick="closeModal('generateStmtModal')">Cancel</button>
       <button class="btn-primary" style="width:auto;padding:8px 24px" onclick="generateStatement()">Generate →</button>
@@ -853,6 +859,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
       <select id="batch-week" style="min-width:180px"><option value="">-- Select week --</option></select>
       <label style="font-size:13px;color:var(--muted)">Statement date</label>
       <input type="date" id="batch-stmt-date">
+      <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="batch-apply-deduction" checked style="width:auto"> Apply repayments</label>
       <button class="btn-primary" style="width:auto;padding:8px 18px" onclick="generateAllStatements()">Generate All →</button>
       <button class="btn-secondary" id="batchPdfAllBtn" style="padding:8px 14px;display:none" onclick="batchDownloadAll()">⬇ Download all as one PDF</button>
       <span id="batch-status" style="font-size:13px;color:var(--muted)"></span>
@@ -1507,7 +1514,7 @@ function showTab(id){
   // Repaint live-data tabs on activation so they reflect the latest Supabase data
   if(id==='monthly'){try{renderMonthly()}catch(e){console.warn('renderMonthly skipped:',e.message)}}
   if(id==='conversion'){try{renderConversion()}catch(e){console.warn('renderConversion skipped:',e.message)}}
-  if(id==='commissions'){try{buildCommSel();loadCommission()}catch(e){console.warn('commissions render skipped:',e.message)}}
+  if(id==='commissions'){try{buildCommSel()}catch(e){console.warn('commissions render skipped:',e.message)}}
 }
 
 function buildWeekSel(){
@@ -1550,24 +1557,32 @@ function buildCommSel(){
   updateCommission();
 }
 
-function updateCommission(){
-  const week=$('commWeekSel').value;
-  const rep=$('commRepSel').value;
+let _commRenderToken = 0;
+async function updateCommission(){
+  const week=$('commWeekSel')?$('commWeekSel').value:'';
+  const rep=$('commRepSel')?$('commRepSel').value:'';
+  const inline=$('comm-statement-inline');
+  const title=$('comm-rep-title');
+  if(!inline) return;
   if(!week||!rep){
-    $('comm-rep-title').textContent='Commission Statement';
-    $('comm-payments-section').innerHTML='<div style="color:var(--muted);font-size:15px;padding:16px 0">Select a rep and week to view the statement.</div>';
-    $('comm-other-section').innerHTML='';
+    if(title) title.textContent='Commission Statement';
+    inline.innerHTML='<div style="color:var(--muted);font-size:15px;padding:24px 4px;text-align:center">Select a rep and a week to view the statement.</div>';
     return;
   }
-  const key=`${rep}|${week}`;
-  if(DATA.commissions[key]){
-    loadCommission(key);
-  } else {
-    const lbl=new Date(week+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    $('comm-rep-title').textContent=`${rep} — ${lbl}`;
-    $('comm-payments-section').innerHTML=`<div style="color:var(--muted);font-size:15px;padding:16px 0">No statement for ${rep} in week of ${lbl}</div>`;
-    $('comm-other-section').innerHTML='';
+  const lbl=new Date(week+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  if(title) title.textContent=`${rep} — week ending ${lbl}`;
+  const token=++_commRenderToken;
+  inline.innerHTML='<div style="color:var(--muted);font-size:15px;padding:24px 4px;text-align:center">Generating statement…</div>';
+  try{
+    await generateStatement(rep, week, {silent:true, applyDeduction:true});
+  }catch(e){
+    console.error('inline statement', e);
+    if(token===_commRenderToken) inline.innerHTML='<div style="color:var(--red);font-size:14px;padding:16px 4px">Could not generate this statement — see console.</div>';
+    return;
   }
+  if(token!==_commRenderToken) return;  // a newer selection superseded this render
+  const snap=$('commStatementPrint')?$('commStatementPrint').innerHTML:'';
+  inline.innerHTML=`<div style="background:#ffffff;color:#1a2332;font-family:'IBM Plex Sans',Arial,Helvetica,sans-serif;padding:16px 22px;border-radius:8px">${snap}</div>`;
 }
 
 function onCommWeekChange(){
@@ -2977,7 +2992,7 @@ async function generateStatement(repArg, weekArg, opts){
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(outstanding).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(outstandingComm).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="padding:4px 8px;border:1px solid #ddd;text-align:right">$${Number(prePaid).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:${color};font-weight:600">$${Number(commAvail).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;text-align:right;color:#1a2332;font-weight:600">$${Number(commAvail).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
     </tr>`;
   }
 
@@ -3083,7 +3098,9 @@ async function generateStatement(repArg, weekArg, opts){
   })();
 
   // Totals
-  const deduction = repData.deduction || 0;
+  const applyDed = (opts.applyDeduction !== undefined) ? opts.applyDeduction
+                    : ($('gen-apply-deduction') ? $('gen-apply-deduction').checked : true);
+  const deduction = applyDed ? (repData.deduction || 0) : 0;
   const netToRep = Math.max(0, Math.round((drawNet + advTotal - deduction)*100)/100);
   const advLines = advRows.map(a=>`<tr><td style="padding:4px 8px;color:#64748b">Commission advance${a.invoice_number?' &mdash; '+a.invoice_number:''}${a.note?' ('+a.note+')':''}</td><td style="padding:4px 8px;text-align:right;color:#22543d">+$${Number(parseFloat(a.amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('');
   $('stmt-totals-body').innerHTML = `
@@ -3220,6 +3237,7 @@ async function generateAllStatements(weekArg){
   const wk = weekArg || $('batch-week').value;
   if(!wk){ alert('Select a week ending date first'); return; }
   const stmtDate = $('batch-stmt-date').value || wk;
+  const applyDed = $('batch-apply-deduction') ? $('batch-apply-deduction').checked : true;
   const reps = repRoster();
   const status=$('batch-status'), results=$('batch-results'), summary=$('batch-summary');
   results.innerHTML=''; summary.innerHTML=''; BATCH=[]; $('batchPdfAllBtn').style.display='none';
@@ -3228,7 +3246,7 @@ async function generateAllStatements(weekArg){
     const rep=reps[i];
     status.textContent=`Generating ${i+1}/${reps.length}: ${rep}…`;
     let res=null;
-    try{ res = await generateStatement(rep, wk, {silent:true, stmtDate}); }catch(e){ console.error('batch', rep, e); }
+    try{ res = await generateStatement(rep, wk, {silent:true, stmtDate, applyDeduction: applyDed}); }catch(e){ console.error('batch', rep, e); }
     const snap = $('commStatementPrint').innerHTML;   // freshly rendered statement for this rep
     const netToRep = res ? res.netToRep : 0;
     BATCH.push({ rep, netToRep, html:snap });
