@@ -143,6 +143,11 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
     </div>
 
     <!-- pull from diagram -->
+    <div class="sec">
+      <div class="sec-h">About the job</div>
+      <div class="fg"><textarea id="e_desc" placeholder="Plain-language description of the work — this is what shows on the customer version…"></textarea></div>
+    </div>
+
     <div class="sec no-print">
       <div class="sec-h">Materials from fence diagram</div>
       <div class="pull-row">
@@ -169,6 +174,7 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
 
       <div class="totals">
         <div class="tot-row"><span class="lbl">Subtotal</span><span id="t_subtotal">$0.00</span></div>
+        <div class="tot-row"><span class="lbl">Wastage <input id="t_wastage" type="number" step="0.1" value="5" oninput="recalc()">% (materials)</span><span id="t_wastageAmt">$0.00</span></div>
         <div class="tot-row"><span class="lbl">Tax <input id="t_taxrate" type="number" step="0.001" value="8.25" oninput="recalc()">%</span><span id="t_tax">$0.00</span></div>
         <div class="tot-row grand"><span>Total</span><span id="t_total">$0.00</span></div>
       </div>
@@ -181,6 +187,19 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
       <div class="fg" id="changeNoteWrap" style="display:none;margin-top:10px"><label>Change order note (what changed in this revision)</label><textarea id="changeNote" placeholder="e.g. added 25 ft of chain link; changed color green to black"></textarea></div>
     </div>
 
+    <!-- acceptance -->
+    <div class="sec" id="acceptSec">
+      <div class="sec-h">Customer acceptance</div>
+      <div id="acceptedView" class="hide" style="font-size:14px;color:var(--green);font-weight:600;padding:6px 0"></div>
+      <div id="acceptForm">
+        <div class="fg" style="flex-direction:row;align-items:center;gap:10px"><input type="checkbox" id="acc_check" style="width:auto"><label for="acc_check" style="text-transform:none;letter-spacing:0;font-size:14px;color:var(--text)">Customer accepts this estimate and authorizes the work</label></div>
+        <div class="grid2">
+          <div class="fg"><label>Signed by (type full name)</label><input id="acc_name"></div>
+          <div class="fg" style="justify-content:flex-end"><button class="btn btn-green no-print" onclick="acceptEstimate()">Accept &amp; make customer</button></div>
+        </div>
+      </div>
+    </div>
+
     <!-- terms -->
     <div class="sec">
       <div class="sec-h">Terms &amp; notes</div>
@@ -188,7 +207,7 @@ table.lines input:focus{border-color:var(--accent);background:var(--s2);outline:
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07f</div>
+  <div class="stamp">build 2026-07-07g</div>
 </div>
 
 <div id="toast"></div>
@@ -247,13 +266,21 @@ function upd(i,f,v){
 }
 function addLine(kind){ lines.push({description:'',unit:(kind==='labor'?'hr':'ea'),quantity:1,rate:0,amount:0,sku:'',source:kind}); renderLines(); }
 function rmLine(i){ lines.splice(i,1); renderLines(); }
+function estTotals(){
+  var lineSub=0, matBase=0;
+  lines.forEach(function(l){ lineSub+=num(l.amount); if(l.source!=='labor') matBase+=num(l.amount); });
+  var wel=$('t_wastage'); var wpct=wel?num(wel.value):0;
+  var wastage=round2(matBase*wpct/100);
+  var subtotal=round2(lineSub+wastage);
+  var tax=round2(subtotal*(num($('t_taxrate').value)/100));
+  return {lineSub:round2(lineSub), wastage:wastage, subtotal:subtotal, tax:tax, total:round2(subtotal+tax)};
+}
 function recalc(){
-  var sub=0; lines.forEach(function(l){ sub+=num(l.amount); });
-  var rate=num($('t_taxrate').value)/100;
-  var tax=round2(sub*rate);
-  $('t_subtotal').textContent=money(sub);
-  $('t_tax').textContent=money(tax);
-  $('t_total').textContent=money(round2(sub+tax));
+  var t=estTotals();
+  $('t_subtotal').textContent=money(t.lineSub);
+  if($('t_wastageAmt'))$('t_wastageAmt').textContent=money(t.wastage);
+  $('t_tax').textContent=money(t.tax);
+  $('t_total').textContent=money(t.total);
 }
 
 // ---- diagram pull ----
@@ -284,8 +311,7 @@ async function saveEstimate(){
   var name=$('c_name').value.trim();
   if(!name){ toast('Customer name is required',true); return; }
   if(!lines.length){ toast('Add at least one line item',true); return; }
-  var sub=0; lines.forEach(function(l){ sub+=num(l.amount); });
-  var taxrate=num($('t_taxrate').value)/100; var tax=round2(sub*taxrate); var total=round2(sub+tax);
+  var _t=estTotals(); var sub=_t.subtotal; var tax=_t.tax; var total=_t.total;
   var payload={
     estimate_number:$('e_number').value.trim()||null,
     customer_id:customerId,
@@ -307,7 +333,9 @@ async function saveEstimate(){
     pipeline_status:'draft',
     notes:$('e_notes').value.trim()||null,
     estimate_date:$('e_date').value||null,
-    expiry_date:$('e_expiry').value||null
+    expiry_date:$('e_expiry').value||null,
+    wastage_pct:($('t_wastage')?num($('t_wastage').value):5),
+    job_description:($('e_desc')?($('e_desc').value.trim()||null):null)
   };
   var revs=(loadedEstimate&&Array.isArray(loadedEstimate.revisions))?loadedEstimate.revisions.slice():[];
   if(editingId&&loadedEstimate){
@@ -342,10 +370,26 @@ async function loadCustomer(){
   $('c_state').value=c.state||'TX'; $('c_zip').value=c.zip_code||'';
   $('c_phone').value=c.phone||''; $('c_email').value=c.email||'';
 }
+async function acceptEstimate(){
+  if(!editingId){ toast('Save the estimate first',true); return; }
+  if(!$('acc_check').checked){ toast('Check the acceptance box first',true); return; }
+  var who=$('acc_name').value.trim(); if(!who){ toast('Type the customer name to sign',true); return; }
+  var now=new Date().toISOString();
+  var r=await sb.from('estimates').update({ accepted_by:who, accepted_at:now, pipeline_status:'accepted' }).eq('estimate_id',editingId);
+  if(r.error){ toast('Accept failed: '+r.error.message,true); return; }
+  if(customerId){ await sb.from('customers').update({ status:'customer', updated_at:now }).eq('id',customerId); }
+  if(loadedEstimate){ loadedEstimate.accepted_by=who; loadedEstimate.accepted_at=now; }
+  showAccepted(who, now); toast('Estimate accepted … customer confirmed');
+}
+function showAccepted(who, when){
+  var v=$('acceptedView'), fm=$('acceptForm'); if(!v) return;
+  var dd=when?(new Date(when).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+' at '+new Date(when).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})):'';
+  v.textContent='✓ Accepted by '+who+' on '+dd; v.classList.remove('hide'); if(fm)fm.classList.add('hide');
+}
 async function convertToInvoice(){
   if(loadedEstimate&&loadedEstimate.converted_to_invoice){ window.open('https://stfd.netlify.app/invoice.html?invoice_id='+encodeURIComponent(loadedEstimate.converted_to_invoice)+(customerId?('&customer_id='+encodeURIComponent(customerId)):''),'_blank','noopener'); return; }
   if(!editingId){ toast('Save the estimate first',true); return; }
-  var sub=0; lines.forEach(function(l){ sub+=num(l.amount); }); var tax=round2(sub*(num($('t_taxrate').value)/100)); var total=round2(sub+tax);
+  var _t=estTotals(); var sub=_t.subtotal; var tax=_t.tax; var total=_t.total;
   var today=new Date(); var due=new Date(today.getTime()+30*86400000);
   var inv={ invoice_number:'INV'+today.getFullYear().toString().slice(2)+(today.getMonth()+1<10?'0':'')+(today.getMonth()+1)+(today.getDate()<10?'0':'')+today.getDate()+'-'+Math.floor(Math.random()*9000+1000),
     customer_id:customerId, estimate_id:editingId, customer_name:$('c_name').value.trim()||null, customer_address:$('c_address').value.trim()||null,
@@ -375,6 +419,9 @@ async function loadEstimate(){
   $('e_jobtype').value=e.job_type||''; $('e_rep').value=e.sales_rep||'';
   $('e_comm').value=(e.commission_rate!=null?String(e.commission_rate):'0.08');
   $('e_notes').value=e.notes||'';
+  if($('e_desc'))$('e_desc').value=e.job_description||'';
+  if($('t_wastage')&&e.wastage_pct!=null)$('t_wastage').value=e.wastage_pct;
+  if(e.accepted_by){ showAccepted(e.accepted_by, e.accepted_at); }
   linkedQuoteId=e.fence_quote_id||null;
   lines=Array.isArray(e.line_items)?e.line_items.map(function(l){return {description:l.description||'',unit:l.unit||'ea',quantity:num(l.quantity),rate:num(l.rate),amount:num(l.amount!=null?l.amount:(num(l.quantity)*num(l.rate))),sku:l.sku||'',source:l.source||'manual'};}):[];
   origTotal=num(e.total); origLinesJSON=JSON.stringify(lines);
