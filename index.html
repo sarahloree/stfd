@@ -389,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01y</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01z</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -986,6 +986,10 @@ function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style
 function sheetArr(wb,name){const ws=wb.Sheets[name];if(!ws)return[];return XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true})}
 
 function dLocalStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// UTC-based date string. Excel/SheetJS hand back date cells at UTC midnight; formatting them
+// with LOCAL getters (dLocalStr) rolls the day back one in negative-UTC timezones, which is what
+// created the day-apart duplicate payments. Payment dates MUST use this so every sync is stable.
+function dUTCStr(d){ return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
 
 function xlDateToStr(v){
   // SheetJS raw:true returns serial numbers for dates
@@ -1315,8 +1319,11 @@ async function syncToSupabase(jobs, payments){
 
       for(let i=0; i<payRows.length; i+=50){
         const batch = payRows.slice(i, i+50);
-        const {error} = await sb.from('historical_commission_entries').insert(batch);
-        if(error) console.error('Payment insert error:', error.message);
+        // Idempotent write: upsert on the natural key so a re-sync can NEVER double a payment,
+        // even if dates were to drift. Requires the unique index hce_uidx (see setup SQL).
+        const {error} = await sb.from('historical_commission_entries')
+          .upsert(batch, {onConflict:'invoice_number,rep_name,payment_date,payment_received', ignoreDuplicates:true});
+        if(error) console.error('Payment upsert error:', error.message);
       }
       console.log('✓ Synced', payRows.length, 'new payments ('+(payRowsAll.length-payRows.length)+' already present, kept)');
     }
@@ -1361,7 +1368,7 @@ function parsePaymentsFromJobs(wb){
           const d=new Date(Math.round((rawDate-25569)*86400*1000));
           dateStr=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
         }else if(rawDate instanceof Date){
-          dateStr=dLocalStr(rawDate);
+          dateStr=dUTCStr(rawDate);
         }else{dateStr=String(rawDate).split('T')[0].split(' ')[0];}
         if(!dateStr)return;
         const pd=new Date(dateStr+'T12:00:00');
