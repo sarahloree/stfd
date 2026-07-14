@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Prevent the browser from serving a stale cached copy of the dashboard. A stale copy running
+     old date logic is what let a second, timezone-shifted payment date get written. After one hard
+     refresh, these keep every browser (incl. Yvonne's in Hong Kong) on the current build. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>STFD Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -389,7 +395,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-02a</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-02d</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -924,7 +930,14 @@ function handleFiles(files){
   if(STATE.outlook||STATE.jobs)$('btnLoad').classList.add('visible');
 }
 function markLoaded(id,name){const el=$(id);el.classList.add('loaded');el.querySelector('.fi-name').textContent=name;el.querySelector('.fi-status').textContent='✓ Loaded'}
-function readWB(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>{res(XLSX.read(e.target.result,{type:'array',cellDates:true}))};r.readAsArrayBuffer(file)})}
+function readWB(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>{res(XLSX.read(e.target.result,{type:'array',cellDates:false}))};r.readAsArrayBuffer(file)})}
+// NOTE: cellDates is FALSE on purpose. With raw:true, date cells then arrive as Excel SERIAL
+// NUMBERS — a pure integer day-count with no clock and no timezone. Every date helper below
+// (xlDateToYMD, xlDateToStr, ymd, and the conversion parser) converts serials with fixed UTC
+// arithmetic, so a payment dated "Jul 2" resolves to 2026-07-02 whether the file is uploaded
+// from Texas or Hong Kong. cellDates:true was turning cells into JS Date objects, whose calendar
+// day depends on the uploader's timezone — that is what doubled Yvonne's payments (dates landed
+// one day apart from Sarah's, defeating the hce_uidx unique key). Do NOT set cellDates:true here.
 
 async function buildDashboard(){
   $('loadScreen').style.display='none';
@@ -1001,7 +1014,11 @@ function dLocalStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStar
 function xlDateToYMD(rawDate){
   const p = n => String(n).padStart(2,'0');
   if(typeof rawDate==='number' && rawDate>40000){
-    const d=new Date(Math.round((rawDate-25569)*86400*1000)); // serial → UTC instant (no local tz)
+    // ONLY the date matters. Math.floor drops any time-of-day fraction the cell might carry
+    // (e.g. a timestamp of when it was typed), and the conversion is pure UTC arithmetic with
+    // no local clock — so serial 46205 is 2026-07-02 in every timezone, always.
+    const dayOnly = Math.floor(rawDate);
+    const d=new Date(Math.round((dayOnly-25569)*86400*1000));
     return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate());
   }
   if(rawDate instanceof Date){
@@ -1319,6 +1336,7 @@ async function syncToSupabase(jobs, payments){
         rep_name: String(p.rep_name||'').trim(),
         week_ending: p.week_ending||null,
         payment_date: p.payment_date||null,
+        payment_type: String(p.payment_type||'').trim().substring(0,60),
         invoice_total: parseFloat(p.invoice_total)||0,
         commission_rate: parseFloat(p.commission_rate)||0.06,
         total_commission: parseFloat(p.total_commission)||0,
@@ -1362,7 +1380,7 @@ function parsePaymentsFromJobs(wb){
   const iR=col(['sales rep']);
   const iT=col(['invoice total']);
   const iCr=col(['comm rate','commission rate']);
-  const paySlots=[{date:17,amt:19,comm:20},{date:21,amt:23,comm:24},{date:25,amt:27,comm:28},{date:29,amt:31,comm:32}];
+  const paySlots=[{date:17,type:18,amt:19,comm:20},{date:21,type:22,amt:23,comm:24},{date:25,type:26,amt:27,comm:28},{date:29,type:30,amt:31,comm:32}];
   const payments=[];
   rows.slice(1).forEach(r=>{
     const inv=String(r[iI]||'').trim();
@@ -1384,6 +1402,7 @@ function parsePaymentsFromJobs(wb){
       if(payAmt>0&&rawDate){
         const dateStr = xlDateToYMD(rawDate);
         if(!dateStr)return;
+        const payType = String(r[slot.type]==null?'':r[slot.type]).trim();
         const pd=new Date(dateStr+'T12:00:00');
         // Commission week runs Tuesday→Monday; week_ending is the closing Monday.
         // A payment that lands ON Monday belongs to THAT Monday's week (offset 0),
@@ -1393,7 +1412,7 @@ function parsePaymentsFromJobs(wb){
         const daysUntilMon=(1-pd.getDay()+7)%7;
         const we=new Date(pd);we.setDate(pd.getDate()+daysUntilMon);
         const weekEnding=we.toISOString().split('T')[0];
-        payments.push({invoice_number:inv,customer_name:customer,rep_name:rep,week_ending:weekEnding,payment_date:dateStr,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:Math.round(payAmt*100)/100,commission_on_payment:Math.round(commAmt*100)/100,pre_paid:0,available:Math.round(commAmt*100)/100});
+        payments.push({invoice_number:inv,customer_name:customer,rep_name:rep,week_ending:weekEnding,payment_date:dateStr,payment_type:payType,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:Math.round(payAmt*100)/100,commission_on_payment:Math.round(commAmt*100)/100,pre_paid:0,available:Math.round(commAmt*100)/100});
       }
     });
   });
@@ -2337,7 +2356,7 @@ async function loadJobPayments(inv){
   const ppApplied=rows.reduce((s,r)=>s+(parseFloat(r.pre_paid)||0),0);
   const advOut=Math.max(0,Math.round((advTotal-ppApplied)*100)/100);
   const list = rows.length
-    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th class="num">Amount</th><th class="num">Commission</th><th class="num">Pre-paid</th></tr></thead><tbody>${rows.map(r=>{const pamt=parseFloat(r.payment_received)||0,pcomm=parseFloat(r.commission_on_payment)||0,pdate=r.payment_date||'';return `<tr><td>${pdate||'—'}</td><td class="num">${fmt(pamt)}</td><td class="num">${fmt(pcomm)}</td><td class="num"><input type="number" step="0.01" class="jc-in jc-num" style="max-width:90px;border-color:var(--border);text-align:right" value="${parseFloat(r.pre_paid)||0}" title="Commission advanced earlier, recouped by this payment" onchange="jcSavePrepaid('${jcAtt(inv)}','${jcAtt(pdate)}',${pamt},${pcomm},this)"></td></tr>`}).join('')}</tbody></table>`
+    ? `<table style="width:100%;font-size:13px;margin-bottom:8px"><thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Type</th><th class="num">Amount</th><th class="num">Commission</th><th class="num">Pre-paid</th></tr></thead><tbody>${rows.map(r=>{const pamt=parseFloat(r.payment_received)||0,pcomm=parseFloat(r.commission_on_payment)||0,pdate=r.payment_date||'';return `<tr><td>${pdate||'—'}</td><td>${jcAtt(r.payment_type||'')||'<span style="color:var(--muted)">—</span>'}</td><td class="num">${fmt(pamt)}</td><td class="num">${fmt(pcomm)}</td><td class="num"><input type="number" step="0.01" class="jc-in jc-num" style="max-width:90px;border-color:var(--border);text-align:right" value="${parseFloat(r.pre_paid)||0}" title="Commission advanced earlier, recouped by this payment" onchange="jcSavePrepaid('${jcAtt(inv)}','${jcAtt(pdate)}',${pamt},${pcomm},this)"></td></tr>`}).join('')}</tbody></table>`
     : '<div style="color:var(--muted);font-size:13px;margin-bottom:8px">No payments recorded yet.</div>';
   const _tt=new Date(), _pm=new Date(); _pm.setDate(_tt.getDate()-((_tt.getDay()+6)%7)); const prevMon=dLocalStr(_pm); // last closed week-ending Monday
   const advList = advs.length
@@ -2346,7 +2365,7 @@ async function loadJobPayments(inv){
   cont.innerHTML = `<div style="display:flex;gap:24px;flex-wrap:wrap">`+
     jcCardHTML(j)+
     `<div style="flex:1;min-width:300px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Payments</div>${list}`+
-      `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="payd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="paya-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="number" step="0.01" id="payp-${id}" class="jc-in jc-num" placeholder="Pre-paid" value="${advOut||''}" title="Commission advanced earlier, recouped by this payment" style="border-color:${advOut?'var(--accent)':'var(--border)'};max-width:110px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddPayment('${jcAtt(inv)}')">+ Add payment</button></div>`+
+      `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="payd-${id}" class="jc-in" style="border-color:var(--border);max-width:155px"><input type="text" id="payt-${id}" class="jc-in" placeholder="Type (ACH, CC, ck#…)" style="border-color:var(--border);max-width:150px"><input type="number" step="0.01" id="paya-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="number" step="0.01" id="payp-${id}" class="jc-in jc-num" placeholder="Pre-paid" value="${advOut||''}" title="Commission advanced earlier, recouped by this payment" style="border-color:${advOut?'var(--accent)':'var(--border)'};max-width:110px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddPayment('${jcAtt(inv)}')">+ Add payment</button></div>`+
       `<div style="margin-top:14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Commission Advances ${advOut?`<span style="color:var(--accent);text-transform:none;letter-spacing:0">· ${fmt(advOut)} outstanding</span>`:''}</div>${advList}`+
         `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="date" id="advd-${id}" class="jc-in" value="${prevMon}" title="Week this advance applies to — defaults to the last closed week" style="border-color:var(--border);max-width:155px"><input type="number" step="0.01" id="adva-${id}" class="jc-in jc-num" placeholder="Amount" style="border-color:var(--border);max-width:120px"><input type="text" id="advn-${id}" class="jc-in" placeholder="Note (optional)" style="border-color:var(--border);max-width:150px"><button class="btn-secondary" style="padding:5px 12px" onclick="jcAddAdvance('${jcAtt(inv)}')">+ Log advance</button></div></div>`+
       (()=>{ const reps=[...new Set(DATA.jobs.map(x=>x.rep).filter(Boolean))].sort();
@@ -2440,7 +2459,8 @@ async function jcAddPayment(inv){
   const prePaidIn=parseFloat((document.getElementById('payp-'+id)||{}).value)||0;
   const prePaid=Math.min(Math.max(0,Math.round(prePaidIn*100)/100),commOnPay);
   const available=Math.round((commOnPay-prePaid)*100)/100;
-  const row={invoice_number:inv,customer_name:j.customer,rep_name:j.rep,week_ending:jcWeekMonday(date),payment_date:date,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:amount,commission_on_payment:commOnPay,pre_paid:prePaid,available:available};
+  const payType=String((document.getElementById('payt-'+id)||{}).value||'').trim().substring(0,60);
+  const row={invoice_number:inv,customer_name:j.customer,rep_name:j.rep,week_ending:jcWeekMonday(date),payment_date:date,payment_type:payType,invoice_total:total,commission_rate:rate,total_commission:totalComm,payment_received:amount,commission_on_payment:commOnPay,pre_paid:prePaid,available:available};
   if(sb){ const {error}=await sb.from('historical_commission_entries').insert([row]); if(error){alert('Error saving payment: '+error.message);return;} }
   jcPaid[inv]=(jcPaid[inv]||0)+amount;
   j.outstanding=Math.max(0,Math.round(((j.total||0)-(jcPaid[inv]||0))*100)/100);
