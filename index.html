@@ -389,7 +389,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-01z</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-02a</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -986,10 +986,29 @@ function reloadFiles(){$('dashboard').style.display='none';$('loadScreen').style
 function sheetArr(wb,name){const ws=wb.Sheets[name];if(!ws)return[];return XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true})}
 
 function dLocalStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-// UTC-based date string. Excel/SheetJS hand back date cells at UTC midnight; formatting them
-// with LOCAL getters (dLocalStr) rolls the day back one in negative-UTC timezones, which is what
-// created the day-apart duplicate payments. Payment dates MUST use this so every sync is stable.
-function dUTCStr(d){ return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+// ── TIMEZONE-PROOF payment-date derivation ─────────────────────────────────────
+// The payment upsert key includes payment_date, so this string MUST come out identical
+// no matter which timezone the file is uploaded from — Yvonne uploads from Hong Kong
+// (UTC+8), Sarah from Texas (UTC-6). Same file, same payment, must yield the same date.
+//   • Excel serial number  → pure day-count math, no clock, no timezone. Timezone-free.
+//   • JS Date (from SheetJS)→ read LOCAL wall-clock fields. SheetJS builds date cells at the
+//     browser's local midnight, so local getters recover the exact date the human typed —
+//     the SAME value in every timezone. (Reading UTC fields here was the previous bug: it
+//     shifted Hong Kong uploads back a day and re-created the duplicates.)
+//   • string (dashboard date input, ISO, etc.) → keep the date portion as-is; never shift it.
+// This means payments TYPED INTO THE DASHBOARD (date-input strings) are passed through
+// untouched — this logic only normalizes dates coming out of an uploaded spreadsheet.
+function xlDateToYMD(rawDate){
+  const p = n => String(n).padStart(2,'0');
+  if(typeof rawDate==='number' && rawDate>40000){
+    const d=new Date(Math.round((rawDate-25569)*86400*1000)); // serial → UTC instant (no local tz)
+    return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate());
+  }
+  if(rawDate instanceof Date){
+    return rawDate.getFullYear()+'-'+p(rawDate.getMonth()+1)+'-'+p(rawDate.getDate()); // local wall-clock
+  }
+  return String(rawDate).split('T')[0].split(' ')[0];
+}
 
 function xlDateToStr(v){
   // SheetJS raw:true returns serial numbers for dates
@@ -1363,13 +1382,7 @@ function parsePaymentsFromJobs(wb){
       const payAmt=parseFloat(r[slot.amt])||0;
       const commAmt=parseFloat(r[slot.comm])||0;
       if(payAmt>0&&rawDate){
-        let dateStr='';
-        if(typeof rawDate==='number'&&rawDate>40000){
-          const d=new Date(Math.round((rawDate-25569)*86400*1000));
-          dateStr=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
-        }else if(rawDate instanceof Date){
-          dateStr=dUTCStr(rawDate);
-        }else{dateStr=String(rawDate).split('T')[0].split(' ')[0];}
+        const dateStr = xlDateToYMD(rawDate);
         if(!dateStr)return;
         const pd=new Date(dateStr+'T12:00:00');
         // Commission week runs Tuesday→Monday; week_ending is the closing Monday.
