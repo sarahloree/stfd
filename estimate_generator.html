@@ -100,6 +100,9 @@ body.view-customer .cust-hide{display:none!important}
   .app-hdr,.no-print,.pull-row,.add-line,.rm,.col-x,#toast,.rt-toolbar{display:none!important}
   .rt-area{border:none!important;background:transparent!important;padding:0!important;min-height:0!important;color:#000!important}
   .terms-block p{color:#333!important}
+  .lines-sec{page-break-before:always;break-before:page}
+  .photo-page{page-break-inside:avoid;break-inside:avoid;margin-top:10px!important}
+  .photo-page img{max-height:3.1in;width:auto;max-width:100%}
   body{background:#fff;color:#000}
   .wrap{max-width:100%;padding:0}
   .doc{border:none;border-radius:0;padding:0}
@@ -197,7 +200,7 @@ body.view-customer .cust-hide{display:none!important}
     </div>
 
     <!-- line items -->
-    <div class="sec cust-hide">
+    <div class="sec cust-hide lines-sec">
       <div class="sec-h">Line items</div>
       <table class="lines">
         <thead><tr>
@@ -260,7 +263,7 @@ body.view-customer .cust-hide{display:none!important}
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07i</div>
+  <div class="stamp">build 2026-07-07k</div>
 </div>
 
 <div id="toast"></div>
@@ -306,8 +309,10 @@ function setView(v){
 async function loadCustPhotos(){
   if(!customerId) return;
   var r=await sb.from('attachments').select('*').eq('customer_id',customerId).order('created_at',{ascending:false});
-  if(r.error) return;
-  custPhotos=r.data||[];
+  var atts=(r&&!r.error&&r.data)?r.data:[];
+  var draws=[];
+  quotes.forEach(function(q){ if(q.drawing_url) draws.push({id:'q:'+q.id, public_url:q.drawing_url, label:(q.drawing_no?('Fence drawing '+q.drawing_no):'Fence drawing')}); });
+  custPhotos=draws.concat(atts);
   if(!custPhotos.length){ $('photoPickSec').style.display='none'; renderPhotoPages(); return; }
   $('photoPickSec').style.display='';
   renderPhotoPick(); renderPhotoPages();
@@ -345,6 +350,7 @@ function renderPrepBy(){
   if(r.email) out+='<div>'+esc(r.email)+'</div>';
   el.innerHTML=out;
 }
+function genEstNumber(){ var d=new Date(); return 'E'+d.getFullYear().toString().slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)+'-'+Math.floor(Math.random()*9000+1000); }
 function printDoc(){var t=$('toast'); if(t)t.className=''; setTimeout(function(){window.print();},60);}
 
 // ---- line items ----
@@ -408,7 +414,11 @@ function pullFromDiagram(){
   if(customerId && q.customer_id!==customerId){ sb.from('fence_quotes').update({customer_id:customerId}).eq('id',q.id).then(function(){},function(){}); q.customer_id=customerId; }
   linkedQuoteId=q.id;
   renderLines();
-  toast(added+' materials pulled from diagram');
+  if(q.drawing_url){ var did='q:'+q.id; if(selectedPhotos.indexOf(did)===-1) selectedPhotos.push(did); }
+  var jd=(q.config&&q.config.job_description)?String(q.config.job_description):'';
+  if(jd && $('e_desc') && !$('e_desc').innerHTML.trim()){ $('e_desc').innerHTML=esc(jd).replace(/\n/g,'<br>'); }
+  loadCustPhotos();
+  toast(added+' materials pulled'+(q.drawing_url?' \u00b7 drawing attached':''));
 }
 
 // ---- save ----
@@ -452,11 +462,23 @@ async function saveEstimate(){
   payload.revisions=revs;
   var res;
   if(editingId){ res=await sb.from('estimates').update(payload).eq('estimate_id',editingId).select('estimate_id,estimate_number').single(); }
-  else { res=await sb.from('estimates').insert(payload).select('estimate_id,estimate_number').single(); }
+  else {
+    res=await sb.from('estimates').insert(payload).select('estimate_id,estimate_number').single();
+    if(res.error && String(res.error.code)==='23505'){ payload.estimate_number=genEstNumber(); $('e_number').value=payload.estimate_number; res=await sb.from('estimates').insert(payload).select('estimate_id,estimate_number').single(); }
+  }
   if(res.error){ toast('Save failed: '+res.error.message,true); return; }
   if(editingId&&loadedEstimate){ loadedEstimate.total=total; loadedEstimate.line_items=lines; loadedEstimate.revisions=revs; origTotal=total; origLinesJSON=JSON.stringify(lines); if($('changeNote'))$('changeNote').value=''; renderRevisions(revs);
     toast('Estimate updated'+(res.data&&res.data.estimate_number?(' · #'+res.data.estimate_number):'')); }
-  else { toast('Estimate saved'+(res.data&&res.data.estimate_number?(' · #'+res.data.estimate_number):'')); }
+  else {
+    editingId=res.data.estimate_id;
+    loadedEstimate=JSON.parse(JSON.stringify(payload)); loadedEstimate.estimate_id=editingId; loadedEstimate.revisions=revs;
+    origTotal=total; origLinesJSON=JSON.stringify(lines);
+    if($('saveBtn'))$('saveBtn').textContent='Update estimate';
+    if($('convBtn')){ $('convBtn').style.display=''; $('convBtn').textContent='Convert to invoice'; }
+    if($('changeOrderSec')){ $('changeOrderSec').style.display=''; $('changeNoteWrap').style.display=''; }
+    renderRevisions(revs);
+    toast('Estimate saved'+(res.data&&res.data.estimate_number?(' · #'+res.data.estimate_number):''));
+  }
 }
 
 // ---- init ----
@@ -503,7 +525,7 @@ async function convertToInvoice(){
     customer_id:customerId, estimate_id:editingId, customer_name:$('c_name').value.trim()||null, customer_address:$('c_address').value.trim()||null,
     customer_city:$('c_city').value.trim()||null, customer_state:$('c_state').value.trim()||null, customer_zip:$('c_zip').value.trim()||null,
     customer_phone:$('c_phone').value.trim()||null, customer_email:$('c_email').value.trim()||null, sales_rep:$('e_rep').value||null, job_type:$('e_jobtype').value||null,
-    line_items:lines, subtotal:round2(sub), tax_amount:tax, total:total, amount_paid:0, status:'draft', invoice_date:today.toISOString().slice(0,10), due_date:due.toISOString().slice(0,10), notes:$('e_notes').value.trim()||null };
+    line_items:lines, subtotal:round2(sub), tax_amount:tax, total:total, amount_paid:0, status:'draft', invoice_date:today.toISOString().slice(0,10), due_date:due.toISOString().slice(0,10), notes:$('e_notes').value.trim()||null, job_description:($('e_desc')?($('e_desc').innerHTML.trim()||null):null), photo_ids:selectedPhotos };
   var r=await sb.from('invoices').insert(inv).select('id').single();
   if(r.error){ toast('Convert failed: '+r.error.message,true); return; }
   var invId=r.data.id;
@@ -554,7 +576,7 @@ function renderRevisions(revs){
 }
 async function loadQuotes(showAll){
   var sel=$('quotePick'); var rows=[];
-  var cols='id,drawing_no,client_name,created_at,total,bom,customer_id';
+  var cols='id,drawing_no,client_name,created_at,total,bom,customer_id,drawing_url,config';
   if(customerId){ var a=await sb.from('fence_quotes').select(cols).eq('customer_id',customerId).order('created_at',{ascending:false}); if(!a.error&&a.data) rows=rows.concat(a.data); }
   if(customerName){ var b=await sb.from('fence_quotes').select(cols).is('customer_id',null).ilike('client_name','%'+customerName+'%').order('created_at',{ascending:false}); if(!b.error&&b.data) rows=rows.concat(b.data); }
   if(showAll){ var c=await sb.from('fence_quotes').select(cols).is('customer_id',null).order('created_at',{ascending:false}).limit(50); if(!c.error&&c.data) rows=rows.concat(c.data); }
