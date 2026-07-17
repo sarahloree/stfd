@@ -77,6 +77,15 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .tool-card.soon .tc-tag{color:var(--dim)}
 .tools-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .tools-row .tool-soon{opacity:.55}
+.upload-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.up-status{font-size:12px;color:var(--muted)}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.photo-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.photo-card img{width:100%;height:100px;object-fit:cover;border-radius:6px;cursor:pointer;background:var(--s3)}
+.photo-label{background:var(--s1);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 7px;font-family:inherit;font-size:12px;width:100%;outline:none}
+.photo-label:focus{border-color:var(--accent)}
+.photo-del{background:none;border:none;color:var(--dim);font-family:inherit;font-size:11px;cursor:pointer;padding:0;text-align:left}
+.photo-del:hover{color:var(--red)}
 .est-badge{margin-top:6px;display:inline-block;font-size:12px;color:var(--accent);background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:2px 9px}
 .inv-badge{color:var(--green)}
 .est-badge+.inv-badge{margin-left:6px}
@@ -199,6 +208,13 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
       <button class="btn btn-ghost" onclick="openTool('invoice', currentCustomerId, currentCustomerName)">Invoice</button>
     </div>
 
+    <div class="notes-h">Photos &amp; documents</div>
+    <div class="upload-row">
+      <label class="btn btn-ghost" style="cursor:pointer;margin:0">+ Add photo<input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="uploadFiles(this.files)"></label>
+      <span id="upStatus" class="up-status"></span>
+    </div>
+    <div id="photoGrid"></div>
+
     <div class="notes-h">Estimates</div>
     <div id="estList"></div>
 
@@ -213,7 +229,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07g</div>
+  <div class="stamp">build 2026-07-07h</div>
 </div>
 
 <div id="toast"></div>
@@ -413,6 +429,7 @@ async function openCustomer(id){
   loadNotes(id);
   loadEstimatesList(id);
   loadInvoicesList(id);
+  loadPhotos(id);
 }
 
 async function saveCustomer(){
@@ -506,6 +523,48 @@ async function loadInvoicesList(cid){
       +'<div class="est-sub">'+esc(when)+' · '+esc(v.status||'draft')+(bal>0.005?(' · '+money(bal)+' due'):' · paid')+'</div>'
       +'</div>';
   }).join('');
+}
+async function loadPhotos(cid){
+  var el=$('photoGrid'); if(!el) return;
+  var r=await sb.from('attachments').select('*').eq('customer_id',cid).order('created_at',{ascending:false});
+  if(r.error){ el.innerHTML='<div class="sub" style="color:var(--dim)">Could not load photos.</div>'; return; }
+  var rows=r.data||[];
+  if(!rows.length){ el.innerHTML='<div class="sub" style="color:var(--dim)">No photos yet. Add site photos, before/after shots, or drawings.</div>'; return; }
+  el.innerHTML='<div class="photo-grid">'+rows.map(function(p){
+    return '<div class="photo-card">'
+      +'<img src="'+esc(p.public_url)+'" alt="'+esc(p.label||'')+'" onclick="window.open(\''+esc(p.public_url)+'\',\'_blank\')">'
+      +'<input class="photo-label" value="'+esc(p.label||'')+'" placeholder="Add a label…" onblur="saveLabel(\''+p.id+'\',this.value)">'
+      +'<button class="photo-del" onclick="deletePhoto(\''+p.id+'\',\''+esc(p.file_path)+'\')">Remove</button>'
+      +'</div>';
+  }).join('')+'</div>';
+}
+async function uploadFiles(files){
+  if(!files||!files.length||!currentCustomerId) return;
+  var st=$('upStatus'); var done=0;
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    st.textContent='Uploading '+(i+1)+' of '+files.length+String.fromCharCode(8230);
+    var ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+    var path=currentCustomerId+'/'+Date.now()+'-'+Math.floor(Math.random()*10000)+'.'+ext;
+    var up=await sb.storage.from('job-photos').upload(path,file,{cacheControl:'3600',upsert:false});
+    if(up.error){ toast('Upload failed: '+up.error.message,true); continue; }
+    var pub=sb.storage.from('job-photos').getPublicUrl(path);
+    var url=(pub&&pub.data&&pub.data.publicUrl)?pub.data.publicUrl:'';
+    var ins=await sb.from('attachments').insert({customer_id:currentCustomerId,file_path:path,public_url:url,label:'',mime_type:file.type,uploaded_by:currentRepId||null});
+    if(ins.error){ toast('Save failed: '+ins.error.message,true); continue; }
+    done++;
+  }
+  st.textContent=''; $('fileInput').value='';
+  if(done) toast(done+' photo'+(done>1?'s':'')+' added');
+  loadPhotos(currentCustomerId);
+}
+async function saveLabel(id,v){ await sb.from('attachments').update({label:v.trim()||null}).eq('id',id); }
+async function deletePhoto(id,path){
+  if(!confirm('Remove this photo?')) return;
+  await sb.storage.from('job-photos').remove([path]);
+  var r=await sb.from('attachments').delete().eq('id',id);
+  if(r.error){ toast('Remove failed: '+r.error.message,true); return; }
+  toast('Photo removed'); loadPhotos(currentCustomerId);
 }
 function openInvoice(iid){
   var url='https://stfd.netlify.app/invoice.html?invoice_id='+encodeURIComponent(iid)+(currentCustomerId?('&customer_id='+encodeURIComponent(currentCustomerId)):'');
