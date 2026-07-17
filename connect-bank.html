@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>STFD — Connect Bank Account</title>
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<style>
+  :root{
+    --ink:#1c2733; --paper:#f6f8f7; --card:#ffffff;
+    --green:#1e6f50; --green-dark:#15543c; --line:#dde4e1;
+    --ok-bg:#e8f5ee; --err:#b3402a; --muted:#5f6f6a;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    max-width:520px; width:100%; padding:36px 32px; box-shadow:0 2px 14px rgba(28,39,51,.06);
+  }
+  .brand{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--green); font-weight:700; margin:0 0 6px}
+  h1{font-size:26px; margin:0 0 10px; line-height:1.2}
+  p{line-height:1.55; margin:0 0 14px}
+  .muted{color:var(--muted); font-size:14px}
+  button{
+    font:inherit; font-weight:600; border:0; border-radius:8px; cursor:pointer;
+    padding:14px 22px; font-size:17px; width:100%;
+  }
+  #launch{background:var(--green); color:#fff; margin-top:8px}
+  #launch:hover{background:var(--green-dark)}
+  #launch:disabled{background:#a8bdb4; cursor:not-allowed}
+  .field{margin:18px 0 6px}
+  label{display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--muted)}
+  input[type=text]{
+    width:100%; padding:11px 12px; font-size:14px; border:1px solid var(--line);
+    border-radius:8px; font-family:Consolas, monospace;
+  }
+  input[type=text]:focus{outline:2px solid var(--green); border-color:var(--green)}
+  #result{display:none; margin-top:22px; padding:16px; border-radius:8px; background:var(--ok-bg); border:1px solid #bfe0cf}
+  #result h2{font-size:16px; margin:0 0 8px; color:var(--green-dark)}
+  #ptoken{
+    font-family:Consolas, monospace; font-size:13px; word-break:break-all;
+    background:#fff; border:1px solid var(--line); border-radius:6px; padding:10px; margin:8px 0;
+  }
+  #copyBtn{background:var(--ink); color:#fff; font-size:14px; padding:10px 16px; width:auto}
+  #error{display:none; margin-top:16px; color:var(--err); font-size:14px; line-height:1.5}
+  .setup{border-top:1px dashed var(--line); margin-top:26px; padding-top:14px}
+  .setup summary{cursor:pointer; font-size:13px; color:var(--muted); font-weight:600}
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="brand">South Texas Fence &amp; Deck</p>
+  <h1>Connect the company bank account</h1>
+  <p>Click the button below and log in with the <strong>Prosperity Bank online banking</strong> username and password. Your login goes directly to the bank through Plaid's secure window — it is not seen or stored by anyone at STFD.</p>
+
+  <button id="launch" disabled>Connect Bank Account</button>
+
+  <div id="result">
+    <h2>Connected ✓</h2>
+    <p class="muted">Show this code to Sarah (or copy and send it to her). It expires in about 30 minutes.</p>
+    <div id="ptoken"></div>
+    <button id="copyBtn">Copy code</button>
+  </div>
+
+  <div id="error"></div>
+
+  <details class="setup">
+    <summary>Setup (Sarah only)</summary>
+    <div class="field">
+      <label for="ltoken">Paste link_token here, then the button above activates</label>
+      <input type="text" id="ltoken" placeholder="link-production-xxxxxxxx..." autocomplete="off">
+    </div>
+    <p class="muted">Tip: you can also open this page as <code>?token=link-production-xxx</code> to prefill.</p>
+  </details>
+</div>
+
+<script>
+(function(){
+  var launch = document.getElementById('launch');
+  var input  = document.getElementById('ltoken');
+  var result = document.getElementById('result');
+  var ptokenBox = document.getElementById('ptoken');
+  var copyBtn = document.getElementById('copyBtn');
+  var errBox = document.getElementById('error');
+  var handler = null;
+
+  function showError(msg){
+    errBox.textContent = msg;
+    errBox.style.display = 'block';
+  }
+  function clearError(){ errBox.style.display = 'none'; }
+
+  function buildHandler(token){
+    clearError();
+    if (handler) { try { handler.destroy(); } catch(e){} handler = null; }
+    if (!token || token.indexOf('link-') !== 0) { launch.disabled = true; return; }
+    try {
+      handler = Plaid.create({
+        token: token,
+        onSuccess: function(public_token, metadata){
+          ptokenBox.textContent = public_token;
+          result.style.display = 'block';
+          launch.style.display = 'none';
+        },
+        onExit: function(err, metadata){
+          if (err) {
+            showError('The connection was not completed (' + (err.display_message || err.error_code || 'closed') + '). You can click the button and try again.');
+          }
+        }
+      });
+      launch.disabled = false;
+    } catch(e){
+      showError('Could not initialize the connection window. Check that the link_token is complete and unexpired.');
+      launch.disabled = true;
+    }
+  }
+
+  launch.addEventListener('click', function(){ if (handler) handler.open(); });
+
+  copyBtn.addEventListener('click', function(){
+    navigator.clipboard.writeText(ptokenBox.textContent).then(function(){
+      copyBtn.textContent = 'Copied ✓';
+      setTimeout(function(){ copyBtn.textContent = 'Copy code'; }, 2000);
+    });
+  });
+
+  input.addEventListener('input', function(){ buildHandler(input.value.trim()); });
+
+  var qs = new URLSearchParams(window.location.search);
+  var pre = qs.get('token');
+  if (pre) { input.value = pre; buildHandler(pre.trim()); }
+})();
+</script>
+</body>
+</html>
