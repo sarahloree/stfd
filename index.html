@@ -395,7 +395,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
 
 <div id="dashboard" style="display:none">
 <header class="hdr">
-  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-02e</span></div></div></div>
+  <div class="hdr-brand"><div><div class="logo">STFD</div><div class="sub">Operations <span style="color:var(--accent);font-weight:700" title="Deployed build">· build 2026-07-02f</span></div></div></div>
   <nav class="tabs">
     <div class="tab active" onclick="showTab('weekly')" id="t-weekly">Weekly Summary</div>
     <div class="tab" onclick="showTab('schedule')" id="t-schedule">Job Schedule</div>
@@ -416,6 +416,7 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0}
     <button class="btn-secondary" style="font-size:15px;padding:5px 12px" onclick="openModal('newPaymentModal')">+ Payment</button>
     <button class="btn-secondary" style="font-size:15px;padding:5px 12px" onclick="openModal('overheadModal')">+ Overhead</button>
     <button class="reload-btn" id="reloadBtn" onclick="reloadFiles()" title="Upload Excel files to refresh data">⟳ Upload Excel</button>
+    <button class="reload-btn" id="logoutBtn" onclick="doLogout()" title="Sign out (return to password screen)" style="margin-left:6px">Sign out</button>
     <button class="publish-btn" id="publishBtn" onclick="publishToPhillip()">⬆ Publish to Phillip</button>
     <span id="publishStatus"></span>
   </div>
@@ -2511,42 +2512,49 @@ function initSupabase() {
 async function doLogin() {
   const pwd = $('loginPassword').value;
   if (pwd === DASHBOARD_PASSWORD) {
-    $('loginScreen').style.display = 'none';
-
-    // Show the dashboard immediately — no file upload required
-    $('loadScreen').style.display = 'none';
-    $('dashboard').style.display = 'block';
-
-    // Initialize Supabase and load all persisted data
-    initSupabase();
-    await loadSbJobs();
-    await loadAllSupabaseData();
-
-    // Populate UI from Supabase data
-    buildCommSel();
-    renderJobs();
-    if(typeof renderPipeline==='function') renderPipeline();
-    if(typeof renderAging==='function') renderAging();
-
-    // Schedule board: anchor to latest week's Monday (falls back to current week)
-    const lastWk=DATA.weeks.length?DATA.weeks[DATA.weeks.length-1]:null;
-    schedAnchor=mondayOf(parseYMD(lastWk&&(lastWk.start||lastWk.startDate))||new Date());
-    loadSchedWorkers();
-
-    // Show appropriate default tab
-    if(DATA.weeks.length) showTab('weekly');
-    else showTab('jobs');
-
-    // Show the Excel upload button in the header for optional refresh
-    const reloadBtn = document.getElementById('reloadBtn');
-    if(reloadBtn) reloadBtn.style.display = 'inline-block';
-
+    try{ localStorage.setItem('stfd_auth','1'); }catch(e){}   // remember login across refreshes
+    await enterDashboard();
   } else {
     $('loginError').style.display = 'block';
     $('loginPassword').value = '';
     $('loginPassword').focus();
   }
 }
+
+// Everything that happens once the user is authenticated. Called by doLogin AND on page
+// load when a saved login is present, so a refresh no longer forces a new sign-in.
+async function enterDashboard() {
+  $('loginScreen').style.display = 'none';
+  $('loadScreen').style.display = 'none';
+  $('dashboard').style.display = 'block';
+
+  initSupabase();
+  await loadSbJobs();
+  await loadAllSupabaseData();
+
+  buildCommSel();
+  renderJobs();
+  if(typeof renderPipeline==='function') renderPipeline();
+  if(typeof renderAging==='function') renderAging();
+
+  const lastWk=DATA.weeks.length?DATA.weeks[DATA.weeks.length-1]:null;
+  schedAnchor=mondayOf(parseYMD(lastWk&&(lastWk.start||lastWk.startDate))||new Date());
+  loadSchedWorkers();
+
+  if(DATA.weeks.length) showTab('weekly');
+  else showTab('jobs');
+
+  const reloadBtn = document.getElementById('reloadBtn');
+  if(reloadBtn) reloadBtn.style.display = 'inline-block';
+}
+
+// Clear the saved login and return to the password screen.
+function doLogout(){ try{ localStorage.removeItem('stfd_auth'); }catch(e){} location.reload(); }
+
+// On load, skip the password screen if this browser already signed in.
+window.addEventListener('DOMContentLoaded', function(){
+  try{ if(localStorage.getItem('stfd_auth')==='1') enterDashboard(); }catch(e){}
+});
 
 // Map a Supabase `jobs` row to the dashboard job object. New cost columns fall back
 // to the legacy material_cost/field_labour_cost so this keeps working before the
