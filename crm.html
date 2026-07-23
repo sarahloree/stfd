@@ -6,19 +6,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="STFD CRM">
-<meta name="theme-color" content="#9a7016">
+<meta name="theme-color" content="#7c2128">
 <title>STFD CRM</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-:root{--bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;--border:#2a2f45;--accent:#c8922a;--green:#22c55e;--red:#ef4444;--blue:#60a5fa;--text:#ffffff;--muted:#94a3b8;--dim:#4a5070}
-html[data-theme="light"]{--bg:#f4f6fb;--s1:#ffffff;--s2:#eef2f8;--s3:#e4e9f2;--border:#d3dbe8;--accent:#9a7016;--green:#15803d;--red:#dc2626;--blue:#2563eb;--text:#14203a;--muted:#5a6a86;--dim:#9aa6bb}
+@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Barlow:wght@300;400;500;600;700&display=swap');
+:root{--bg:#17120f;--s1:#221b16;--s2:#2b221c;--s3:#352a22;--border:#3d3128;--accent:#b8434b;--accent2:#c79552;--green:#45c07a;--red:#ef5350;--blue:#c79552;--text:#f2ebe0;--muted:#b8a998;--dim:#7d6f60}
+html[data-theme="light"]{--bg:#e9e4db;--s1:#f7f3ec;--s2:#e0d9cc;--s3:#d6cdbd;--border:#d5cab8;--accent:#7c2128;--accent2:#a8763e;--green:#2f7d4f;--red:#b3392f;--blue:#a8763e;--text:#241d18;--muted:#6f6456;--dim:#9c8f7d}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:16px;min-height:100vh;-webkit-font-smoothing:antialiased}
 .wrap{max-width:680px;margin:0 auto;padding:0 14px 40px}
 /* header */
-.hdr{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.hdr .brand{display:flex;align-items:center;gap:9px}.brand-logo{height:50px;width:auto;display:block}.brand-name{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--accent);letter-spacing:1px;font-size:24px;white-space:nowrap}
+.hdr{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(36,29,24,.05)}
+.hdr .brand{display:flex;align-items:center;gap:9px}.brand-logo{height:50px;width:auto;display:block}.brand-name{font-family:'Zilla Slab',serif;font-weight:700;color:var(--accent);letter-spacing:.5px;font-size:25px;white-space:nowrap}
 .hdr .spacer{flex:1}
 .hdr select,.hdr button{font-family:inherit;font-size:14px}
 .rep-pick{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
@@ -43,13 +43,13 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .filters select{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:20px;font-family:inherit;font-size:13px}
 /* cards */
-.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
-.card:hover{border-color:var(--accent)}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:0 1px 2px rgba(36,29,24,.05)}
+.card:hover{border-color:var(--accent);box-shadow:0 4px 12px rgba(124,33,40,.10)}
 .card .top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.card .name{font-weight:600;font-size:16px}
+.card .name{font-family:'Zilla Slab',serif;font-weight:600;font-size:17px}
 .card .sub{color:var(--muted);font-size:13px;line-height:1.5}
 .badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:12px}
-.badge.lead{background:rgba(37,99,235,.14);color:var(--blue)}
+.badge.lead{background:rgba(168,118,62,.16);color:var(--accent2)}
 .badge.customer{background:rgba(21,128,61,.16);color:var(--green)}
 .rep-tag{margin-left:auto;font-size:12px;color:var(--dim)}
 .empty{text-align:center;color:var(--muted);padding:48px 20px;font-size:15px}
@@ -64,15 +64,17 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .check input{width:auto}
 .check label{text-transform:none;letter-spacing:0;font-size:15px;color:var(--text)}
 .screen-title{display:flex;align-items:center;gap:10px;margin:16px 0}
-.screen-title h2{font-size:20px;font-weight:600}
+.screen-title h2{font-family:'Zilla Slab',serif;font-size:21px;font-weight:600}
 .back{background:none;border:none;color:var(--accent);font-family:inherit;font-size:15px;cursor:pointer;padding:4px 0}
+.mini-link{background:none;border:none;color:var(--accent2);font-family:inherit;font-size:12px;cursor:pointer;padding:5px 0 0;text-align:left;align-self:flex-start}
+.mini-link:hover{text-decoration:underline}
 /* notes */
-.notes-h{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:20px 0 10px}
+.notes-h{font-family:'Zilla Slab',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent);margin:20px 0 10px}
 .tools-strip{display:flex;gap:8px;margin:14px 0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tool-card{flex:1;min-width:118px;background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;transition:border-color .15s}
 .tool-card.live:hover{border-color:var(--accent)}
 .tool-card .tc-name{font-weight:600;font-size:14px}
-.tool-card .tc-tag{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
+.tool-card .tc-tag{font-size:11px;color:var(--accent2);text-transform:uppercase;letter-spacing:.5px}
 .tool-card.soon{opacity:.6}
 .tool-card.soon .tc-tag{color:var(--dim)}
 .tools-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
@@ -92,8 +94,8 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .est-item{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
 .est-item:hover{border-color:var(--accent)}
 .est-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.est-name{font-weight:600;font-size:14px}
-.est-total{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600}
+.est-name{font-family:'Zilla Slab',serif;font-weight:600;font-size:15px}
+.est-total{font-variant-numeric:tabular-nums;color:var(--accent2);font-weight:600}
 .est-sub{font-size:12px;color:var(--muted);margin-top:2px}
 .note{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px}
 .note .meta{font-size:12px;color:var(--dim);margin-bottom:4px}
@@ -104,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.err{border-color:var(--red);color:var(--red)}
 .hide{display:none!important}
-.stamp{text-align:center;color:var(--dim);font-size:11px;margin-top:24px;font-family:'IBM Plex Mono',monospace}
+.stamp{text-align:center;color:var(--dim);font-size:11px;margin-top:24px;font-family:ui-monospace,'SFMono-Regular',Menlo,monospace}
 </style>
 </head>
 <body>
@@ -159,10 +161,35 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
       <div class="form-group"><label>Type</label><select id="a_customer_type"><option value="residential">Residential</option><option value="commercial">Commercial</option></select></div>
     </div>
     <div class="row2">
-      <div class="form-group"><label>Lead source</label><select id="a_lead_source"><option value="">—</option><option>Website</option><option>Referral</option><option>Walk-in</option><option>Social Media</option><option>Repeat customer</option><option>Other</option></select></div>
+      <div class="form-group"><label>Lead source</label><select id="a_lead_source"><option value="">—</option><option>Referral</option><option>Repeat customer</option><option>Door-to-door</option><option>Google</option><option>Facebook/Meta</option><option>Website</option><option>Yard sign</option><option>Walk-in</option><option>Other</option></select></div>
       <div class="form-group"><label>Preferred contact</label><select id="a_preferred_contact_method"><option value="">—</option><option>Phone</option><option>Email</option><option>Text</option></select></div>
     </div>
     <div class="form-group"><label>Assigned rep</label><select id="a_assigned_rep"></select></div>
+    <div class="notes-h">Job details</div>
+    <div class="row2">
+      <div class="form-group"><label>Type of job</label><select id="a_type_of_job"><option value="">—</option><option>Wood privacy</option><option>Chain link</option><option>Ornamental iron/steel</option><option>Deck</option><option>Gate/repair</option><option>Other</option></select></div>
+      <div class="form-group"><label>Fence height</label><select id="a_fence_height"><option value="">—</option><option>4'</option><option>6'</option><option>8'</option><option>Other</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="form-group"><label>Job size</label><input id="a_job_qty" inputmode="decimal" placeholder="e.g. 340"></div>
+      <div class="form-group"><label>Unit</label><select id="a_job_qty_unit"><option value="lf">Linear ft</option><option value="sqft">Sq ft</option></select></div>
+    </div>
+    <div class="form-group"><label>Job location</label><input id="a_job_location" placeholder="Job site address"><button type="button" class="mini-link" onclick="copyAddrToJob('a')">Same as address ↑</button></div>
+    <div class="row2">
+      <div class="form-group check"><input type="checkbox" id="a_quoted_on_spot"><label for="a_quoted_on_spot">Quoted on the spot</label></div>
+      <div class="form-group check"><input type="checkbox" id="a_contact_validated"><label for="a_contact_validated">Contact validated</label></div>
+    </div>
+    <div class="form-group"><label>Brief description of services</label><textarea id="a_service_description" placeholder="What the job involves…"></textarea></div>
+    <div class="notes-h">Site conditions</div>
+    <div class="row2">
+      <div class="form-group"><label>Skid steer access</label><select id="a_sc_skid_steer"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div class="form-group"><label>Water on site</label><select id="a_sc_water"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="form-group"><label>Electric on site</label><select id="a_sc_electric"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div class="form-group"><label>Tear-out needed</label><select id="a_sc_tear_out"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+    </div>
+    <div class="form-group"><label>Travel / zone note</label><input id="a_sc_travel_note" placeholder="e.g. outside 77901-05"></div>
     <div class="form-group"><label>Invoice2Go # (optional)</label><input id="a_invoice2go_ref" placeholder="Legacy reference"></div>
     <div class="form-group check"><input type="checkbox" id="a_do_not_contact"><label for="a_do_not_contact">Do not contact</label></div>
     <div class="form-group"><label>First note (optional)</label><textarea id="a_note" placeholder="Anything worth remembering about this lead…"></textarea></div>
@@ -190,10 +217,35 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
       <div class="form-group"><label>Type</label><select id="d_customer_type"><option value="residential">Residential</option><option value="commercial">Commercial</option></select></div>
     </div>
     <div class="row2">
-      <div class="form-group"><label>Lead source</label><select id="d_lead_source"><option value="">—</option><option>Website</option><option>Referral</option><option>Walk-in</option><option>Social Media</option><option>Repeat customer</option><option>Other</option></select></div>
+      <div class="form-group"><label>Lead source</label><select id="d_lead_source"><option value="">—</option><option>Referral</option><option>Repeat customer</option><option>Door-to-door</option><option>Google</option><option>Facebook/Meta</option><option>Website</option><option>Yard sign</option><option>Walk-in</option><option>Other</option></select></div>
       <div class="form-group"><label>Preferred contact</label><select id="d_preferred_contact_method"><option value="">—</option><option>Phone</option><option>Email</option><option>Text</option></select></div>
     </div>
     <div class="form-group"><label>Assigned rep</label><select id="d_assigned_rep"></select></div>
+    <div class="notes-h">Job details</div>
+    <div class="row2">
+      <div class="form-group"><label>Type of job</label><select id="d_type_of_job"><option value="">—</option><option>Wood privacy</option><option>Chain link</option><option>Ornamental iron/steel</option><option>Deck</option><option>Gate/repair</option><option>Other</option></select></div>
+      <div class="form-group"><label>Fence height</label><select id="d_fence_height"><option value="">—</option><option>4'</option><option>6'</option><option>8'</option><option>Other</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="form-group"><label>Job size</label><input id="d_job_qty" inputmode="decimal"></div>
+      <div class="form-group"><label>Unit</label><select id="d_job_qty_unit"><option value="lf">Linear ft</option><option value="sqft">Sq ft</option></select></div>
+    </div>
+    <div class="form-group"><label>Job location</label><input id="d_job_location"><button type="button" class="mini-link" onclick="copyAddrToJob('d')">Same as address ↑</button></div>
+    <div class="row2">
+      <div class="form-group check"><input type="checkbox" id="d_quoted_on_spot"><label for="d_quoted_on_spot">Quoted on the spot</label></div>
+      <div class="form-group check"><input type="checkbox" id="d_contact_validated"><label for="d_contact_validated">Contact validated</label></div>
+    </div>
+    <div class="form-group"><label>Brief description of services</label><textarea id="d_service_description"></textarea></div>
+    <div class="notes-h">Site conditions</div>
+    <div class="row2">
+      <div class="form-group"><label>Skid steer access</label><select id="d_sc_skid_steer"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div class="form-group"><label>Water on site</label><select id="d_sc_water"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="form-group"><label>Electric on site</label><select id="d_sc_electric"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div class="form-group"><label>Tear-out needed</label><select id="d_sc_tear_out"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+    </div>
+    <div class="form-group"><label>Travel / zone note</label><input id="d_sc_travel_note"></div>
     <div class="form-group"><label>Invoice2Go #</label><input id="d_invoice2go_ref"></div>
     <div class="form-group check"><input type="checkbox" id="d_do_not_contact"><label for="d_do_not_contact">Do not contact</label></div>
     <div class="btn-row">
@@ -229,7 +281,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     </div>
   </div>
 
-  <div class="stamp">build 2026-07-07h</div>
+  <div class="stamp">build 2026-07-23b</div>
 </div>
 
 <div id="toast"></div>
@@ -365,13 +417,16 @@ function renderList(){
 }
 
 function clearAddForm(){
-  ['a_full_name','a_company_name','a_phone','a_email','a_street_address','a_city','a_zip_code','a_invoice2go_ref','a_note'].forEach(function(id){ $(id).value=''; });
+  ['a_full_name','a_company_name','a_phone','a_email','a_street_address','a_city','a_zip_code','a_invoice2go_ref','a_note','a_job_qty','a_job_location','a_service_description','a_sc_travel_note'].forEach(function(id){ $(id).value=''; });
   $('a_state').value = 'TX';
   $('a_customer_type').value = 'residential';
   $('a_lead_source').value = '';
   $('a_preferred_contact_method').value = '';
   $('a_do_not_contact').checked = false;
   $('a_assigned_rep').value = currentRepId || '';
+  $('a_type_of_job').value=''; $('a_fence_height').value=''; $('a_job_qty_unit').value='lf';
+  $('a_quoted_on_spot').checked=false; $('a_contact_validated').checked=false;
+  ['a_sc_skid_steer','a_sc_water','a_sc_electric','a_sc_tear_out'].forEach(function(id){ $(id).value=''; });
 }
 
 async function saveLead(){
@@ -392,7 +447,21 @@ async function saveLead(){
     invoice2go_ref: val('a_invoice2go_ref'),
     do_not_contact: $('a_do_not_contact').checked,
     assigned_rep: $('a_assigned_rep').value || null,
-    status: 'lead'
+    status: 'lead',
+    pipeline_stage: 'new_lead',
+    type_of_job: val('a_type_of_job'),
+    fence_height: val('a_fence_height'),
+    job_qty: numOrNull('a_job_qty'),
+    job_qty_unit: $('a_job_qty_unit').value,
+    job_location: val('a_job_location'),
+    quoted_on_spot: $('a_quoted_on_spot').checked,
+    contact_validated: $('a_contact_validated').checked,
+    service_description: val('a_service_description'),
+    sc_skid_steer: triOrNull('a_sc_skid_steer'),
+    sc_water: triOrNull('a_sc_water'),
+    sc_electric: triOrNull('a_sc_electric'),
+    sc_tear_out: triOrNull('a_sc_tear_out'),
+    sc_travel_note: val('a_sc_travel_note')
   };
   var res = await sb.from('customers').insert(payload).select().single();
   if(res.error){ toast('Save failed: '+res.error.message, true); return; }
@@ -424,6 +493,16 @@ async function openCustomer(id){
   $('d_assigned_rep').value = c.assigned_rep || '';
   setVal('d_invoice2go_ref', c.invoice2go_ref);
   $('d_do_not_contact').checked = !!c.do_not_contact;
+  $('d_type_of_job').value = c.type_of_job || '';
+  $('d_fence_height').value = c.fence_height || '';
+  setVal('d_job_qty', c.job_qty); $('d_job_qty_unit').value = c.job_qty_unit || 'lf';
+  setVal('d_job_location', c.job_location);
+  $('d_quoted_on_spot').checked = !!c.quoted_on_spot;
+  $('d_contact_validated').checked = !!c.contact_validated;
+  setVal('d_service_description', c.service_description);
+  setTri('d_sc_skid_steer', c.sc_skid_steer); setTri('d_sc_water', c.sc_water);
+  setTri('d_sc_electric', c.sc_electric); setTri('d_sc_tear_out', c.sc_tear_out);
+  setVal('d_sc_travel_note', c.sc_travel_note);
   $('convertBtn').classList.toggle('hide', c.status === 'customer');
   showDetail();
   loadNotes(id);
@@ -447,6 +526,19 @@ async function saveCustomer(){
     invoice2go_ref: val('d_invoice2go_ref'),
     do_not_contact: $('d_do_not_contact').checked,
     assigned_rep: $('d_assigned_rep').value || null,
+    type_of_job: val('d_type_of_job'),
+    fence_height: val('d_fence_height'),
+    job_qty: numOrNull('d_job_qty'),
+    job_qty_unit: $('d_job_qty_unit').value,
+    job_location: val('d_job_location'),
+    quoted_on_spot: $('d_quoted_on_spot').checked,
+    contact_validated: $('d_contact_validated').checked,
+    service_description: val('d_service_description'),
+    sc_skid_steer: triOrNull('d_sc_skid_steer'),
+    sc_water: triOrNull('d_sc_water'),
+    sc_electric: triOrNull('d_sc_electric'),
+    sc_tear_out: triOrNull('d_sc_tear_out'),
+    sc_travel_note: val('d_sc_travel_note'),
     updated_at: new Date().toISOString()
   };
   var res = await sb.from('customers').update(payload).eq('id', currentCustomerId);
@@ -571,6 +663,10 @@ function openInvoice(iid){
   window.open(url,'_blank','noopener');
 }
 function val(id){ var v = $(id).value.trim(); return v === '' ? null : v; }
+function numOrNull(id){ var v=$(id).value.trim(); if(v==='') return null; var n=parseFloat(v.replace(/,/g,'')); return isNaN(n)?null:n; }
+function triOrNull(id){ var v=$(id).value; return v==='yes'?true:(v==='no'?false:null); }
+function setTri(id,v){ $(id).value = v===true?'yes':(v===false?'no':''); }
+function copyAddrToJob(p){ var parts=[($(p+'_street_address').value.trim()),[($(p+'_city').value.trim()),($(p+'_state').value.trim())].filter(Boolean).join(', '),($(p+'_zip_code').value.trim())].filter(Boolean).join('   '); $(p+'_job_location').value=parts; }
 function setVal(id, v){ $(id).value = v == null ? '' : v; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
 function money(n){ n=parseFloat(n)||0; return '$'+n.toLocaleString(undefined,{maximumFractionDigits:0}); }
